@@ -1,40 +1,75 @@
 # JurisAI Backend
 
-Backend SaaS jurídico pronto para produção com Django, DRF, PostgreSQL, Redis, Celery e integração de IA.
+Backend SaaS juridico com Django, Django REST Framework, PostgreSQL, Redis, Celery e integracao de IA.
 
 ## Recursos
 
-- Multi-tenant por organização
-- Autenticação JWT com refresh
-- Gestão de usuários, casos, prazos, documentos, pagamentos e auditoria
-- Assistente de IA com geração de petições, resumo de documentos, análise de risco e pesquisa de jurisprudência
-- Tarefas assíncronas com Celery
-- Documentação Swagger e Redoc
+- Multi-tenant por organizacao
+- Autenticacao JWT com refresh
+- Gestao de usuarios, casos, prazos, documentos, pagamentos e auditoria
+- Assistente de IA com geracao de peticoes, resumo de documentos, analise de risco e pesquisa de jurisprudencia
+- Tarefas assincronas com Celery
+- Documentacao Swagger e Redoc
+
+## Expanded Legal Services
+
+- Dashboard juridico
+- Portal do cliente
+- Tarefas internas
+- Agenda juridica
+- Templates juridicos
+- Financeiro de honorarios
+- CRM juridico
+- Base de conhecimento / RAG
+- IA com fontes
+- OCR
+- Comparacao de documentos
+- Extracao automatica de prazos
+- Assinatura eletronica
+- BI juridico
+- Compliance
+- Marketplace
 
 ## Estrutura de pastas
 
-- `accounts/`: usuários e controle de acesso
-- `organizations/`: dados de escritórios jurídicos e planos
-- `law_cases/`: processos jurídicos e fluxo de casos
+- `accounts/`: usuarios e controle de acesso
+- `organizations/`: dados de escritorios juridicos e planos
+- `law_cases/`: processos juridicos e fluxo de casos
 - `deadlines/`: prazos processuais e alertas
 - `documents/`: uploads, versionamento e modelos de documentos
-- `ai_assistant/`: integração OpenAI e RAG-ready
+- `ai_assistant/`: integracao OpenAI e RAG-ready
 - `billing/`: pagamentos e faturamento
 - `notifications/`: envio de email e WhatsApp mock
 - `audit_logs/`: trilha completa de auditoria
-- `jurisai/`: configuração Django, middleware, permissões e Celery
+- `tasks/`: tarefas internas, checklist e comentarios
+- `dashboard/`: agregacoes read-only por tenant
+- `client_portal/`: visibilidade controlada de casos, documentos e mensagens
+- `calendar_events/`: agenda juridica e eventos futuros
+- `legal_templates/`: templates dinamicos e documentos gerados
+- `legal_finance/`: invoices, honorarios, despesas e pagamentos
+- `crm/`: fundacao comercial para leads e consultas
+- `knowledge_base/`: fundacao RAG por organizacao
+- `document_analysis/`: fundacao para comparacao e extracao de prazos
+- `ocr/`: fundacao para OCR
+- `e_signature/`: fundacao para assinatura eletronica
+- `business_intelligence/`: fundacao para relatorios e snapshots
+- `compliance/`: fundacao para consentimento, retencao e pedidos LGPD
+- `marketplace/`: fundacao para marketplace de modelos
+- `jurisai/`: configuracao Django, middleware, permissoes e Celery
 
 ## Como rodar com Docker
 
-1. Copie o arquivo `.env.example` para `.env` e configure as variáveis.
-2. Construa e suba os serviços:
-   ```bash
+1. Copie o arquivo `.env.example` para `.env` e configure as variaveis.
+2. Construa e suba os servicos:
+
+```bash
 docker compose up --build
 ```
+
 3. Acesse:
-   - API: `http://localhost:8000/api/v1/`
-   - Swagger: `http://localhost:8000/swagger/`
-   - Flower: `http://localhost:5555`
+- API: `http://localhost:8000/api/v1/`
+- Swagger: `http://localhost:8000/swagger/`
+- Flower: `http://localhost:5555`
 
 ## Fluxo Docker / Compose
 
@@ -50,7 +85,7 @@ copy .env.example .env
 docker compose up -d db redis
 ```
 
-3. Execute migrações e seed:
+3. Execute migracoes e seed:
 
 ```bash
 docker compose run --rm web python manage.py migrate
@@ -63,8 +98,8 @@ docker compose run --rm web python manage.py seed_demo
 docker compose run --rm web python manage.py setup_local
 ```
 
-Observação:
-- O host `db` é esperado neste fluxo porque ele existe dentro do `docker-compose`.
+Observacao:
+- O host `db` e esperado neste fluxo porque ele existe dentro do `docker-compose`.
 
 ## Fluxo local leve com SQLite
 
@@ -82,13 +117,13 @@ Edite o `.env` e defina:
 DJANGO_USE_SQLITE=True
 ```
 
-2. Rode as migrações localmente:
+2. Rode as migracoes localmente:
 
 ```powershell
 DJANGO_USE_SQLITE=True .\.venv\Scripts\python.exe manage.py migrate
 ```
 
-3. Se quiser carregar dados de demonstração:
+3. Se quiser carregar dados de demonstracao:
 
 ```powershell
 DJANGO_USE_SQLITE=True .\.venv\Scripts\python.exe manage.py seed_demo
@@ -100,9 +135,9 @@ DJANGO_USE_SQLITE=True .\.venv\Scripts\python.exe manage.py seed_demo
 .\.venv\Scripts\python.exe -m pytest
 ```
 
-Observações:
-- `DJANGO_USE_SQLITE=True` deve continuar sendo explícito; ele não é fallback automático.
-- Não use `DJANGO_USE_SQLITE=True` em produção.
+Observacoes:
+- `DJANGO_USE_SQLITE=True` deve continuar sendo explicito; ele nao e fallback automatico.
+- Nao use `DJANGO_USE_SQLITE=True` em producao.
 
 ## Endpoints principais
 
@@ -118,6 +153,13 @@ Observações:
 - `POST /api/v1/ai/summarize-document/`
 - `POST /api/v1/ai/analyze-risk/`
 - `POST /api/v1/ai/search-jurisprudence/`
+- `GET /api/v1/dashboard/summary/`
+- `GET /api/v1/client-portal/cases/`
+- `GET /api/v1/client-portal/documents/`
+- `GET /api/v1/tasks/`
+- `GET /api/v1/calendar/events/`
+- `GET /api/v1/legal-templates/`
+- `GET /api/v1/legal-finance/summary/`
 
 ## Testes
 
@@ -125,7 +167,7 @@ Observações:
 pytest
 ```
 
-## Observações
+## Observacoes
 
-- O serviço de WhatsApp é mock, mas estruturado para integração real futura.
-- O módulo de IA está preparado para RAG com `ai_assistant.services.vector_store.VectorStore`.
+- O servico de WhatsApp e mock, mas estruturado para integracao real futura.
+- O modulo de IA esta preparado para RAG com `ai_assistant.services.vector_store.VectorStore`.

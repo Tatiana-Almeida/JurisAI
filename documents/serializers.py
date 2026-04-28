@@ -1,4 +1,5 @@
 from pathlib import Path
+import zipfile
 
 from rest_framework import serializers
 from documents.models import Document
@@ -21,6 +22,16 @@ MAGIC_SIGNATURES = {
     '.png': b'\x89PNG\r\n\x1a\n',
     '.jpg': b'\xff\xd8\xff',
     '.jpeg': b'\xff\xd8\xff',
+}
+DOCX_ZIP_SIGNATURES = (
+    b'PK\x03\x04',
+    b'PK\x05\x06',
+    b'PK\x07\x08',
+)
+DOCX_REQUIRED_ENTRIES = {
+    '[Content_Types].xml',
+    '_rels/.rels',
+    'word/document.xml',
 }
 
 
@@ -46,6 +57,25 @@ class DocumentSerializer(TenantRelationValidationMixin, OrganizationScopedValida
         uploaded_file.seek(0)
         return header.startswith(expected_signature)
 
+    def _is_valid_docx_structure(self, uploaded_file):
+        uploaded_file.seek(0)
+        header = uploaded_file.read(4)
+
+        if not header.startswith(DOCX_ZIP_SIGNATURES):
+            uploaded_file.seek(0)
+            return False
+
+        uploaded_file.seek(0)
+
+        try:
+            with zipfile.ZipFile(uploaded_file) as archive:
+                names = set(archive.namelist())
+                return DOCX_REQUIRED_ENTRIES.issubset(names)
+        except zipfile.BadZipFile:
+            return False
+        finally:
+            uploaded_file.seek(0)
+
     def validate_file(self, uploaded_file):
         if not uploaded_file:
             return uploaded_file
@@ -64,6 +94,9 @@ class DocumentSerializer(TenantRelationValidationMixin, OrganizationScopedValida
 
         if not self._matches_magic_signature(uploaded_file, extension):
             raise serializers.ValidationError('Assinatura binaria do ficheiro nao corresponde ao formato declarado')
+
+        if extension == '.docx' and not self._is_valid_docx_structure(uploaded_file):
+            raise serializers.ValidationError('Estrutura DOCX invalida ou incompleta')
 
         return uploaded_file
 

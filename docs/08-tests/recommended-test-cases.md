@@ -246,3 +246,56 @@
 - Risco: baixo
 - Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada e comportamento preservado nesta fase
 - Cobertura preparada: [tests/test_document_upload_security.py](/c:/projectos/JurisAI/tests/test_document_upload_security.py)
+
+## CT-043 Garantir isolamento multi-tenant em `Task`
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_tasks.py](/c:/projectos/JurisAI/tests/test_tasks.py)
+
+## CT-044 Garantir comentarios e checklist isolados por tenant em `Task`
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_tasks.py](/c:/projectos/JurisAI/tests/test_tasks.py)
+
+## CT-045 Validar agregacoes do `dashboard` sem mistura entre organizacoes
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_dashboard.py](/c:/projectos/JurisAI/tests/test_dashboard.py)
+
+## CT-046 Garantir visibilidade explicita de casos no `client_portal`
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_client_portal.py](/c:/projectos/JurisAI/tests/test_client_portal.py)
+
+## CT-047 Garantir partilha explicita de documentos no `client_portal`
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_client_portal.py](/c:/projectos/JurisAI/tests/test_client_portal.py)
+
+## CT-048 Garantir isolamento multi-tenant em `calendar_events`
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_calendar_events.py](/c:/projectos/JurisAI/tests/test_calendar_events.py)
+
+## CT-049 Validar geracao segura de `legal_templates`
+
+- Risco: medio
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_legal_templates.py](/c:/projectos/JurisAI/tests/test_legal_templates.py)
+
+## CT-050 Validar isolamento multi-tenant em `legal_finance`
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_legal_finance.py](/c:/projectos/JurisAI/tests/test_legal_finance.py)
+
+## CT-051 Validar placeholders seguros de `knowledge_base`, `ocr` e `document_analysis`
+
+- Risco: medio
+- Estado: [INFERIDO_DO_CODIGO] cobertura recomendada para futuras fases

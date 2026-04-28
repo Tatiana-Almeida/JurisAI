@@ -32,6 +32,20 @@ INSTALLED_APPS = [
     'billing',
     'notifications',
     'audit_logs',
+    'dashboard',
+    'client_portal',
+    'tasks',
+    'calendar_events',
+    'legal_templates',
+    'legal_finance',
+    'crm',
+    'e_signature',
+    'business_intelligence',
+    'compliance',
+    'marketplace',
+    'knowledge_base',
+    'ocr',
+    'document_analysis',
 ]
 
 MIDDLEWARE = [

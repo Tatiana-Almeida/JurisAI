@@ -1,5 +1,7 @@
+import io
 import tempfile
 from pathlib import Path
+import zipfile
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -97,6 +99,22 @@ def build_tenant_fixture():
 
 def build_upload(name, content, content_type):
     return SimpleUploadedFile(name, content, content_type=content_type)
+
+
+def build_docx_bytes(entries=None):
+    entries = entries or {
+        '[Content_Types].xml': b'<Types></Types>',
+        '_rels/.rels': b'<Relationships></Relationships>',
+        'word/document.xml': b'<w:document></w:document>',
+    }
+
+    buffer = io.BytesIO()
+
+    with zipfile.ZipFile(buffer, 'w') as archive:
+        for name, content in entries.items():
+            archive.writestr(name, content)
+
+    return buffer.getvalue()
 
 
 def build_document_payload(law_case_id, uploaded_file, content='Documento de teste'):
@@ -287,6 +305,112 @@ def test_reject_jpeg_with_invalid_magic_bytes(authenticated_tenant_client, isola
 
 
 @pytest.mark.django_db
+def test_accept_valid_docx_upload(authenticated_tenant_client, isolated_media_root):
+    client, tenant = authenticated_tenant_client
+
+    upload = build_upload(
+        'valid.docx',
+        build_docx_bytes(),
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    )
+
+    response = client.post(
+        '/api/v1/documents/',
+        build_document_payload(
+            tenant['case_b'].id,
+            upload,
+            content='DOCX valido',
+        ),
+        format='multipart',
+    )
+
+    assert response.status_code == 201
+    assert Document.objects.filter(
+        content='DOCX valido',
+        organization=tenant['org_b'],
+    ).count() == 1
+
+
+@pytest.mark.django_db
+def test_reject_docx_with_random_bytes(authenticated_tenant_client, isolated_media_root):
+    client, tenant = authenticated_tenant_client
+
+    upload = build_upload(
+        'random.docx',
+        b'NOT A ZIP DOCX',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    )
+
+    response = client.post(
+        '/api/v1/documents/',
+        build_document_payload(
+            tenant['case_b'].id,
+            upload,
+            content='DOCX bytes aleatorios',
+        ),
+        format='multipart',
+    )
+
+    assert response.status_code == 400
+    assert not Document.objects.filter(content='DOCX bytes aleatorios').exists()
+
+
+@pytest.mark.django_db
+def test_reject_docx_zip_without_word_structure(authenticated_tenant_client, isolated_media_root):
+    client, tenant = authenticated_tenant_client
+
+    upload = build_upload(
+        'not-word.docx',
+        build_docx_bytes(
+            {
+                'some/file.txt': b'zip valido mas nao docx',
+            }
+        ),
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    )
+
+    response = client.post(
+        '/api/v1/documents/',
+        build_document_payload(
+            tenant['case_b'].id,
+            upload,
+            content='DOCX zip sem estrutura Word',
+        ),
+        format='multipart',
+    )
+
+    assert response.status_code == 400
+    assert not Document.objects.filter(content='DOCX zip sem estrutura Word').exists()
+
+
+@pytest.mark.django_db
+def test_accept_docx_zip_with_minimal_word_structure(authenticated_tenant_client, isolated_media_root):
+    client, tenant = authenticated_tenant_client
+
+    upload = build_upload(
+        'minimal.docx',
+        build_docx_bytes(),
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    )
+
+    response = client.post(
+        '/api/v1/documents/',
+        build_document_payload(
+            tenant['case_b'].id,
+            upload,
+            content='DOCX estrutura minima valida',
+        ),
+        format='multipart',
+    )
+
+    assert response.status_code == 201
+    assert Document.objects.filter(
+        content='DOCX estrutura minima valida',
+        organization=tenant['org_b'],
+    ).count() == 1
+
+
+@pytest.mark.django_db
 def test_same_tenant_upload_remains_valid(authenticated_tenant_client, isolated_media_root):
     client, tenant = authenticated_tenant_client
     upload = build_upload('tenant-safe.pdf', b'%PDF-1.4 tenant document', 'application/pdf')
@@ -357,7 +481,6 @@ def test_sanitize_filename_keeps_valid_extension_and_sanitizes_multiple_dots():
     ('filename', 'content_type', 'content', 'marker'),
     [
         ('current.doc', 'application/msword', b'DOC legacy content', 'DOC continua aceite'),
-        ('current.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', b'PK\x03\x04docx-like', 'DOCX continua aceite'),
         ('current.txt', 'text/plain', b'text file content', 'TXT continua aceite'),
     ],
 )

@@ -187,3 +187,18 @@
 - [CONFIRMADO_NO_CODIGO] `DOC`, `DOCX` e `TXT` mantiveram o comportamento anterior nesta fase.
 - [CONFIRMADO_NO_CODIGO] Endpoint, schema, storage, payloads de sucesso, tenant isolation e validacoes anteriores foram preservados.
 - [CONFIRMADO_NO_CODIGO] A suite focal [tests/test_document_upload_security.py](/c:/projectos/JurisAI/tests/test_document_upload_security.py) e a suite completa passaram apos a correcao.
+
+## Mudanca
+
+- ID: `IMP-EXPANDED-SERVICES-001`
+- Titulo: Added foundation for expanded legal services modules.
+- Risco: medio
+- Estado: implementada e validada tecnicamente
+
+- [CONFIRMADO_NO_CODIGO] Foram adicionados os apps `tasks`, `dashboard`, `client_portal`, `calendar_events`, `legal_templates`, `legal_finance`, `crm`, `e_signature`, `business_intelligence`, `compliance`, `marketplace`, `knowledge_base`, `ocr` e `document_analysis` ao projeto.
+- [CONFIRMADO_NO_CODIGO] A Fase 1 entregou endpoints funcionais para tarefas, dashboard juridico, portal do cliente, agenda juridica, templates dinamicos e financeiro de honorarios.
+- [CONFIRMADO_NO_CODIGO] Os novos modelos internos preservam `organization` e os novos endpoints filtram por tenant autenticado.
+- [CONFIRMADO_NO_CODIGO] Foram criadas fundacoes seguras para `knowledge_base`, `ocr` e `document_analysis` com placeholders `501 not implemented`.
+- [CONFIRMADO_NO_CODIGO] Foram criadas fundacoes comerciais para `crm`, `e_signature`, `business_intelligence`, `compliance` e `marketplace`.
+- [CONFIRMADO_NO_CODIGO] Foram adicionadas as suites [tests/test_tasks.py](/c:/projectos/JurisAI/tests/test_tasks.py), [tests/test_dashboard.py](/c:/projectos/JurisAI/tests/test_dashboard.py), [tests/test_client_portal.py](/c:/projectos/JurisAI/tests/test_client_portal.py), [tests/test_calendar_events.py](/c:/projectos/JurisAI/tests/test_calendar_events.py), [tests/test_legal_templates.py](/c:/projectos/JurisAI/tests/test_legal_templates.py) e [tests/test_legal_finance.py](/c:/projectos/JurisAI/tests/test_legal_finance.py).
+- [CONFIRMADO_NO_CODIGO] As migrations iniciais dos novos apps foram geradas e aplicadas localmente em SQLite.
