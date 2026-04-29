@@ -100,6 +100,18 @@ class OCRKnowledgeBasePipelineRunSerializer(serializers.ModelSerializer):
     knowledge_document = serializers.UUIDField(source='knowledge_document_id', read_only=True, allow_null=True)
     indexing_job = serializers.UUIDField(source='indexing_job_id', read_only=True, allow_null=True)
     created_by = serializers.UUIDField(source='created_by_id', read_only=True)
+    used_advanced_ocr = serializers.SerializerMethodField()
+    advanced_ocr_reason = serializers.SerializerMethodField()
+    ocr_audit_log = serializers.SerializerMethodField()
+
+    def get_used_advanced_ocr(self, obj):
+        return bool(obj.metadata.get('used_advanced_ocr', False))
+
+    def get_advanced_ocr_reason(self, obj):
+        return obj.metadata.get('advanced_ocr_reason') or ''
+
+    def get_ocr_audit_log(self, obj):
+        return obj.metadata.get('ocr_audit_log_id')
 
     class Meta:
         model = OCRKnowledgeBasePipelineRun
@@ -110,10 +122,13 @@ class OCRKnowledgeBasePipelineRunSerializer(serializers.ModelSerializer):
             'knowledge_base',
             'ocr_job',
             'ocr_result',
+            'ocr_audit_log',
             'knowledge_document',
             'indexing_job',
             'status',
             'step',
+            'used_advanced_ocr',
+            'advanced_ocr_reason',
             'update_document_content',
             'error_message',
             'metadata',

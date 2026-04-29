@@ -340,6 +340,20 @@
 - [CONFIRMADO_NO_CODIGO] Foi criada a suite [tests/test_local_scanned_pdf_ocr.py](/c:/projectos/JurisAI/tests/test_local_scanned_pdf_ocr.py) para validar fluxo mockado, indisponibilidade de rasterizacao, indisponibilidade de Tesseract, tenant isolation e regressao dos fluxos existentes.
 - [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta fase foi registado em [docs/10-checkpoints/2026-04-local-scanned-pdf-ocr.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-local-scanned-pdf-ocr.md).
 
+## Mudanca
+
+- ID: `IMP-OCR-006`
+- Titulo: Integrated local scanned PDF OCR with the OCR-to-KnowledgeBase pipeline using explicit tenant settings and safe fallback.
+- Risco: medio
+- Estado: implementada e validada tecnicamente
+
+- [CONFIRMADO_NO_CODIGO] `run_ocr_to_knowledge_base_pipeline()` agora tenta OCR textual primeiro e so cai para OCR local de PDF escaneado quando o documento e PDF, a extracao padrao nao produz texto util e `scanned_pdf_ocr_mode=\"local\"` esta habilitado.
+- [CONFIRMADO_NO_CODIGO] O fallback avancado preserva `update_document_content=true` como requisito obrigatorio, mantendo a indexacao bloqueada quando OCR avancado falha.
+- [CONFIRMADO_NO_CODIGO] O pipeline agora expoe `used_advanced_ocr`, `advanced_ocr_reason` e `ocr_audit_log` derivados de `metadata`, sem quebrar os campos anteriores do endpoint.
+- [CONFIRMADO_NO_CODIGO] `OCRJob`, `OCRResult` e `OCRAuditLog` do caminho avancado permanecem associados ao `pipeline_run` por referencias diretas e/ou `metadata`, com tenant isolation preservado.
+- [CONFIRMADO_NO_CODIGO] Foi criada a suite [tests/test_scanned_pdf_ocr_pipeline.py](/c:/projectos/JurisAI/tests/test_scanned_pdf_ocr_pipeline.py) para cobrir PDF textual, fallback mockado para PDF escaneado, falhas de configuracao, falhas sem Poppler/Tesseract e `ask` com `sources` apos indexacao.
+- [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta fase foi registado em [docs/10-checkpoints/2026-04-scanned-pdf-ocr-to-knowledge-base-pipeline.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-scanned-pdf-ocr-to-knowledge-base-pipeline.md).
+
 ## v0.3.0 — Tenant-Isolated Legal RAG Foundation
 
 Resumo:

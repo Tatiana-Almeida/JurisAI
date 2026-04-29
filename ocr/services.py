@@ -25,6 +25,7 @@ SUPPORTED_TXT_EXTENSIONS = {'.txt'}
 SUPPORTED_PDF_EXTENSIONS = {'.pdf'}
 SUPPORTED_DOCX_EXTENSIONS = {'.docx'}
 SUPPORTED_IMAGE_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff', '.webp'}
+MIN_USEFUL_EXTRACTED_TEXT_LENGTH = 10
 
 
 def detect_extraction_method(document):
@@ -160,6 +161,11 @@ def extract_text_from_docx(file_bytes):
     return '\n'.join(paragraphs).strip()
 
 
+def has_useful_extracted_text(text, min_length=MIN_USEFUL_EXTRACTED_TEXT_LENGTH):
+    normalized = (text or '').strip()
+    return bool(normalized) and len(normalized) >= min_length
+
+
 def update_document_content_from_ocr(document, extracted_text, user=None):
     document.content = extracted_text
     document.save(update_fields=['content', 'updated_at'])
@@ -271,24 +277,70 @@ def run_ocr_to_knowledge_base_pipeline(
     try:
         pipeline_run.step = 'ocr'
         pipeline_run.save(update_fields=['step', 'updated_at'])
-        ocr_job, ocr_result = run_ocr_for_document(
+        standard_ocr_job, standard_ocr_result = run_ocr_for_document(
             document=document,
             user=user,
             update_document_content=False,
         )
-        pipeline_run.ocr_job = ocr_job
-        pipeline_run.ocr_result = ocr_result
-        pipeline_run.metadata['ocr_job_status'] = ocr_job.status
+        pipeline_run.ocr_job = standard_ocr_job
+        pipeline_run.ocr_result = standard_ocr_result
+        pipeline_run.metadata['standard_ocr_job_id'] = str(standard_ocr_job.id)
+        pipeline_run.metadata['standard_ocr_job_status'] = standard_ocr_job.status
         pipeline_run.save(update_fields=['ocr_job', 'ocr_result', 'metadata', 'updated_at'])
 
-        if ocr_job.status != 'completed' or ocr_result is None:
-            raise ValueError(ocr_job.error_message or 'OCR falhou antes da indexacao.')
+        final_ocr_job = standard_ocr_job
+        final_ocr_result = standard_ocr_result
+
+        if not (
+            standard_ocr_job.status == 'completed'
+            and standard_ocr_result is not None
+            and has_useful_extracted_text(standard_ocr_result.extracted_text)
+        ):
+            if _document_extension(document) not in SUPPORTED_PDF_EXTENSIONS:
+                raise ValueError(standard_ocr_job.error_message or 'OCR falhou antes da indexacao.')
+
+            settings = get_ocr_settings(document.organization)
+            if settings.scanned_pdf_ocr_mode != 'local':
+                raise ValueError(
+                    'OCR local para PDF escaneado nao esta habilitado para a organizacao atual.'
+                )
+
+            advanced_result = run_local_scanned_pdf_ocr(document=document, user=user)
+            final_ocr_job = advanced_result['job']
+            final_ocr_result = advanced_result['result']
+            pipeline_run.metadata.update(
+                {
+                    'used_advanced_ocr': True,
+                    'advanced_ocr_reason': 'standard_pdf_text_extraction_empty',
+                    'ocr_audit_log_id': str(advanced_result['audit_log'].id),
+                    'advanced_ocr_status': advanced_result['status'],
+                    'advanced_ocr_job_id': str(final_ocr_job.id),
+                }
+            )
+            pipeline_run.ocr_job = final_ocr_job
+            pipeline_run.ocr_result = final_ocr_result
+            pipeline_run.save(update_fields=['ocr_job', 'ocr_result', 'metadata', 'updated_at'])
+            if final_ocr_result is None or final_ocr_job.status != 'completed':
+                raise ValueError(final_ocr_job.error_message or advanced_result['reason'])
+        else:
+            pipeline_run.metadata.update(
+                {
+                    'used_advanced_ocr': False,
+                    'advanced_ocr_reason': '',
+                    'ocr_job_status': standard_ocr_job.status,
+                }
+            )
+            pipeline_run.save(update_fields=['metadata', 'updated_at'])
+
+        pipeline_run.ocr_job = final_ocr_job
+        pipeline_run.ocr_result = final_ocr_result
+        pipeline_run.save(update_fields=['ocr_job', 'ocr_result', 'metadata', 'updated_at'])
 
         pipeline_run.step = 'apply_to_document'
         pipeline_run.save(update_fields=['step', 'updated_at'])
-        update_document_content_from_ocr(document, ocr_result.extracted_text, user=user)
-        ocr_result.metadata['content_updated'] = True
-        ocr_result.save(update_fields=['metadata'])
+        update_document_content_from_ocr(document, final_ocr_result.extracted_text, user=user)
+        final_ocr_result.metadata['content_updated'] = True
+        final_ocr_result.save(update_fields=['metadata'])
 
         pipeline_run.step = 'index_document'
         pipeline_run.save(update_fields=['step', 'updated_at'])
@@ -329,7 +381,7 @@ def run_ocr_to_knowledge_base_pipeline(
         pipeline_run.finished_at = timezone.now()
         pipeline_run.error_message = str(exc)
         pipeline_run.save(
-            update_fields=['status', 'step', 'finished_at', 'error_message', 'updated_at']
+            update_fields=['status', 'step', 'finished_at', 'error_message', 'metadata', 'ocr_job', 'ocr_result', 'updated_at']
         )
         return pipeline_run
 

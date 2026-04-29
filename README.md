@@ -4,7 +4,7 @@ JurisAI is a multi-tenant legal SaaS backend built with Django REST Framework, d
 
 It currently provides core legal operations, initial AI support, SaaS billing, auditability, and the first wave of expanded legal services, while keeping organization isolation as a central architectural rule.
 
-Current milestone: `v0.9.0` adds a local scanned PDF OCR foundation with optional `pdf2image` rasterization and Tesseract-based page OCR, while keeping all external OCR providers disabled by default and preserving safe fallback when native dependencies are unavailable.
+Current milestone: work toward `v0.10.0` integrates governed scanned PDF OCR into the OCR-to-KnowledgeBase pipeline, keeping `update_document_content=true` explicit, tenant-scoped settings mandatory and zero external OCR calls.
 
 ## Features
 
@@ -136,6 +136,14 @@ These apps are present in the codebase with initial models and safe base routes,
 - Safe failure when `pdf2image`, Poppler or Tesseract are not available
 - No external OCR calls in the scanned PDF OCR path
 - Tests validate the adapter and flow with mocks, not with mandatory native binaries
+
+### Scanned PDF OCR to KnowledgeBase pipeline
+
+- The OCR pipeline still tries standard textual PDF extraction first
+- When textual PDF extraction is empty and the tenant enables `scanned_pdf_ocr_mode="local"`, the pipeline can fall back to governed local scanned PDF OCR
+- `update_document_content=true` remains mandatory before indexing
+- The pipeline now exposes whether advanced OCR was used and the related audit log reference
+- No external provider is called anywhere in the fallback path
 
 ### Future functional expansion
 
@@ -382,6 +390,7 @@ The current backend already includes important safety measures:
 - If Tesseract or the optional Python bindings are unavailable, the backend returns a controlled failure and records an audit log instead of crashing
 - Scanned PDF advanced OCR can attempt local rasterization and OCR when the tenant enables local mode
 - If `pdf2image` or Poppler are unavailable, scanned PDF OCR returns a controlled failure and records an audit log instead of crashing
+- The OCR-to-KnowledgeBase pipeline now falls back to governed scanned PDF OCR only when standard textual PDF extraction is not useful and tenant settings explicitly allow local scanned PDF OCR
 
 Remaining production hardening areas include:
 
@@ -396,7 +405,7 @@ Remaining production hardening areas include:
 - Production hardening
 - Embedding-based RAG with stronger local semantics and optional per-tenant external providers
 - Stronger local OCR quality and observability for scanned PDFs
-- Controlled OCR-to-Knowledge-Base indexing automation and observability
+- Controlled scanned PDF OCR-to-KnowledgeBase automation and observability
 - Advanced CRM workflows
 - E-signature provider integration
 - BI dashboards

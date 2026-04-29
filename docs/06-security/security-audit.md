@@ -47,4 +47,6 @@
 - [CONFIRMADO_NO_CODIGO] Foi adicionada a fundacao de OCR local para PDF escaneado com rasterizacao opcional via `pdf2image`; quando Poppler ou a dependencia Python nao estao disponiveis, o backend retorna falha controlada e auditavel.
 - [CONFIRMADO_NO_CODIGO] OCR de PDF escaneado continua totalmente local nesta fase e nao envia qualquer documento para provider externo.
 - [CONFIRMADO_NO_CODIGO] Quando o binario do Tesseract nao esta disponivel para OCR de PDF escaneado, o backend registra `OCRAuditLog` e `OCRJob` com falha controlada, preservando o documento original.
+- [CONFIRMADO_NO_CODIGO] O pipeline `OCR -> Document.content -> KnowledgeBase` agora pode fazer fallback para OCR local de PDF escaneado apenas quando a extracao textual padrao nao e util e `scanned_pdf_ocr_mode=local` esta habilitado no tenant.
+- [CONFIRMADO_NO_CODIGO] Mesmo no fallback do pipeline, `Document.content` so e atualizado com `update_document_content=true`, e qualquer falha de OCR avancado impede a indexacao sem apagar o conteudo anterior do documento.
 - [PRECISA_VALIDAR] PDF escaneado ou imagem ainda nao recebe OCR real nesta fase; isso reduz superficie externa, mas deixa cobertura funcional incompleta para documentos sem camada textual.

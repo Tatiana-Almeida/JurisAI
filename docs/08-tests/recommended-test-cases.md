@@ -629,3 +629,39 @@
 - Risco: alto
 - Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
 - Cobertura preparada: [tests/test_local_scanned_pdf_ocr.py](/c:/projectos/JurisAI/tests/test_local_scanned_pdf_ocr.py)
+
+## CT-107 Validar pipeline com PDF textual mantendo OCR padrao
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_scanned_pdf_ocr_pipeline.py](/c:/projectos/JurisAI/tests/test_scanned_pdf_ocr_pipeline.py)
+
+## CT-108 Validar pipeline com PDF escaneado mockado usando fallback OCR local governado
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_scanned_pdf_ocr_pipeline.py](/c:/projectos/JurisAI/tests/test_scanned_pdf_ocr_pipeline.py)
+
+## CT-109 Validar pipeline com falha quando `scanned_pdf_ocr_mode` nao esta habilitado
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_scanned_pdf_ocr_pipeline.py](/c:/projectos/JurisAI/tests/test_scanned_pdf_ocr_pipeline.py)
+
+## CT-110 Validar pipeline com falha controlada sem Poppler/pdf2image
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_scanned_pdf_ocr_pipeline.py](/c:/projectos/JurisAI/tests/test_scanned_pdf_ocr_pipeline.py)
+
+## CT-111 Validar pipeline com falha controlada sem Tesseract
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_scanned_pdf_ocr_pipeline.py](/c:/projectos/JurisAI/tests/test_scanned_pdf_ocr_pipeline.py)
+
+## CT-112 Validar `ask` com `sources` apos pipeline com PDF escaneado
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_scanned_pdf_ocr_pipeline.py](/c:/projectos/JurisAI/tests/test_scanned_pdf_ocr_pipeline.py)
