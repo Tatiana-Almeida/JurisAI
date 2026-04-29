@@ -4,7 +4,7 @@ JurisAI is a multi-tenant legal SaaS backend built with Django REST Framework, d
 
 It currently provides core legal operations, initial AI support, SaaS billing, auditability, and the first wave of expanded legal services, while keeping organization isolation as a central architectural rule.
 
-Current milestone: `v0.11.0` adds tenant-configurable OCR limits and page-level observability for scanned PDF OCR, plus a first backend stabilization layer with CI, migration checks and a public healthcheck.
+Current milestone: `v1.0.0-rc.1` marks the first Backend MVP Stabilization release candidate, consolidating the multi-tenant legal SaaS backend, Knowledge Base / RAG, local OCR foundations, document pipelines, CI, validated Docker runtime and production readiness guidance.
 
 ## Features
 
@@ -400,6 +400,7 @@ It returns a simple payload with service status and version and does not expose 
 - Redis should remain internal to the Docker network unless there is an explicit operational need to expose it.
 - `pytest` no longer uses `--reuse-db` by default; that flag can still be used manually in local debugging when desired.
 - The production rollout checklist is documented in [docs/11-production/production-readiness-checklist.md](/c:/projectos/JurisAI/docs/11-production/production-readiness-checklist.md).
+- The release candidate checklist for `v1.0.0-rc.1` is documented in [docs/11-production/release-candidate-checklist.md](/c:/projectos/JurisAI/docs/11-production/release-candidate-checklist.md).
 
 ## Tests
 
@@ -411,6 +412,7 @@ Run the full suite with:
 
 The repository currently includes coverage for:
 
+- full backend regression validation for the `v1.0.0-rc.1` candidate with `192 passed`
 - tenant isolation regressions
 - billing webhook security and orchestration
 - document upload hardening

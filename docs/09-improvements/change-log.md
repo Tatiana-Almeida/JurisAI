@@ -544,3 +544,14 @@ Resumo:
 - [CONFIRMADO_NO_CODIGO] O Redis deixou de expor porta publica no host e ficou restrito a networking interno do Compose, mantendo password obrigatoria.
 - [CONFIRMADO_NO_CODIGO] Foi criada a checklist de producao em [docs/11-production/production-readiness-checklist.md](/c:/projectos/JurisAI/docs/11-production/production-readiness-checklist.md).
 - [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta fase foi registado em [docs/10-checkpoints/2026-04-runtime-hardening-production-checklist.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-runtime-hardening-production-checklist.md).
+
+## v1.0.0-rc.1 - Backend MVP Stabilization
+
+- Consolidated backend MVP release candidate.
+- Validated CI, healthcheck and Docker runtime.
+- Consolidated SaaS legal services, Knowledge Base/RAG, OCR and document pipelines.
+- Added deployment hardening and runtime hardening.
+- Added production readiness checklist.
+- Preserved tenant isolation.
+- Preserved external providers disabled by default.
+- Local and container test suites passed.
