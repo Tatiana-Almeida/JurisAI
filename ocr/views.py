@@ -21,7 +21,7 @@ from ocr.serializers import (
 )
 from ocr.services import (
     get_ocr_settings,
-    run_advanced_ocr_placeholder,
+    run_advanced_ocr,
     run_ocr_for_document,
     run_ocr_to_knowledge_base_pipeline,
     update_document_content_from_ocr,
@@ -220,7 +220,7 @@ class OCRAdvancedRunView(generics.GenericAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        result = run_advanced_ocr_placeholder(
+        result = run_advanced_ocr(
             document=document,
             user=request.user,
             mode=serializer.validated_data['mode'],
@@ -231,6 +231,7 @@ class OCRAdvancedRunView(generics.GenericAPIView):
                 'reason': result['reason'],
                 'job': OCRJobSerializer(result['job']).data,
                 'audit_log': OCRAuditLogSerializer(result['audit_log']).data,
+                'result': OCRResultSerializer(result['result']).data if result.get('result') else None,
             },
             status=status.HTTP_200_OK,
         )

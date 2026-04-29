@@ -15,6 +15,8 @@ class OCRJob(models.Model):
         ('txt', 'TXT'),
         ('pdf_text', 'PDF text'),
         ('docx_text', 'DOCX text'),
+        ('image_local', 'Local image OCR'),
+        ('scanned_pdf_local', 'Local scanned PDF OCR'),
         ('unsupported', 'Unsupported'),
     ]
 
@@ -147,6 +149,7 @@ class OCRSettings(models.Model):
     ]
     OCR_MODE_CHOICES = [
         ('disabled', 'Disabled'),
+        ('local', 'Local'),
         ('local_placeholder', 'Local placeholder'),
         ('external', 'External'),
     ]

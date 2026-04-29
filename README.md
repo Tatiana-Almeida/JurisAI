@@ -4,7 +4,7 @@ JurisAI is a multi-tenant legal SaaS backend built with Django REST Framework, d
 
 It currently provides core legal operations, initial AI support, SaaS billing, auditability, and the first wave of expanded legal services, while keeping organization isolation as a central architectural rule.
 
-Current milestone: `v0.7.0` adds advanced OCR governance with organization-level settings, explicit opt-in for future external providers and audit logs for image and scanned-PDF OCR attempts, while keeping all external OCR providers disabled by default.
+Current milestone: work toward `v0.8.0` adds a local image OCR engine foundation with an optional Tesseract adapter, governed `advanced-run` behavior and safe fallback when local OCR dependencies are unavailable, while keeping all external OCR providers disabled by default.
 
 ## Features
 
@@ -101,6 +101,7 @@ These apps are present in the codebase with initial models and safe base routes,
 - Local text extraction for `TXT`
 - Local text extraction for textual `PDF` layers
 - Local text extraction for `DOCX`
+- Optional local image OCR foundation via Tesseract adapter when available
 - Explicit `apply-to-document` flow before changing `Document.content`
 - Controlled OCR-to-Knowledge-Base pipeline with explicit `update_document_content=true`
 - Zero external OCR calls in the active pipeline
@@ -119,6 +120,14 @@ These apps are present in the codebase with initial models and safe base routes,
 - Advanced OCR audit logs for image and scanned-PDF attempts
 - Placeholder `advanced-run` flow with zero external calls in this phase
 - No document content leaves the system in the current advanced OCR foundation
+
+### Local image OCR engine foundation
+
+- Optional local image OCR via a governed Tesseract adapter
+- `advanced-run` can execute local OCR for `PNG`, `JPG` and `JPEG` when tenant settings explicitly allow local mode
+- Safe failure when the local OCR engine or native Tesseract binary is not available
+- No external OCR calls in the local image OCR path
+- Scanned PDF OCR remains a governed placeholder until a stable local pipeline is introduced
 
 ### Future functional expansion
 
@@ -361,6 +370,9 @@ The current backend already includes important safety measures:
 - No document is sent to external OCR providers in the current phase
 - Advanced OCR settings are organization-scoped and default to a fully disabled external OCR posture
 - Image/scanned-PDF advanced OCR attempts are audited without storing raw extracted content
+- Local image OCR can use an optional Tesseract adapter entirely inside the backend when the tenant enables local mode
+- If Tesseract or the optional Python bindings are unavailable, the backend returns a controlled failure and records an audit log instead of crashing
+- Scanned PDF advanced OCR still falls back to a governed placeholder in the current phase
 
 Remaining production hardening areas include:
 
@@ -374,7 +386,7 @@ Remaining production hardening areas include:
 
 - Production hardening
 - Embedding-based RAG with stronger local semantics and optional per-tenant external providers
-- OCR provider integration for image-based documents
+- Stronger local OCR for images and scanned PDFs
 - Controlled OCR-to-Knowledge-Base indexing automation and observability
 - Advanced CRM workflows
 - E-signature provider integration

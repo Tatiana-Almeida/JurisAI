@@ -311,6 +311,21 @@
 - [CONFIRMADO_NO_CODIGO] Foi criada a suite [tests/test_ocr_governance.py](/c:/projectos/JurisAI/tests/test_ocr_governance.py) cobrindo defaults, opt-in, `advanced-run`, logs, cross-tenant e regressao do pipeline existente.
 - [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta fase foi registado em [docs/10-checkpoints/2026-04-advanced-ocr-governance.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-advanced-ocr-governance.md).
 
+## Mudanca
+
+- ID: `IMP-OCR-004`
+- Titulo: Added local image OCR engine foundation with governed Tesseract adapter and safe fallback.
+- Risco: medio
+- Estado: implementada e validada tecnicamente
+
+- [CONFIRMADO_NO_CODIGO] Foi criado [ocr/local_engines.py](/c:/projectos/JurisAI/ocr/local_engines.py) com `TesseractOCREngine`, detecao segura de dependencias opcionais e fallback controlado quando a engine local nao esta disponivel.
+- [CONFIRMADO_NO_CODIGO] `OCRSettings` passou a aceitar `image_ocr_mode=\"local\"` e `scanned_pdf_ocr_mode=\"local\"`, preservando defaults seguros e sem ativar OCR externo.
+- [CONFIRMADO_NO_CODIGO] `advanced-run` agora tenta OCR local para imagens `PNG`, `JPG` e `JPEG` quando o tenant habilita local OCR e o provider preferido e `tesseract` ou `local`.
+- [CONFIRMADO_NO_CODIGO] Quando o binario do Tesseract ou as bindings opcionais nao estao disponiveis, o backend retorna falha controlada com `OCRJob` e `OCRAuditLog`, sem quebrar OCR textual existente nem o pipeline `OCR -> KnowledgeBase`.
+- [CONFIRMADO_NO_CODIGO] OCR de PDF escaneado continua como placeholder governado nesta fase e responde com motivo auditavel em vez de chamar provider externo.
+- [CONFIRMADO_NO_CODIGO] Foi criada a suite [tests/test_local_image_ocr.py](/c:/projectos/JurisAI/tests/test_local_image_ocr.py) para validar OCR local mockado, indisponibilidade da engine, tenant isolation e placeholder seguro para PDF escaneado.
+- [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta fase foi registado em [docs/10-checkpoints/2026-04-local-image-ocr-engine.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-local-image-ocr-engine.md).
+
 ## v0.3.0 — Tenant-Isolated Legal RAG Foundation
 
 Resumo:

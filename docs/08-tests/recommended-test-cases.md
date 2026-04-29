@@ -569,3 +569,33 @@
 - Risco: alto
 - Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
 - Cobertura preparada: [tests/test_ocr_governance.py](/c:/projectos/JurisAI/tests/test_ocr_governance.py)
+
+## CT-097 Validar OCR local de imagem com engine mockada e `advanced-run`
+
+- Risco: medio
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_local_image_ocr.py](/c:/projectos/JurisAI/tests/test_local_image_ocr.py)
+
+## CT-098 Validar falha controlada quando engine local de OCR nao esta disponivel
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_local_image_ocr.py](/c:/projectos/JurisAI/tests/test_local_image_ocr.py)
+
+## CT-099 Validar bloqueio cross-tenant no OCR local de imagem
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_local_image_ocr.py](/c:/projectos/JurisAI/tests/test_local_image_ocr.py)
+
+## CT-100 Validar placeholder seguro para OCR local de PDF escaneado
+
+- Risco: medio
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_local_image_ocr.py](/c:/projectos/JurisAI/tests/test_local_image_ocr.py)
+
+## CT-101 Preservar regressao do OCR textual existente e do pipeline OCR -> KnowledgeBase apos OCR local de imagem
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_ocr_governance.py](/c:/projectos/JurisAI/tests/test_ocr_governance.py)
