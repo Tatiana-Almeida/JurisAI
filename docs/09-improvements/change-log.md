@@ -419,3 +419,19 @@ Resumo:
 - Kept external OCR providers disabled.
 - Full suite: `165 passed`.
 - Release checkpoint: [docs/10-checkpoints/2026-04-release-v0.8.0.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-release-v0.8.0.md)
+
+## v0.9.0 - Local Scanned PDF OCR Foundation
+
+- Added local scanned PDF OCR foundation.
+- Added `PDFRasterizationUnavailable`.
+- Added `ScannedPDFOCRUnavailable`.
+- Added scanned PDF OCR support through local `pdf2image` rasterization when available.
+- Added governed per-page OCR with local Tesseract adapter.
+- Added safe fallback when Poppler/pdf2image is unavailable.
+- Added safe fallback when Tesseract is unavailable.
+- Preserved textual PDF extraction.
+- Preserved local image OCR.
+- Preserved OCR-to-KnowledgeBase pipeline.
+- Kept all external OCR providers disabled.
+- Full suite: `174 passed`.
+- Release checkpoint: [docs/10-checkpoints/2026-04-release-v0.9.0.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-release-v0.9.0.md)
