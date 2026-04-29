@@ -518,3 +518,17 @@ Resumo:
 - [CONFIRMADO_NO_CODIGO] `pytest.ini` deixou de ativar `--reuse-db` por defeito.
 - [CONFIRMADO_NO_CODIGO] O ficheiro `JURISAI_MASTER_PROMPT (1).md` foi renomeado para [docs/00-project/JURISAI_MASTER_PROMPT.md](/c:/projectos/JurisAI/docs/00-project/JURISAI_MASTER_PROMPT.md).
 - [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta fase foi registado em [docs/10-checkpoints/2026-04-deployment-security-hardening.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-deployment-security-hardening.md).
+
+## Mudanca
+
+- ID: `IMP-STAB-003`
+- Titulo: Validated Docker runtime build, healthchecks and container smoke tests.
+- Risco: baixo
+- Estado: implementada e validada tecnicamente
+
+- [CONFIRMADO_NO_CODIGO] `docker compose build` passou com a stack endurecida e a imagem unica `jurisai-app:latest` passou a ser reutilizada por `web`, `worker` e `flower`, evitando colisao de exportacao do buildx no Windows.
+- [CONFIRMADO_NO_CODIGO] Foi adicionada a dependencia pinada `flower==2.0.1` para garantir que o comando `celery flower` existe no runtime do container.
+- [CONFIRMADO_NO_CODIGO] `docker compose up -d` subiu `web`, `db`, `redis`, `worker` e `flower`, com `GET /health/` retornando `200`.
+- [CONFIRMADO_NO_CODIGO] `docker compose exec web python manage.py check`, `makemigrations --check --dry-run`, `python -m pytest tests/test_healthcheck.py` e `python -m pytest` passaram dentro do container.
+- [CONFIRMADO_NO_CODIGO] O Redis respondeu `PONG` com password e o Flower permaneceu sem exposicao publica por porta direta.
+- [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta fase foi registado em [docs/10-checkpoints/2026-04-docker-runtime-validation.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-docker-runtime-validation.md).

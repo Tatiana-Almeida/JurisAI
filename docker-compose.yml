@@ -1,5 +1,6 @@
 services:
   web:
+    image: jurisai-app:latest
     build: .
     command: gunicorn jurisai.wsgi:application --bind 0.0.0.0:8000 --workers 3
     env_file: .env
@@ -51,7 +52,7 @@ services:
       start_period: 5s
 
   worker:
-    build: .
+    image: jurisai-app:latest
     command: celery -A jurisai worker --loglevel=info
     env_file: .env
     environment:
@@ -71,7 +72,7 @@ services:
       start_period: 30s
 
   flower:
-    build: .
+    image: jurisai-app:latest
     command: celery -A jurisai flower --port=5555 --basic_auth=${FLOWER_USER:-admin}:${FLOWER_PASSWORD:-change-me}
     env_file: .env
     environment:
