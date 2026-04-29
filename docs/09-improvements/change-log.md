@@ -532,3 +532,15 @@ Resumo:
 - [CONFIRMADO_NO_CODIGO] `docker compose exec web python manage.py check`, `makemigrations --check --dry-run`, `python -m pytest tests/test_healthcheck.py` e `python -m pytest` passaram dentro do container.
 - [CONFIRMADO_NO_CODIGO] O Redis respondeu `PONG` com password e o Flower permaneceu sem exposicao publica por porta direta.
 - [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta fase foi registado em [docs/10-checkpoints/2026-04-docker-runtime-validation.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-docker-runtime-validation.md).
+
+## Mudanca
+
+- ID: `IMP-STAB-004`
+- Titulo: Added final runtime hardening with non-root containers, private Redis networking and production readiness checklist.
+- Risco: medio
+- Estado: implementada e validada tecnicamente
+
+- [CONFIRMADO_NO_CODIGO] O `Dockerfile` passou a criar `appuser/appgroup`, preparar diretórios de runtime e executar `web`, `worker` e `flower` como utilizador nao-root.
+- [CONFIRMADO_NO_CODIGO] O Redis deixou de expor porta publica no host e ficou restrito a networking interno do Compose, mantendo password obrigatoria.
+- [CONFIRMADO_NO_CODIGO] Foi criada a checklist de producao em [docs/11-production/production-readiness-checklist.md](/c:/projectos/JurisAI/docs/11-production/production-readiness-checklist.md).
+- [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta fase foi registado em [docs/10-checkpoints/2026-04-runtime-hardening-production-checklist.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-runtime-hardening-production-checklist.md).

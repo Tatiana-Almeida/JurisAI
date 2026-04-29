@@ -289,7 +289,9 @@ Notes:
 - The Docker image no longer runs `collectstatic` during build.
 - Static collection can run at runtime only when `RUN_COLLECTSTATIC=True`.
 - The runtime image now includes native OCR binaries such as `tesseract-ocr` and `poppler-utils`.
+- The application containers now run as a non-root user inside the image.
 - Redis should be protected with `REDIS_PASSWORD`.
+- Redis is intended to stay private on the internal Docker network and is no longer exposed publicly by default.
 - Flower should be protected with `FLOWER_USER` and `FLOWER_PASSWORD` and kept behind a VPN or reverse proxy in production.
 
 3. Or run the database and supporting services first:
@@ -392,9 +394,12 @@ It returns a simple payload with service status and version and does not expose 
 - CI currently validates Django checks, migration drift and the full test suite using SQLite.
 - The public healthcheck is intentionally simple and avoids sensitive runtime details.
 - Production deployment still needs environment-specific hardening for infrastructure, monitoring, secrets rotation and native OCR dependencies.
+- Runtime containers now run as non-root by default, reducing the blast radius of process compromise.
 - Optional local OCR paths for image and scanned PDF continue to rely on native tooling such as Tesseract and Poppler in the runtime environment.
 - Redis and Flower credentials in `.env.example` are placeholders only and must be replaced with real secrets outside the repository.
+- Redis should remain internal to the Docker network unless there is an explicit operational need to expose it.
 - `pytest` no longer uses `--reuse-db` by default; that flag can still be used manually in local debugging when desired.
+- The production rollout checklist is documented in [docs/11-production/production-readiness-checklist.md](/c:/projectos/JurisAI/docs/11-production/production-readiness-checklist.md).
 
 ## Tests
 

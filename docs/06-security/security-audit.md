@@ -63,3 +63,6 @@
 - [CONFIRMADO_NO_CODIGO] `requirements.txt` passou a usar pins exatos para reduzir drift de dependencias entre ambientes.
 - [CONFIRMADO_NO_CODIGO] `pytest.ini` deixou de ativar `--reuse-db` por defeito, evitando que o CI oculte problemas de migrations ou schema.
 - [PRECISA_VALIDAR] PDF escaneado ou imagem ainda nao recebe OCR real nesta fase; isso reduz superficie externa, mas deixa cobertura funcional incompleta para documentos sem camada textual.
+- [CONFIRMADO_NO_CODIGO] Os containers `web`, `worker` e `flower` agora executam como utilizador nao-root, mitigando o `SecurityWarning` do Celery por arranque como `root`.
+- [CONFIRMADO_NO_CODIGO] O Redis deixou de ter exposicao publica por porta no host e permanece acessivel apenas pela rede interna do Compose, mantendo password obrigatoria.
+- [CONFIRMADO_NO_CODIGO] Foi criada uma checklist de producao em [docs/11-production/production-readiness-checklist.md](/c:/projectos/JurisAI/docs/11-production/production-readiness-checklist.md) para reverse proxy, TLS, backups, secrets e observabilidade externa.
