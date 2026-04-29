@@ -250,3 +250,16 @@
 - [CONFIRMADO_NO_CODIGO] O endpoint `ask` passou a retornar `effective_retrieval_mode`, `fallback_used` e `fallback_reason`, mantendo `retrieval_method=\"textual\"` enquanto embeddings nao estao efetivos.
 - [CONFIRMADO_NO_CODIGO] A suite [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py) foi expandida para cobrir settings, opt-in, audit logs, fallback textual e limite de fontes.
 - [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta camada foi registado em [docs/10-checkpoints/2026-04-rag-governance.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-rag-governance.md).
+
+## v0.3.0 — Tenant-Isolated Legal RAG Foundation
+
+Resumo:
+
+- Added functional tenant-isolated textual RAG
+- Added sources, confidence and retrieval metadata
+- Added indexing observability
+- Added stats and reindexing
+- Added RAGSettings and EmbeddingAuditLog
+- Added explicit governance for future external embeddings
+- No external provider enabled by default
+- Release checkpoint: [docs/10-checkpoints/2026-04-release-v0.3.0.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-release-v0.3.0.md)
