@@ -335,3 +335,16 @@ Resumo:
 - No external OCR provider enabled.
 - Full suite: `140 passed`.
 - Release checkpoint: [docs/10-checkpoints/2026-04-release-v0.5.0.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-release-v0.5.0.md)
+
+## v0.6.0 - OCR to Knowledge Base Pipeline
+
+- Added `OCRKnowledgeBasePipelineRun`.
+- Added controlled OCR -> Document.content -> KnowledgeBase pipeline.
+- Added pipeline endpoint for tenant-isolated document ingestion.
+- Required explicit `update_document_content=true` for pipeline execution.
+- Linked pipeline runs to `OCRJob`, `OCRResult`, `KnowledgeDocument` and `IndexingJob`.
+- Added ask-with-sources validation after pipeline completion.
+- Preserved existing OCR and KnowledgeBase endpoints.
+- No external OCR provider enabled.
+- Full suite: `148 passed`.
+- Release checkpoint: [docs/10-checkpoints/2026-04-release-v0.6.0.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-release-v0.6.0.md)
