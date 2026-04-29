@@ -7,16 +7,21 @@ from django_filters.rest_framework import DjangoFilterBackend
 from documents.models import Document
 from jurisai.permissions import IsOrganizationMember
 from knowledge_base.models import KnowledgeBase
-from ocr.models import OCRJob, OCRKnowledgeBasePipelineRun, OCRResult
+from ocr.models import OCRAuditLog, OCRJob, OCRKnowledgeBasePipelineRun, OCRResult
 from ocr.serializers import (
+    AdvancedOCRRunSerializer,
     ApplyOCRResultSerializer,
+    OCRAuditLogSerializer,
     OCRJobSerializer,
     OCRKnowledgeBasePipelineRunSerializer,
     OCRResultSerializer,
+    OCRSettingsSerializer,
     RunOCRKnowledgeBasePipelineSerializer,
     RunOCRSerializer,
 )
 from ocr.services import (
+    get_ocr_settings,
+    run_advanced_ocr_placeholder,
     run_ocr_for_document,
     run_ocr_to_knowledge_base_pipeline,
     update_document_content_from_ocr,
@@ -156,3 +161,76 @@ class OCRKnowledgeBasePipelineRunViewSet(OrganizationFilteredReadOnlyViewSet):
         )
         response_status = status.HTTP_200_OK if pipeline_run.status == 'completed' else status.HTTP_400_BAD_REQUEST
         return Response(OCRKnowledgeBasePipelineRunSerializer(pipeline_run).data, status=response_status)
+
+
+class OrganizationOCRSettingsView(generics.RetrieveUpdateAPIView):
+    serializer_class = OCRSettingsSerializer
+    permission_classes = [IsAuthenticated, IsOrganizationMember]
+
+    def get_object(self):
+        organization = getattr(self.request.user, 'organization', None)
+        return get_ocr_settings(organization)
+
+    def update(self, request, *args, **kwargs):
+        if getattr(request.user, 'role', None) != 'admin':
+            return Response(
+                {'detail': 'Apenas administradores podem atualizar as configuracoes de OCR.'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(updated_by=request.user)
+        return Response(serializer.data)
+
+
+class OCRAuditLogViewSet(OrganizationFilteredReadOnlyViewSet):
+    queryset = OCRAuditLog.objects.select_related(
+        'organization',
+        'document',
+        'ocr_job',
+        'created_by',
+    ).all()
+    serializer_class = OCRAuditLogSerializer
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['document_id', 'ocr_job_id', 'action', 'status', 'reason', 'provider', 'mode']
+    ordering_fields = ['created_at']
+
+
+class OCRAdvancedRunView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated, IsOrganizationMember]
+    serializer_class = AdvancedOCRRunSerializer
+
+    def post(self, request, document_id):
+        serializer = self.get_serializer(
+            data=request.data,
+            context={'request': request, 'document_id': document_id},
+        )
+        serializer.is_valid(raise_exception=True)
+
+        document = Document.objects.filter(
+            pk=serializer.validated_data['document_id'],
+            organization=request.user.organization,
+        ).select_related('organization').first()
+        if document is None:
+            return Response(
+                {'document_id': ['Este recurso nao pertence a organizacao atual.']},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        result = run_advanced_ocr_placeholder(
+            document=document,
+            user=request.user,
+            mode=serializer.validated_data['mode'],
+        )
+        return Response(
+            {
+                'status': result['status'],
+                'reason': result['reason'],
+                'job': OCRJobSerializer(result['job']).data,
+                'audit_log': OCRAuditLogSerializer(result['audit_log']).data,
+            },
+            status=status.HTTP_200_OK,
+        )

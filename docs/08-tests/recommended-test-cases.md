@@ -533,3 +533,39 @@
 - Risco: alto
 - Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
 - Cobertura preparada: [tests/test_ocr_pipeline.py](/c:/projectos/JurisAI/tests/test_ocr_pipeline.py)
+
+## CT-091 Validar `OCRSettings` com defaults seguros por organizacao
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_ocr_governance.py](/c:/projectos/JurisAI/tests/test_ocr_governance.py)
+
+## CT-092 Validar opt-in explicito para OCR externo
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_ocr_governance.py](/c:/projectos/JurisAI/tests/test_ocr_governance.py)
+
+## CT-093 Validar `advanced-run` como `skipped` seguro e auditavel
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_ocr_governance.py](/c:/projectos/JurisAI/tests/test_ocr_governance.py)
+
+## CT-094 Validar `OCRAuditLog` filtrado por tenant
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_ocr_governance.py](/c:/projectos/JurisAI/tests/test_ocr_governance.py)
+
+## CT-095 Bloquear `advanced-run` com documento de outro tenant
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_ocr_governance.py](/c:/projectos/JurisAI/tests/test_ocr_governance.py)
+
+## CT-096 Preservar OCR local e pipeline OCR -> KnowledgeBase apos governanca avancada
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_ocr_governance.py](/c:/projectos/JurisAI/tests/test_ocr_governance.py)

@@ -134,3 +134,103 @@ class OCRKnowledgeBasePipelineRun(models.Model):
 
     def __str__(self):
         return f'{self.document_id} -> {self.knowledge_base_id} [{self.status}]'
+
+
+class OCRSettings(models.Model):
+    OCR_PROVIDER_CHOICES = [
+        ('local', 'Local'),
+        ('tesseract', 'Tesseract'),
+        ('google_vision', 'Google Vision'),
+        ('azure_vision', 'Azure Vision'),
+        ('aws_textract', 'AWS Textract'),
+        ('other', 'Other'),
+    ]
+    OCR_MODE_CHOICES = [
+        ('disabled', 'Disabled'),
+        ('local_placeholder', 'Local placeholder'),
+        ('external', 'External'),
+    ]
+
+    organization = models.OneToOneField(
+        'organizations.Organization',
+        on_delete=models.PROTECT,
+        related_name='ocr_settings',
+    )
+    advanced_ocr_enabled = models.BooleanField(default=False)
+    external_ocr_enabled = models.BooleanField(default=False)
+    allow_document_content_to_external_ocr_provider = models.BooleanField(default=False)
+    preferred_ocr_provider = models.CharField(max_length=40, choices=OCR_PROVIDER_CHOICES, default='local')
+    preferred_ocr_model = models.CharField(max_length=120, blank=True)
+    image_ocr_mode = models.CharField(max_length=30, choices=OCR_MODE_CHOICES, default='disabled')
+    scanned_pdf_ocr_mode = models.CharField(max_length=30, choices=OCR_MODE_CHOICES, default='disabled')
+    require_human_review = models.BooleanField(default=True)
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name='ocr_settings_updates',
+        null=True,
+        blank=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['organization_id']
+
+    def __str__(self):
+        return f'OCR settings - {self.organization_id}'
+
+
+class OCRAuditLog(models.Model):
+    ACTION_CHOICES = [
+        ('requested', 'Requested'),
+        ('skipped', 'Skipped'),
+        ('failed', 'Failed'),
+        ('completed', 'Completed'),
+    ]
+    STATUS_CHOICES = [
+        ('ok', 'OK'),
+        ('skipped', 'Skipped'),
+        ('failed', 'Failed'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization = models.ForeignKey(
+        'organizations.Organization',
+        on_delete=models.PROTECT,
+        related_name='ocr_audit_logs',
+    )
+    document = models.ForeignKey(
+        'documents.Document',
+        on_delete=models.SET_NULL,
+        related_name='ocr_audit_logs',
+        null=True,
+        blank=True,
+    )
+    ocr_job = models.ForeignKey(
+        'ocr.OCRJob',
+        on_delete=models.SET_NULL,
+        related_name='audit_logs',
+        null=True,
+        blank=True,
+    )
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES)
+    provider = models.CharField(max_length=120, blank=True)
+    mode = models.CharField(max_length=40, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ok')
+    reason = models.CharField(max_length=120, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name='ocr_audit_logs',
+        null=True,
+        blank=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at', 'id']
+
+    def __str__(self):
+        return f'{self.organization_id} - {self.action} - {self.reason}'

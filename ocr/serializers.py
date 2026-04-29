@@ -3,7 +3,14 @@ from rest_framework import serializers
 from documents.models import Document
 from jurisai.serializers import OrganizationScopedValidationMixin, TenantRelationValidationMixin
 from knowledge_base.models import KnowledgeBase
-from ocr.models import OCRJob, OCRKnowledgeBasePipelineRun, OCRResult
+from ocr.models import (
+    OCRAuditLog,
+    OCRJob,
+    OCRKnowledgeBasePipelineRun,
+    OCRResult,
+    OCRSettings,
+)
+from ocr.services import validate_ocr_provider_policy
 
 
 class OCRJobSerializer(serializers.ModelSerializer):
@@ -140,3 +147,101 @@ class RunOCRKnowledgeBasePipelineSerializer(TenantRelationValidationMixin, seria
                 {'update_document_content': 'update_document_content must be true for OCR-to-KnowledgeBase pipeline.'}
             )
         return validated
+
+
+class OCRSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OCRSettings
+        fields = [
+            'organization',
+            'advanced_ocr_enabled',
+            'external_ocr_enabled',
+            'allow_document_content_to_external_ocr_provider',
+            'preferred_ocr_provider',
+            'preferred_ocr_model',
+            'image_ocr_mode',
+            'scanned_pdf_ocr_mode',
+            'require_human_review',
+            'updated_by',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['organization', 'updated_by', 'created_at', 'updated_at']
+
+    def validate(self, attrs):
+        instance = self.instance
+        candidate = OCRSettings(
+            organization=getattr(instance, 'organization', None),
+            advanced_ocr_enabled=attrs.get(
+                'advanced_ocr_enabled',
+                getattr(instance, 'advanced_ocr_enabled', False),
+            ),
+            external_ocr_enabled=attrs.get(
+                'external_ocr_enabled',
+                getattr(instance, 'external_ocr_enabled', False),
+            ),
+            allow_document_content_to_external_ocr_provider=attrs.get(
+                'allow_document_content_to_external_ocr_provider',
+                getattr(instance, 'allow_document_content_to_external_ocr_provider', False),
+            ),
+            preferred_ocr_provider=attrs.get(
+                'preferred_ocr_provider',
+                getattr(instance, 'preferred_ocr_provider', 'local'),
+            ),
+            preferred_ocr_model=attrs.get(
+                'preferred_ocr_model',
+                getattr(instance, 'preferred_ocr_model', ''),
+            ),
+            image_ocr_mode=attrs.get(
+                'image_ocr_mode',
+                getattr(instance, 'image_ocr_mode', 'disabled'),
+            ),
+            scanned_pdf_ocr_mode=attrs.get(
+                'scanned_pdf_ocr_mode',
+                getattr(instance, 'scanned_pdf_ocr_mode', 'disabled'),
+            ),
+            require_human_review=attrs.get(
+                'require_human_review',
+                getattr(instance, 'require_human_review', True),
+            ),
+        )
+        errors = validate_ocr_provider_policy(candidate)
+        if errors:
+            raise serializers.ValidationError(errors)
+        return attrs
+
+
+class OCRAuditLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OCRAuditLog
+        fields = [
+            'id',
+            'organization',
+            'document',
+            'ocr_job',
+            'action',
+            'provider',
+            'mode',
+            'status',
+            'reason',
+            'metadata',
+            'created_by',
+            'created_at',
+        ]
+        read_only_fields = fields
+
+
+class AdvancedOCRRunSerializer(TenantRelationValidationMixin, serializers.Serializer):
+    document_id = serializers.UUIDField(required=False)
+    mode = serializers.ChoiceField(required=False, default='auto', choices=['auto'])
+    tenant_relation_fields = {'document_id': Document}
+
+    def validate(self, data):
+        organization = getattr(self.context['request'].user, 'organization', None)
+        if organization is None:
+            raise serializers.ValidationError({'document_id': 'Organizacao atual nao encontrada.'})
+
+        document_id = data.get('document_id') or self.context.get('document_id')
+        data['document_id'] = document_id
+        data['organization_id'] = str(organization.id)
+        return self.validate_tenant_relations(data)

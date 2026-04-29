@@ -6,12 +6,19 @@ from docx import Document as DocxDocument
 from pypdf import PdfReader
 
 from knowledge_base.services import index_document_for_knowledge_base
-from ocr.models import OCRJob, OCRKnowledgeBasePipelineRun, OCRResult
+from ocr.models import (
+    OCRAuditLog,
+    OCRJob,
+    OCRKnowledgeBasePipelineRun,
+    OCRResult,
+    OCRSettings,
+)
 
 
 SUPPORTED_TXT_EXTENSIONS = {'.txt'}
 SUPPORTED_PDF_EXTENSIONS = {'.pdf'}
 SUPPORTED_DOCX_EXTENSIONS = {'.docx'}
+SUPPORTED_IMAGE_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff', '.webp'}
 
 
 def detect_extraction_method(document):
@@ -28,6 +35,90 @@ def detect_extraction_method(document):
     if extension in SUPPORTED_DOCX_EXTENSIONS:
         return 'docx_text'
     return 'unsupported'
+
+
+def _document_extension(document):
+    if not getattr(document, 'file', None):
+        return ''
+    filename = getattr(document.file, 'name', '') or ''
+    return os.path.splitext(filename)[1].lower()
+
+
+def get_ocr_settings(organization):
+    settings, _ = OCRSettings.objects.get_or_create(
+        organization=organization,
+        defaults={
+            'advanced_ocr_enabled': False,
+            'external_ocr_enabled': False,
+            'allow_document_content_to_external_ocr_provider': False,
+            'preferred_ocr_provider': 'local',
+            'preferred_ocr_model': '',
+            'image_ocr_mode': 'disabled',
+            'scanned_pdf_ocr_mode': 'disabled',
+            'require_human_review': True,
+        },
+    )
+    return settings
+
+
+def validate_ocr_provider_policy(settings):
+    errors = {}
+
+    if settings.external_ocr_enabled and not settings.allow_document_content_to_external_ocr_provider:
+        errors['external_ocr_enabled'] = (
+            'Nao e permitido ativar OCR externo sem consentimento para envio de conteudo documental.'
+        )
+
+    if settings.image_ocr_mode == 'external' and not settings.external_ocr_enabled:
+        errors['image_ocr_mode'] = 'OCR externo deve estar ativado para image_ocr_mode=external.'
+
+    if settings.scanned_pdf_ocr_mode == 'external' and not settings.external_ocr_enabled:
+        errors['scanned_pdf_ocr_mode'] = 'OCR externo deve estar ativado para scanned_pdf_ocr_mode=external.'
+
+    return errors
+
+
+def should_use_external_ocr(settings):
+    return bool(
+        settings.external_ocr_enabled
+        and settings.allow_document_content_to_external_ocr_provider
+        and settings.preferred_ocr_provider not in {'', 'local', 'tesseract'}
+    )
+
+
+def record_ocr_audit_log(
+    *,
+    organization,
+    action,
+    provider='',
+    mode='',
+    status='ok',
+    reason='',
+    metadata=None,
+    created_by=None,
+    document=None,
+    ocr_job=None,
+):
+    return OCRAuditLog.objects.create(
+        organization=organization,
+        document=document,
+        ocr_job=ocr_job,
+        action=action,
+        provider=provider,
+        mode=mode,
+        status=status,
+        reason=reason,
+        metadata=metadata or {},
+        created_by=created_by,
+    )
+
+
+def detect_scanned_pdf_candidate(document):
+    return _document_extension(document) in SUPPORTED_PDF_EXTENSIONS and not (document.content or '').strip()
+
+
+def detect_image_document(document):
+    return _document_extension(document) in SUPPORTED_IMAGE_EXTENSIONS
 
 
 def _read_document_bytes(document):
@@ -235,3 +326,101 @@ def run_ocr_to_knowledge_base_pipeline(
             update_fields=['status', 'step', 'finished_at', 'error_message', 'updated_at']
         )
         return pipeline_run
+
+
+def _build_advanced_ocr_failure_job(document, user, reason):
+    job = OCRJob.objects.create(
+        organization=document.organization,
+        document=document,
+        requested_by=user,
+        status='pending',
+        extraction_method='unsupported',
+    )
+    job.status = 'failed'
+    job.started_at = timezone.now()
+    job.finished_at = timezone.now()
+    job.error_message = reason
+    job.save(update_fields=['status', 'started_at', 'finished_at', 'error_message', 'updated_at'])
+    return job
+
+
+def run_advanced_ocr_placeholder(document, user, mode='auto'):
+    settings = get_ocr_settings(document.organization)
+    provider = settings.preferred_ocr_provider or 'local'
+
+    if detect_image_document(document):
+        target_type = 'image'
+        configured_mode = settings.image_ocr_mode
+    elif detect_scanned_pdf_candidate(document):
+        target_type = 'scanned_pdf'
+        configured_mode = settings.scanned_pdf_ocr_mode
+    else:
+        target_type = 'unsupported_target'
+        configured_mode = 'disabled'
+
+    metadata = {
+        'document_id': str(document.id),
+        'requested_mode': mode,
+        'configured_mode': configured_mode,
+        'target_type': target_type,
+        'advanced_ocr_enabled': settings.advanced_ocr_enabled,
+        'external_ocr_enabled': settings.external_ocr_enabled,
+    }
+
+    if target_type == 'unsupported_target':
+        reason = 'advanced_ocr_not_required'
+        job = _build_advanced_ocr_failure_job(document, user, reason)
+        audit_log = record_ocr_audit_log(
+            organization=document.organization,
+            document=document,
+            ocr_job=job,
+            action='skipped',
+            provider=provider,
+            mode=configured_mode,
+            status='skipped',
+            reason=reason,
+            metadata=metadata,
+            created_by=user,
+        )
+        return {'status': 'skipped', 'reason': reason, 'job': job, 'audit_log': audit_log}
+
+    if not settings.advanced_ocr_enabled:
+        reason = 'advanced_ocr_disabled'
+        job = _build_advanced_ocr_failure_job(document, user, reason)
+        audit_log = record_ocr_audit_log(
+            organization=document.organization,
+            document=document,
+            ocr_job=job,
+            action='skipped',
+            provider=provider,
+            mode=configured_mode,
+            status='skipped',
+            reason=reason,
+            metadata=metadata,
+            created_by=user,
+        )
+        return {'status': 'skipped', 'reason': reason, 'job': job, 'audit_log': audit_log}
+
+    if configured_mode == 'disabled':
+        reason = 'advanced_ocr_disabled'
+    elif configured_mode == 'local_placeholder':
+        reason = 'local_image_ocr_not_implemented'
+    elif configured_mode == 'external':
+        reason = 'external_ocr_not_allowed' if not should_use_external_ocr(settings) else 'external_ocr_not_implemented'
+    else:
+        reason = 'advanced_ocr_not_implemented'
+
+    job = _build_advanced_ocr_failure_job(document, user, reason)
+    audit_log = record_ocr_audit_log(
+        organization=document.organization,
+        document=document,
+        ocr_job=job,
+        action='skipped',
+        provider=provider,
+        mode=configured_mode,
+        status='skipped',
+        reason=reason,
+        metadata=metadata,
+        created_by=user,
+    )
+    return {'status': 'skipped', 'reason': reason, 'job': job, 'audit_log': audit_log}

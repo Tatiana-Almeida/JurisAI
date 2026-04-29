@@ -6,6 +6,8 @@ It currently provides core legal operations, initial AI support, SaaS billing, a
 
 Current milestone: `v0.6.0` adds a controlled OCR-to-Knowledge-Base pipeline that runs local extraction, applies text to `Document.content` only with explicit confirmation, and then indexes the document into a tenant-isolated knowledge base.
 
+Work in progress toward `v0.7.0`: advanced OCR governance with organization-level settings, explicit opt-in for future external providers and audit logs for image/scanned-PDF OCR attempts.
+
 ## Features
 
 ### Core legal management
@@ -111,6 +113,15 @@ These apps are present in the codebase with initial models and safe base routes,
   - index the document in `knowledge_base`
   - ask with mandatory `sources`
 
+### Advanced OCR governance
+
+- Organization-level OCR settings
+- External OCR disabled by default
+- Explicit opt-in required before any future external OCR provider
+- Advanced OCR audit logs for image and scanned-PDF attempts
+- Placeholder `advanced-run` flow with zero external calls in this phase
+- No document content leaves the system in the current advanced OCR foundation
+
 ### Future functional expansion
 
 - Richer semantic retrieval and vector-backed ranking
@@ -196,11 +207,14 @@ Current primary routes include:
 - `POST /api/v1/knowledge-base/{id}/prepare-embeddings/`
 - `GET /api/v1/knowledge-base/chunks/`
 - `POST /api/v1/ocr/documents/{document_id}/run/`
+- `POST /api/v1/ocr/documents/{document_id}/advanced-run/`
 - `GET /api/v1/ocr/jobs/`
 - `GET /api/v1/ocr/results/`
 - `POST /api/v1/ocr/results/{id}/apply-to-document/`
 - `POST /api/v1/ocr/pipelines/knowledge-base/`
 - `GET /api/v1/ocr/pipelines/`
+- `GET/PATCH /api/v1/ocr/settings/`
+- `GET /api/v1/ocr/audit-logs/`
 - `POST /api/v1/ai/generate-petition/`
 - `POST /api/v1/ai/summarize-document/`
 - `POST /api/v1/ai/analyze-risk/`
@@ -347,6 +361,8 @@ The current backend already includes important safety measures:
 - OCR does not overwrite `Document.content` unless the caller explicitly requests it or applies a stored result
 - OCR-to-Knowledge-Base pipeline requires explicit `update_document_content=true` before indexing
 - No document is sent to external OCR providers in the current phase
+- Advanced OCR settings are organization-scoped and default to a fully disabled external OCR posture
+- Image/scanned-PDF advanced OCR attempts are audited without storing raw extracted content
 
 Remaining production hardening areas include:
 

@@ -39,4 +39,7 @@
 - [CONFIRMADO_NO_CODIGO] `OCRJob` e `OCRResult` ficam sempre associados a `organization`, e a aplicacao do texto extraido em `Document.content` requer `update_document_content=true` ou `POST /api/v1/ocr/results/{id}/apply-to-document/`.
 - [CONFIRMADO_NO_CODIGO] O pipeline `OCR -> Document.content -> KnowledgeBase` tambem valida `organization` em `document` e `knowledge_base`, exige `update_document_content=true` e nao indexa nada quando o OCR falha.
 - [CONFIRMADO_NO_CODIGO] Se a indexacao no `knowledge_base` falhar depois da aplicacao do OCR, o texto ja aplicado ao `Document.content` e o `OCRResult` sao preservados; o erro fica registrado no pipeline run sem apagar artefatos anteriores.
+- [CONFIRMADO_NO_CODIGO] `OCRSettings` nasce por `organization` com defaults seguros: OCR avancado desativado, OCR externo desativado e nenhum consentimento para envio de conteudo documental.
+- [CONFIRMADO_NO_CODIGO] `OCRAuditLog` registra tentativas de OCR avancado com `provider`, `mode`, `reason` e metadados tecnicos, sem armazenar conteudo bruto do documento.
+- [CONFIRMADO_NO_CODIGO] `advanced-run` para imagens e PDFs escaneados nao chama provider externo nesta fase; retorna `skipped` ou placeholder seguro conforme a configuracao por tenant.
 - [PRECISA_VALIDAR] PDF escaneado ou imagem ainda nao recebe OCR real nesta fase; isso reduz superficie externa, mas deixa cobertura funcional incompleta para documentos sem camada textual.

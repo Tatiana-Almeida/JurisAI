@@ -296,6 +296,21 @@
 - [CONFIRMADO_NO_CODIGO] Foi criada a suite [tests/test_ocr_pipeline.py](/c:/projectos/JurisAI/tests/test_ocr_pipeline.py) cobrindo sucesso, bloqueio cross-tenant, `update_document_content=false`, falha controlada e `ask` com `sources` apos o pipeline.
 - [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta fase foi registado em [docs/10-checkpoints/2026-04-ocr-to-knowledge-base-pipeline.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-ocr-to-knowledge-base-pipeline.md).
 
+## Mudanca
+
+- ID: `IMP-OCR-003`
+- Titulo: Added advanced OCR governance settings and audit logs without enabling external OCR providers.
+- Risco: medio
+- Estado: implementada e validada tecnicamente
+
+- [CONFIRMADO_NO_CODIGO] Foram adicionados `OCRSettings` e `OCRAuditLog` por `organization`, com defaults seguros e sem envio de documentos para fora do sistema.
+- [CONFIRMADO_NO_CODIGO] Foram adicionados `GET/PATCH /api/v1/ocr/settings/`, `GET /api/v1/ocr/audit-logs/` e `POST /api/v1/ocr/documents/{document_id}/advanced-run/`.
+- [CONFIRMADO_NO_CODIGO] OCR externo continua desativado por defeito; mesmo quando configurado, `advanced-run` retorna `skipped`/`not_implemented` sem chamar provider real.
+- [CONFIRMADO_NO_CODIGO] Toda tentativa de OCR avancado gera `OCRAuditLog` sem armazenar conteudo bruto do documento.
+- [CONFIRMADO_NO_CODIGO] O OCR local existente para `TXT`, `PDF` textual e `DOCX` foi preservado, assim como o pipeline `OCR -> KnowledgeBase`.
+- [CONFIRMADO_NO_CODIGO] Foi criada a suite [tests/test_ocr_governance.py](/c:/projectos/JurisAI/tests/test_ocr_governance.py) cobrindo defaults, opt-in, `advanced-run`, logs, cross-tenant e regressao do pipeline existente.
+- [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta fase foi registado em [docs/10-checkpoints/2026-04-advanced-ocr-governance.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-advanced-ocr-governance.md).
+
 ## v0.3.0 — Tenant-Isolated Legal RAG Foundation
 
 Resumo:
