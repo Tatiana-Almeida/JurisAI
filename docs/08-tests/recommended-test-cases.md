@@ -725,3 +725,33 @@
 - Risco: medio
 - Estado: [CONFIRMADO_NO_CODIGO] cobertura operacional preparada no workflow
 - Cobertura preparada: [.github/workflows/ci.yml](/c:/projectos/JurisAI/.github/workflows/ci.yml)
+
+## CT-123 Validar `docker compose config` com Redis protegido e Flower autenticado
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura operacional recomendada
+- Cobertura preparada: `docker compose config`
+
+## CT-124 Validar `docker compose build` sem dependencia de `collectstatic` em build
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura operacional recomendada
+- Cobertura preparada: `docker compose build`
+
+## CT-125 Validar healthchecks de `web`, `db`, `redis`, `worker` e `flower`
+
+- Risco: medio
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura operacional recomendada
+- Cobertura preparada: [docker-compose.yml](/c:/projectos/JurisAI/docker-compose.yml)
+
+## CT-126 Validar reprodutibilidade basica de `requirements.txt` pinado
+
+- Risco: medio
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura operacional recomendada
+- Cobertura preparada: [requirements.txt](/c:/projectos/JurisAI/requirements.txt)
+
+## CT-127 Validar que `pytest` nao usa `--reuse-db` por default no CI
+
+- Risco: medio
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura configuracional implementada
+- Cobertura preparada: [pytest.ini](/c:/projectos/JurisAI/pytest.ini)

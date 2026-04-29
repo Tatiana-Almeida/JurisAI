@@ -284,6 +284,14 @@ copy .env.example .env
 docker compose up --build
 ```
 
+Notes:
+
+- The Docker image no longer runs `collectstatic` during build.
+- Static collection can run at runtime only when `RUN_COLLECTSTATIC=True`.
+- The runtime image now includes native OCR binaries such as `tesseract-ocr` and `poppler-utils`.
+- Redis should be protected with `REDIS_PASSWORD`.
+- Flower should be protected with `FLOWER_USER` and `FLOWER_PASSWORD` and kept behind a VPN or reverse proxy in production.
+
 3. Or run the database and supporting services first:
 
 ```bash
@@ -364,6 +372,12 @@ The CI pipeline runs with SQLite for simplicity and stability and executes:
 
 This keeps the backend validation lightweight and independent from external services.
 
+The CI workflow currently runs with SQLite and validates:
+
+- Django settings integrity
+- migration drift
+- the full automated test suite
+
 ## Healthcheck
 
 A lightweight public healthcheck is available at:
@@ -379,6 +393,8 @@ It returns a simple payload with service status and version and does not expose 
 - The public healthcheck is intentionally simple and avoids sensitive runtime details.
 - Production deployment still needs environment-specific hardening for infrastructure, monitoring, secrets rotation and native OCR dependencies.
 - Optional local OCR paths for image and scanned PDF continue to rely on native tooling such as Tesseract and Poppler in the runtime environment.
+- Redis and Flower credentials in `.env.example` are placeholders only and must be replaced with real secrets outside the repository.
+- `pytest` no longer uses `--reuse-db` by default; that flag can still be used manually in local debugging when desired.
 
 ## Tests
 

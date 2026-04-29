@@ -56,4 +56,10 @@
 - [CONFIRMADO_NO_CODIGO] O backend agora expõe `GET /health/` e `GET /api/v1/health/` com payload minimo e sem dados sensiveis, sem exigir autenticacao.
 - [CONFIRMADO_NO_CODIGO] A pipeline de CI valida `manage.py check`, drift de migrations via `makemigrations --check --dry-run` e a suite `pytest` usando SQLite, sem depender de servicos externos reais.
 - [PRECISA_VALIDAR] O projeto ganhou uma primeira camada de estabilizacao para CI e healthcheck, mas o hardening de producao para deploy real continua pendente em areas como observabilidade operacional, runtime nativo de OCR e gestao de segredos.
+- [CONFIRMADO_NO_CODIGO] O `Dockerfile` deixou de executar `collectstatic` durante o build; a coleta de estaticos so roda em runtime quando `RUN_COLLECTSTATIC=True`, reduzindo acoplamento indevido do build.
+- [CONFIRMADO_NO_CODIGO] O container de aplicacao agora instala `tesseract-ocr` e `poppler-utils`, alinhando o ambiente Docker com os caminhos locais de OCR para imagem e PDF escaneado.
+- [CONFIRMADO_NO_CODIGO] O `docker-compose.yml` agora exige password no Redis via `REDIS_PASSWORD`, usa `REDIS_URL` com credenciais e adiciona healthchecks para `web`, `db`, `redis`, `worker` e `flower`.
+- [CONFIRMADO_NO_CODIGO] O serviço Flower agora usa autenticacao basica configurada por `FLOWER_USER` e `FLOWER_PASSWORD`, reduzindo exposicao administrativa indevida.
+- [CONFIRMADO_NO_CODIGO] `requirements.txt` passou a usar pins exatos para reduzir drift de dependencias entre ambientes.
+- [CONFIRMADO_NO_CODIGO] `pytest.ini` deixou de ativar `--reuse-db` por defeito, evitando que o CI oculte problemas de migrations ou schema.
 - [PRECISA_VALIDAR] PDF escaneado ou imagem ainda nao recebe OCR real nesta fase; isso reduz superficie externa, mas deixa cobertura funcional incompleta para documentos sem camada textual.

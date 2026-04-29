@@ -503,3 +503,18 @@ Resumo:
 - [CONFIRMADO_NO_CODIGO] O healthcheck retorna apenas `status`, `service` e `version`, sem consultar dados sensiveis nem expor segredos.
 - [CONFIRMADO_NO_CODIGO] Foi criada a suite [tests/test_healthcheck.py](/c:/projectos/JurisAI/tests/test_healthcheck.py) cobrindo disponibilidade publica do healthcheck e compatibilidade com a rota legada.
 - [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta fase foi registado em [docs/10-checkpoints/2026-04-backend-stabilization-ci-healthcheck.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-backend-stabilization-ci-healthcheck.md).
+
+## Mudanca
+
+- ID: `IMP-STAB-002`
+- Titulo: Added deployment hardening for Docker, Redis, Flower, pinned dependencies, healthchecks and OCR native binaries.
+- Risco: medio
+- Estado: implementada e validada tecnicamente
+
+- [CONFIRMADO_NO_CODIGO] O `Dockerfile` deixou de executar `collectstatic` no build e passou a usar `entrypoint.sh` com `RUN_COLLECTSTATIC=True` apenas em runtime.
+- [CONFIRMADO_NO_CODIGO] O container agora instala `tesseract-ocr` e `poppler-utils`, alinhando o runtime Docker com os caminhos locais de OCR.
+- [CONFIRMADO_NO_CODIGO] `docker-compose.yml` passou a exigir password no Redis, autenticacao basica no Flower e healthchecks para `web`, `db`, `redis`, `worker` e `flower`.
+- [CONFIRMADO_NO_CODIGO] `requirements.txt` passou a usar versoes pinadas com `==`.
+- [CONFIRMADO_NO_CODIGO] `pytest.ini` deixou de ativar `--reuse-db` por defeito.
+- [CONFIRMADO_NO_CODIGO] O ficheiro `JURISAI_MASTER_PROMPT (1).md` foi renomeado para [docs/00-project/JURISAI_MASTER_PROMPT.md](/c:/projectos/JurisAI/docs/00-project/JURISAI_MASTER_PROMPT.md).
+- [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta fase foi registado em [docs/10-checkpoints/2026-04-deployment-security-hardening.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-deployment-security-hardening.md).

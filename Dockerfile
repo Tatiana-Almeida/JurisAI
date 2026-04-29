@@ -4,11 +4,18 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends gcc libpq-dev && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    gcc \
+    libpq-dev \
+    poppler-utils \
+    tesseract-ocr \
+    && rm -rf /var/lib/apt/lists/*
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 
-RUN python manage.py collectstatic --noinput
-
+ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["gunicorn", "jurisai.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
