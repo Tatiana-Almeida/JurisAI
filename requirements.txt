@@ -13,3 +13,5 @@ drf-yasg>=1.21
 gunicorn>=21.0
 pytest>=8.0
 pytest-django>=4.0
+pypdf>=4.2
+python-docx>=1.1

@@ -443,3 +443,51 @@
 - Risco: alto
 - Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
 - Cobertura preparada: [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py)
+
+## CT-076 Validar extracao local de `TXT` em `ocr`
+
+- Risco: medio
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_ocr.py](/c:/projectos/JurisAI/tests/test_ocr.py)
+
+## CT-077 Validar extracao local de `PDF` textual em `ocr`
+
+- Risco: medio
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_ocr.py](/c:/projectos/JurisAI/tests/test_ocr.py)
+
+## CT-078 Validar extracao local de `DOCX` em `ocr`
+
+- Risco: medio
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_ocr.py](/c:/projectos/JurisAI/tests/test_ocr.py)
+
+## CT-079 Validar `update_document_content` explicito em `ocr`
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_ocr.py](/c:/projectos/JurisAI/tests/test_ocr.py)
+
+## CT-080 Validar falha controlada para formato `unsupported` em `ocr`
+
+- Risco: medio
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_ocr.py](/c:/projectos/JurisAI/tests/test_ocr.py)
+
+## CT-081 Validar isolamento multi-tenant em `OCRJob` e `OCRResult`
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_ocr.py](/c:/projectos/JurisAI/tests/test_ocr.py)
+
+## CT-082 Validar `apply-to-document` com bloqueio cross-tenant em `ocr`
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_ocr.py](/c:/projectos/JurisAI/tests/test_ocr.py)
+
+## CT-083 Validar falha de extracao sem apagar `Document.content`
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_ocr.py](/c:/projectos/JurisAI/tests/test_ocr.py)

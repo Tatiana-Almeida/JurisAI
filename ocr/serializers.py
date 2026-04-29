@@ -5,39 +5,79 @@ from jurisai.serializers import OrganizationScopedValidationMixin, TenantRelatio
 from ocr.models import OCRJob, OCRResult
 
 
-class OCRJobSerializer(TenantRelationValidationMixin, OrganizationScopedValidationMixin, serializers.ModelSerializer):
-    organization_id = serializers.UUIDField(write_only=True, required=False)
-    document_id = serializers.UUIDField(write_only=True, required=False, allow_null=True)
-    tenant_relation_fields = {'document_id': Document}
+class OCRJobSerializer(serializers.ModelSerializer):
+    organization = serializers.UUIDField(source='organization_id', read_only=True)
+    document = serializers.UUIDField(source='document_id', read_only=True)
+    requested_by = serializers.UUIDField(source='requested_by_id', read_only=True)
 
     class Meta:
         model = OCRJob
-        fields = ['id', 'organization', 'organization_id', 'document', 'document_id', 'requested_by', 'status', 'created_at']
-        read_only_fields = ['organization', 'document', 'requested_by', 'status', 'created_at']
+        fields = [
+            'id',
+            'organization',
+            'document',
+            'requested_by',
+            'status',
+            'extraction_method',
+            'started_at',
+            'finished_at',
+            'error_message',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = fields
 
-    def create(self, validated_data):
-        return OCRJob.objects.create(
-            organization_id=validated_data['organization_id'],
-            document_id=validated_data.get('document_id'),
-            requested_by=self.context['request'].user,
-            status='pending',
-        )
 
-
-class OCRResultSerializer(TenantRelationValidationMixin, OrganizationScopedValidationMixin, serializers.ModelSerializer):
-    organization_id = serializers.UUIDField(write_only=True, required=False)
-    job_id = serializers.UUIDField(write_only=True)
-    tenant_relation_fields = {'job_id': OCRJob}
+class OCRResultSerializer(serializers.ModelSerializer):
+    organization = serializers.UUIDField(source='organization_id', read_only=True)
+    job = serializers.UUIDField(source='job_id', read_only=True)
+    job_id = serializers.UUIDField(read_only=True)
+    document = serializers.UUIDField(source='document_id', read_only=True)
+    document_id = serializers.UUIDField(read_only=True)
 
     class Meta:
         model = OCRResult
-        fields = ['id', 'organization', 'organization_id', 'job', 'job_id', 'extracted_text', 'confidence', 'created_at']
-        read_only_fields = ['organization', 'job', 'created_at']
+        fields = [
+            'id',
+            'organization',
+            'job',
+            'job_id',
+            'document',
+            'document_id',
+            'extracted_text',
+            'char_count',
+            'metadata',
+            'created_at',
+        ]
+        read_only_fields = fields
 
-    def create(self, validated_data):
-        return OCRResult.objects.create(
-            organization_id=validated_data['organization_id'],
-            job_id=validated_data['job_id'],
-            extracted_text=validated_data.get('extracted_text', ''),
-            confidence=validated_data.get('confidence', 0),
-        )
+
+class RunOCRSerializer(TenantRelationValidationMixin, serializers.Serializer):
+    document_id = serializers.UUIDField(required=False)
+    update_document_content = serializers.BooleanField(required=False, default=False)
+    tenant_relation_fields = {'document_id': Document}
+
+    def validate(self, data):
+        organization = getattr(self.context['request'].user, 'organization', None)
+        if organization is None:
+            raise serializers.ValidationError({'document_id': 'Organizacao atual nao encontrada.'})
+
+        document_id = data.get('document_id') or self.context.get('document_id')
+        data['document_id'] = document_id
+        data['organization_id'] = str(organization.id)
+        return self.validate_tenant_relations(data)
+
+
+class ApplyOCRResultSerializer(TenantRelationValidationMixin, serializers.Serializer):
+    result_id = serializers.UUIDField(required=False)
+    tenant_relation_fields = {'result_id': OCRResult}
+
+    def validate(self, data):
+        organization = getattr(self.context['request'].user, 'organization', None)
+        if organization is None:
+            raise serializers.ValidationError({'result_id': 'Organizacao atual nao encontrada.'})
+
+        result_id = data.get('result_id') or self.context.get('result_id')
+        data['result_id'] = result_id
+        data['organization_id'] = str(organization.id)
+        return self.validate_tenant_relations(data)

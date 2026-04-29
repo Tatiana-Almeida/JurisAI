@@ -266,6 +266,21 @@
 - [CONFIRMADO_NO_CODIGO] A suite [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py) foi expandida para cobrir provider local, retrieval hibrido, fallback textual, nao duplicacao e auditabilidade do placeholder externo.
 - [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta fase foi registado em [docs/10-checkpoints/2026-04-local-embeddings-hybrid-retrieval.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-local-embeddings-hybrid-retrieval.md).
 
+## Mudanca
+
+- ID: `IMP-OCR-001`
+- Titulo: Added OCR and document text extraction foundation for TXT, textual PDF and DOCX without external providers.
+- Risco: medio
+- Estado: implementada e validada tecnicamente
+
+- [CONFIRMADO_NO_CODIGO] O app `ocr` deixou de ser apenas placeholder e passou a suportar `OCRJob` e `OCRResult` funcionais por `organization`.
+- [CONFIRMADO_NO_CODIGO] Foram adicionados extratores locais para `TXT`, `PDF` com camada textual e `DOCX`, sem qualquer chamada a provider externo.
+- [CONFIRMADO_NO_CODIGO] Foram adicionados `POST /api/v1/ocr/documents/{document_id}/run/`, `GET /api/v1/ocr/jobs/`, `GET /api/v1/ocr/results/` e `POST /api/v1/ocr/results/{id}/apply-to-document/`.
+- [CONFIRMADO_NO_CODIGO] `Document.content` so e atualizado quando `update_document_content=true` ou quando um resultado armazenado e aplicado explicitamente.
+- [CONFIRMADO_NO_CODIGO] Formatos nao suportados e falhas de extracao geram `OCRJob` com `status=failed`, sem apagar o documento original.
+- [CONFIRMADO_NO_CODIGO] Foi criada a suite [tests/test_ocr.py](/c:/projectos/JurisAI/tests/test_ocr.py) cobrindo formatos suportados, falha controlada, `apply-to-document` e isolamento multi-tenant.
+- [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta fase foi registado em [docs/10-checkpoints/2026-04-ocr-document-text-extraction.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-ocr-document-text-extraction.md).
+
 ## v0.3.0 — Tenant-Isolated Legal RAG Foundation
 
 Resumo:

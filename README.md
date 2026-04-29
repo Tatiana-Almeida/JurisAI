@@ -6,6 +6,8 @@ It currently provides core legal operations, initial AI support, SaaS billing, a
 
 Current milestone: `v0.4.0` extends the tenant-isolated legal RAG foundation with optional local embeddings, hybrid retrieval, explicit source scores and zero external provider calls by default.
 
+Work in progress toward `v0.5.0`: local OCR and document text extraction for `TXT`, textual `PDF` and `DOCX`, still without any external OCR provider.
+
 ## Features
 
 ### Core legal management
@@ -32,7 +34,7 @@ Current milestone: `v0.4.0` extends the tenant-isolated legal RAG foundation wit
 
 - AI assistant
 - Knowledge base / RAG with textual retrieval and local embeddings foundation
-- OCR foundation
+- OCR and local document text extraction foundation
 - Document analysis foundation
 
 ### Business foundations
@@ -63,6 +65,7 @@ Current milestone: `v0.4.0` extends the tenant-isolated legal RAG foundation wit
 - `legal_templates`
 - `legal_finance`
 - `knowledge_base`
+- `ocr`
 
 ### Foundation modules
 
@@ -73,7 +76,6 @@ These apps are present in the codebase with initial models and safe base routes,
 - `business_intelligence`
 - `compliance`
 - `marketplace`
-- `ocr`
 - `document_analysis`
 
 ### Initial RAG capabilities
@@ -94,6 +96,20 @@ These apps are present in the codebase with initial models and safe base routes,
 - Organization-level RAG governance and opt-in controls for future external embeddings
 - Mandatory textual fallback when embeddings are not effective
 - External providers still disabled by default and not implemented in this phase
+
+### Initial OCR capabilities
+
+- Tenant-scoped OCR jobs and extraction results
+- Local text extraction for `TXT`
+- Local text extraction for textual `PDF` layers
+- Local text extraction for `DOCX`
+- Explicit `apply-to-document` flow before changing `Document.content`
+- Zero external OCR calls in the active pipeline
+- Safe failure for unsupported formats in this phase
+- Intended follow-up flow with the knowledge base:
+  - run OCR
+  - apply extracted text to `Document.content`
+  - index the document in `knowledge_base`
 
 ### Future functional expansion
 
@@ -143,7 +159,7 @@ Main apps currently present in the repository:
 - `compliance/`: consent and compliance foundation
 - `marketplace/`: marketplace foundation
 - `knowledge_base/`: initial tenant-scoped retrieval and source-backed answers
-- `ocr/`: OCR foundation
+- `ocr/`: local OCR jobs and text extraction foundation
 - `document_analysis/`: comparison and extraction foundation
 - `jurisai/`: Django settings, permissions, middleware and shared utilities
 
@@ -179,6 +195,10 @@ Current primary routes include:
 - `GET /api/v1/knowledge-base/embedding-audit-logs/`
 - `POST /api/v1/knowledge-base/{id}/prepare-embeddings/`
 - `GET /api/v1/knowledge-base/chunks/`
+- `POST /api/v1/ocr/documents/{document_id}/run/`
+- `GET /api/v1/ocr/jobs/`
+- `GET /api/v1/ocr/results/`
+- `POST /api/v1/ocr/results/{id}/apply-to-document/`
 - `POST /api/v1/ai/generate-petition/`
 - `POST /api/v1/ai/summarize-document/`
 - `POST /api/v1/ai/analyze-risk/`
@@ -296,6 +316,7 @@ The repository currently includes coverage for:
 - tenant isolation regressions
 - billing webhook security and orchestration
 - document upload hardening
+- OCR extraction and cross-tenant protections
 - expanded legal services phase 1
 
 ## Security Notes
@@ -319,6 +340,10 @@ The current backend already includes important safety measures:
 - External embeddings remain disabled by default and require explicit organization opt-in
 - Even with external configuration present, provider-backed embeddings remain blocked and fall back safely to textual retrieval
 - Textual fallback remains mandatory when retrieval is configured as `hybrid` or `embeddings` but external embeddings are not effective
+- OCR extraction is currently fully local for `TXT`, textual `PDF` and `DOCX`
+- OCR jobs and OCR results remain organization-scoped
+- OCR does not overwrite `Document.content` unless the caller explicitly requests it or applies a stored result
+- No document is sent to external OCR providers in the current phase
 
 Remaining production hardening areas include:
 
@@ -332,7 +357,7 @@ Remaining production hardening areas include:
 
 - Production hardening
 - Embedding-based RAG with stronger local semantics and optional per-tenant external providers
-- OCR provider integration
+- OCR provider integration for image-based documents
 - Advanced CRM workflows
 - E-signature provider integration
 - BI dashboards
