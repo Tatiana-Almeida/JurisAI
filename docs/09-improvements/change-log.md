@@ -363,3 +363,17 @@ Resumo:
 - No external OCR provider enabled.
 - Full suite: `148 passed`.
 - Release checkpoint: [docs/10-checkpoints/2026-04-release-v0.6.0.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-release-v0.6.0.md)
+
+## v0.7.0 - Advanced OCR Governance
+
+- Added `OCRSettings`.
+- Added `OCRAuditLog`.
+- Added tenant-specific OCR settings.
+- Added explicit opt-in controls for external OCR.
+- Added governed `advanced-run` endpoint.
+- Preserved existing local OCR for TXT, textual PDF and DOCX.
+- Preserved OCR-to-KnowledgeBase pipeline.
+- Kept all external OCR providers disabled.
+- Added audit logs for advanced OCR attempts.
+- Full suite: `159 passed`.
+- Release checkpoint: [docs/10-checkpoints/2026-04-release-v0.7.0.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-release-v0.7.0.md)
