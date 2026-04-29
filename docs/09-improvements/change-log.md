@@ -478,3 +478,15 @@ Resumo:
 - Kept all external OCR providers disabled.
 - Full suite: `180 passed`.
 - Release checkpoint: [docs/10-checkpoints/2026-04-release-v0.10.0.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-release-v0.10.0.md)
+
+## v0.11.0 - OCR Observability and Tenant Limits
+
+- Added `OCRPageResult`.
+- Added tenant-configurable OCR limits through `max_scanned_pdf_pages`, `max_ocr_file_size_mb`, `max_ocr_chars_output` and `store_page_level_ocr`.
+- Added `GET /api/v1/ocr/page-results/`, `GET /api/v1/ocr/page-results/{id}/` and `GET /api/v1/ocr/results/{id}/pages/`.
+- Added page-level OCR observability for scanned PDF processing.
+- Added output truncation metadata and page limit metadata.
+- Preserved OCR textual extraction, image OCR, scanned PDF OCR and the OCR-to-KnowledgeBase pipeline.
+- Kept all external OCR providers disabled.
+- Full suite: `190 passed`.
+- Release checkpoint: [docs/10-checkpoints/2026-04-release-v0.11.0.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-release-v0.11.0.md)
