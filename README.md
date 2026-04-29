@@ -6,6 +6,8 @@ It currently provides core legal operations, initial AI support, SaaS billing, a
 
 Current milestone: `v0.5.0` adds local OCR and document text extraction for `TXT`, textual `PDF` and `DOCX`, while preserving tenant isolation, explicit `Document.content` updates and zero external OCR calls by default.
 
+Work in progress toward `v0.6.0`: a controlled OCR-to-Knowledge-Base pipeline that runs local extraction, applies text to `Document.content` only with explicit confirmation, and then indexes the document into a tenant-isolated knowledge base.
+
 ## Features
 
 ### Core legal management
@@ -102,6 +104,7 @@ These apps are present in the codebase with initial models and safe base routes,
 - Local text extraction for textual `PDF` layers
 - Local text extraction for `DOCX`
 - Explicit `apply-to-document` flow before changing `Document.content`
+- Controlled OCR-to-Knowledge-Base pipeline with explicit `update_document_content=true`
 - Zero external OCR calls in the active pipeline
 - Safe failure for unsupported formats in this phase
 - Intended follow-up flow with the knowledge base:
@@ -197,6 +200,8 @@ Current primary routes include:
 - `GET /api/v1/ocr/jobs/`
 - `GET /api/v1/ocr/results/`
 - `POST /api/v1/ocr/results/{id}/apply-to-document/`
+- `POST /api/v1/ocr/pipelines/knowledge-base/`
+- `GET /api/v1/ocr/pipelines/`
 - `POST /api/v1/ai/generate-petition/`
 - `POST /api/v1/ai/summarize-document/`
 - `POST /api/v1/ai/analyze-risk/`
@@ -341,6 +346,7 @@ The current backend already includes important safety measures:
 - OCR extraction is currently fully local for `TXT`, textual `PDF` and `DOCX`
 - OCR jobs and OCR results remain organization-scoped
 - OCR does not overwrite `Document.content` unless the caller explicitly requests it or applies a stored result
+- OCR-to-Knowledge-Base pipeline requires explicit `update_document_content=true` before indexing
 - No document is sent to external OCR providers in the current phase
 
 Remaining production hardening areas include:
@@ -356,6 +362,7 @@ Remaining production hardening areas include:
 - Production hardening
 - Embedding-based RAG with stronger local semantics and optional per-tenant external providers
 - OCR provider integration for image-based documents
+- Controlled OCR-to-Knowledge-Base indexing automation and observability
 - Advanced CRM workflows
 - E-signature provider integration
 - BI dashboards

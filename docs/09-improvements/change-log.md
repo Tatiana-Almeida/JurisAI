@@ -281,6 +281,21 @@
 - [CONFIRMADO_NO_CODIGO] Foi criada a suite [tests/test_ocr.py](/c:/projectos/JurisAI/tests/test_ocr.py) cobrindo formatos suportados, falha controlada, `apply-to-document` e isolamento multi-tenant.
 - [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta fase foi registado em [docs/10-checkpoints/2026-04-ocr-document-text-extraction.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-ocr-document-text-extraction.md).
 
+## Mudanca
+
+- ID: `IMP-OCR-002`
+- Titulo: Added controlled OCR-to-KnowledgeBase pipeline with tenant isolation and explicit document content update.
+- Risco: medio
+- Estado: implementada e validada tecnicamente
+
+- [CONFIRMADO_NO_CODIGO] Foi adicionado o modelo `OCRKnowledgeBasePipelineRun` para rastrear o fluxo `OCR -> apply-to-document -> index-document`.
+- [CONFIRMADO_NO_CODIGO] Foi adicionado `POST /api/v1/ocr/pipelines/knowledge-base/` com validacao explicita de `document`, `knowledge_base` e `update_document_content=true`.
+- [CONFIRMADO_NO_CODIGO] Foram adicionados `GET /api/v1/ocr/pipelines/` e `GET /api/v1/ocr/pipelines/{id}/`, sempre filtrados por `organization`.
+- [CONFIRMADO_NO_CODIGO] O pipeline executa OCR local, aplica `Document.content` apenas com confirmacao explicita e depois reutiliza a indexacao existente do `knowledge_base`.
+- [CONFIRMADO_NO_CODIGO] Se o OCR falhar, o pipeline para antes da indexacao; se a indexacao falhar, `OCRResult` e `Document.content` ja aplicados sao preservados.
+- [CONFIRMADO_NO_CODIGO] Foi criada a suite [tests/test_ocr_pipeline.py](/c:/projectos/JurisAI/tests/test_ocr_pipeline.py) cobrindo sucesso, bloqueio cross-tenant, `update_document_content=false`, falha controlada e `ask` com `sources` apos o pipeline.
+- [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta fase foi registado em [docs/10-checkpoints/2026-04-ocr-to-knowledge-base-pipeline.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-ocr-to-knowledge-base-pipeline.md).
+
 ## v0.3.0 — Tenant-Isolated Legal RAG Foundation
 
 Resumo:

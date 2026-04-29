@@ -1,10 +1,12 @@
 import os
 from io import BytesIO
 
+from django.utils import timezone
 from docx import Document as DocxDocument
 from pypdf import PdfReader
 
-from ocr.models import OCRJob, OCRResult
+from knowledge_base.services import index_document_for_knowledge_base
+from ocr.models import OCRJob, OCRKnowledgeBasePipelineRun, OCRResult
 
 
 SUPPORTED_TXT_EXTENSIONS = {'.txt'}
@@ -87,7 +89,6 @@ def run_ocr_for_document(document, user, update_document_content=False):
     )
 
     job.status = 'running'
-    from django.utils import timezone
     job.started_at = timezone.now()
     job.save(update_fields=['status', 'started_at', 'updated_at'])
 
@@ -133,3 +134,104 @@ def run_ocr_for_document(document, user, update_document_content=False):
         job.error_message = str(exc)
         job.save(update_fields=['status', 'finished_at', 'error_message', 'updated_at'])
         return job, None
+
+
+def run_ocr_to_knowledge_base_pipeline(
+    document,
+    knowledge_base,
+    user,
+    update_document_content=True,
+):
+    if not update_document_content:
+        raise ValueError('update_document_content must be true for OCR-to-KnowledgeBase pipeline.')
+
+    user_organization = getattr(user, 'organization', None)
+    if (
+        user_organization is None
+        or document.organization_id != user_organization.id
+        or knowledge_base.organization_id != user_organization.id
+    ):
+        raise ValueError('Os recursos do pipeline devem pertencer a organizacao atual.')
+
+    pipeline_run = OCRKnowledgeBasePipelineRun.objects.create(
+        organization=user_organization,
+        document=document,
+        knowledge_base=knowledge_base,
+        status='pending',
+        step='started',
+        update_document_content=True,
+        created_by=user,
+        metadata={
+            'document_id': str(document.id),
+            'knowledge_base_id': str(knowledge_base.id),
+        },
+    )
+
+    pipeline_run.status = 'running'
+    pipeline_run.started_at = timezone.now()
+    pipeline_run.save(update_fields=['status', 'started_at', 'updated_at'])
+
+    try:
+        pipeline_run.step = 'ocr'
+        pipeline_run.save(update_fields=['step', 'updated_at'])
+        ocr_job, ocr_result = run_ocr_for_document(
+            document=document,
+            user=user,
+            update_document_content=False,
+        )
+        pipeline_run.ocr_job = ocr_job
+        pipeline_run.ocr_result = ocr_result
+        pipeline_run.metadata['ocr_job_status'] = ocr_job.status
+        pipeline_run.save(update_fields=['ocr_job', 'ocr_result', 'metadata', 'updated_at'])
+
+        if ocr_job.status != 'completed' or ocr_result is None:
+            raise ValueError(ocr_job.error_message or 'OCR falhou antes da indexacao.')
+
+        pipeline_run.step = 'apply_to_document'
+        pipeline_run.save(update_fields=['step', 'updated_at'])
+        update_document_content_from_ocr(document, ocr_result.extracted_text, user=user)
+        ocr_result.metadata['content_updated'] = True
+        ocr_result.save(update_fields=['metadata'])
+
+        pipeline_run.step = 'index_document'
+        pipeline_run.save(update_fields=['step', 'updated_at'])
+        knowledge_document, chunks_created, chunks_deleted, indexing_job = index_document_for_knowledge_base(
+            document=document,
+            knowledge_base=knowledge_base,
+            user=user,
+        )
+        pipeline_run.knowledge_document = knowledge_document
+        pipeline_run.indexing_job = indexing_job
+        pipeline_run.metadata.update(
+            {
+                'chunks_created': chunks_created,
+                'chunks_deleted': chunks_deleted,
+                'knowledge_document_status': knowledge_document.status,
+            }
+        )
+        pipeline_run.status = 'completed'
+        pipeline_run.step = 'completed'
+        pipeline_run.finished_at = timezone.now()
+        pipeline_run.error_message = ''
+        pipeline_run.save(
+            update_fields=[
+                'knowledge_document',
+                'indexing_job',
+                'metadata',
+                'status',
+                'step',
+                'finished_at',
+                'error_message',
+                'updated_at',
+            ]
+        )
+        return pipeline_run
+    except Exception as exc:
+        pipeline_run.status = 'failed'
+        pipeline_run.step = 'failed'
+        pipeline_run.finished_at = timezone.now()
+        pipeline_run.error_message = str(exc)
+        pipeline_run.save(
+            update_fields=['status', 'step', 'finished_at', 'error_message', 'updated_at']
+        )
+        return pipeline_run

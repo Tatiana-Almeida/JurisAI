@@ -37,4 +37,6 @@
 - [CONFIRMADO_NO_CODIGO] O fallback textual continua obrigatorio quando o retrieval esta configurado como `embeddings` ou `hybrid`, mas embeddings locais ainda nao foram preparados ou providers externos nao estao efetivos.
 - [CONFIRMADO_NO_CODIGO] A fundacao atual de `ocr` trabalha apenas com extracao local de `TXT`, `PDF` textual e `DOCX`; nao ha chamadas para Google Vision, Azure OCR, AWS Textract, OpenAI Vision ou provider externo equivalente.
 - [CONFIRMADO_NO_CODIGO] `OCRJob` e `OCRResult` ficam sempre associados a `organization`, e a aplicacao do texto extraido em `Document.content` requer `update_document_content=true` ou `POST /api/v1/ocr/results/{id}/apply-to-document/`.
+- [CONFIRMADO_NO_CODIGO] O pipeline `OCR -> Document.content -> KnowledgeBase` tambem valida `organization` em `document` e `knowledge_base`, exige `update_document_content=true` e nao indexa nada quando o OCR falha.
+- [CONFIRMADO_NO_CODIGO] Se a indexacao no `knowledge_base` falhar depois da aplicacao do OCR, o texto ja aplicado ao `Document.content` e o `OCRResult` sao preservados; o erro fica registrado no pipeline run sem apagar artefatos anteriores.
 - [PRECISA_VALIDAR] PDF escaneado ou imagem ainda nao recebe OCR real nesta fase; isso reduz superficie externa, mas deixa cobertura funcional incompleta para documentos sem camada textual.

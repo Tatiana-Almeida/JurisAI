@@ -6,14 +6,21 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from documents.models import Document
 from jurisai.permissions import IsOrganizationMember
-from ocr.models import OCRJob, OCRResult
+from knowledge_base.models import KnowledgeBase
+from ocr.models import OCRJob, OCRKnowledgeBasePipelineRun, OCRResult
 from ocr.serializers import (
     ApplyOCRResultSerializer,
     OCRJobSerializer,
+    OCRKnowledgeBasePipelineRunSerializer,
     OCRResultSerializer,
+    RunOCRKnowledgeBasePipelineSerializer,
     RunOCRSerializer,
 )
-from ocr.services import run_ocr_for_document, update_document_content_from_ocr
+from ocr.services import (
+    run_ocr_for_document,
+    run_ocr_to_knowledge_base_pipeline,
+    update_document_content_from_ocr,
+)
 
 
 class OrganizationFilteredReadOnlyViewSet(viewsets.ReadOnlyModelViewSet):
@@ -95,3 +102,57 @@ class OCRDocumentRunView(generics.GenericAPIView):
             'result': OCRResultSerializer(result).data if result else None,
         }
         return Response(payload, status=status.HTTP_200_OK)
+
+
+class OCRKnowledgeBasePipelineRunViewSet(OrganizationFilteredReadOnlyViewSet):
+    queryset = OCRKnowledgeBasePipelineRun.objects.select_related(
+        'organization',
+        'document',
+        'knowledge_base',
+        'ocr_job',
+        'ocr_result',
+        'knowledge_document',
+        'indexing_job',
+        'created_by',
+    ).all()
+    serializer_class = OCRKnowledgeBasePipelineRunSerializer
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['document_id', 'knowledge_base_id', 'status', 'step']
+    ordering_fields = ['created_at', 'started_at', 'finished_at']
+
+    @action(detail=False, methods=['post'], url_path='knowledge-base')
+    def run_knowledge_base_pipeline(self, request):
+        serializer = RunOCRKnowledgeBasePipelineSerializer(
+            data=request.data,
+            context={'request': request},
+        )
+        serializer.is_valid(raise_exception=True)
+
+        document = Document.objects.filter(
+            pk=serializer.validated_data['document_id'],
+            organization=request.user.organization,
+        ).select_related('organization').first()
+        if document is None:
+            return Response(
+                {'document_id': ['Este recurso nao pertence a organizacao atual.']},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        knowledge_base = KnowledgeBase.objects.filter(
+            pk=serializer.validated_data['knowledge_base_id'],
+            organization=request.user.organization,
+        ).select_related('organization').first()
+        if knowledge_base is None:
+            return Response(
+                {'knowledge_base_id': ['Este recurso nao pertence a organizacao atual.']},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        pipeline_run = run_ocr_to_knowledge_base_pipeline(
+            document=document,
+            knowledge_base=knowledge_base,
+            user=request.user,
+            update_document_content=serializer.validated_data['update_document_content'],
+        )
+        response_status = status.HTTP_200_OK if pipeline_run.status == 'completed' else status.HTTP_400_BAD_REQUEST
+        return Response(OCRKnowledgeBasePipelineRunSerializer(pipeline_run).data, status=response_status)

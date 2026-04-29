@@ -2,7 +2,8 @@ from rest_framework import serializers
 
 from documents.models import Document
 from jurisai.serializers import OrganizationScopedValidationMixin, TenantRelationValidationMixin
-from ocr.models import OCRJob, OCRResult
+from knowledge_base.models import KnowledgeBase
+from ocr.models import OCRJob, OCRKnowledgeBasePipelineRun, OCRResult
 
 
 class OCRJobSerializer(serializers.ModelSerializer):
@@ -81,3 +82,61 @@ class ApplyOCRResultSerializer(TenantRelationValidationMixin, serializers.Serial
         data['result_id'] = result_id
         data['organization_id'] = str(organization.id)
         return self.validate_tenant_relations(data)
+
+
+class OCRKnowledgeBasePipelineRunSerializer(serializers.ModelSerializer):
+    organization = serializers.UUIDField(source='organization_id', read_only=True)
+    document = serializers.UUIDField(source='document_id', read_only=True)
+    knowledge_base = serializers.UUIDField(source='knowledge_base_id', read_only=True)
+    ocr_job = serializers.UUIDField(source='ocr_job_id', read_only=True, allow_null=True)
+    ocr_result = serializers.UUIDField(source='ocr_result_id', read_only=True, allow_null=True)
+    knowledge_document = serializers.UUIDField(source='knowledge_document_id', read_only=True, allow_null=True)
+    indexing_job = serializers.UUIDField(source='indexing_job_id', read_only=True, allow_null=True)
+    created_by = serializers.UUIDField(source='created_by_id', read_only=True)
+
+    class Meta:
+        model = OCRKnowledgeBasePipelineRun
+        fields = [
+            'id',
+            'organization',
+            'document',
+            'knowledge_base',
+            'ocr_job',
+            'ocr_result',
+            'knowledge_document',
+            'indexing_job',
+            'status',
+            'step',
+            'update_document_content',
+            'error_message',
+            'metadata',
+            'created_by',
+            'started_at',
+            'finished_at',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = fields
+
+
+class RunOCRKnowledgeBasePipelineSerializer(TenantRelationValidationMixin, serializers.Serializer):
+    document_id = serializers.UUIDField()
+    knowledge_base_id = serializers.UUIDField()
+    update_document_content = serializers.BooleanField(required=False, default=True)
+    tenant_relation_fields = {
+        'document_id': Document,
+        'knowledge_base_id': KnowledgeBase,
+    }
+
+    def validate(self, data):
+        organization = getattr(self.context['request'].user, 'organization', None)
+        if organization is None:
+            raise serializers.ValidationError({'document_id': 'Organizacao atual nao encontrada.'})
+
+        data['organization_id'] = str(organization.id)
+        validated = self.validate_tenant_relations(data)
+        if not validated.get('update_document_content', True):
+            raise serializers.ValidationError(
+                {'update_document_content': 'update_document_content must be true for OCR-to-KnowledgeBase pipeline.'}
+            )
+        return validated
