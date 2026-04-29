@@ -4,7 +4,7 @@ JurisAI is a multi-tenant legal SaaS backend built with Django REST Framework, d
 
 It currently provides core legal operations, initial AI support, SaaS billing, auditability, and the first wave of expanded legal services, while keeping organization isolation as a central architectural rule.
 
-Current milestone: work toward `v0.8.0` adds a local image OCR engine foundation with an optional Tesseract adapter, governed `advanced-run` behavior and safe fallback when local OCR dependencies are unavailable, while keeping all external OCR providers disabled by default.
+Current milestone: `v0.8.0` adds a local image OCR engine foundation with an optional Tesseract adapter, governed `advanced-run` behavior and safe fallback when local OCR dependencies are unavailable, while keeping all external OCR providers disabled by default.
 
 ## Features
 

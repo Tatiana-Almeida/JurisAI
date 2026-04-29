@@ -392,3 +392,16 @@ Resumo:
 - Added audit logs for advanced OCR attempts.
 - Full suite: `159 passed`.
 - Release checkpoint: [docs/10-checkpoints/2026-04-release-v0.7.0.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-release-v0.7.0.md)
+
+## v0.8.0 - Local Image OCR Engine
+
+- Added local image OCR foundation.
+- Added optional Tesseract adapter.
+- Added governed OCR for PNG, JPG and JPEG.
+- Added safe fallback when Tesseract is unavailable.
+- Added OCRJob and OCRAuditLog tracking for local image OCR attempts.
+- Preserved TXT, textual PDF and DOCX extraction.
+- Preserved OCR-to-KnowledgeBase pipeline.
+- Kept external OCR providers disabled.
+- Full suite: `165 passed`.
+- Release checkpoint: [docs/10-checkpoints/2026-04-release-v0.8.0.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-release-v0.8.0.md)
