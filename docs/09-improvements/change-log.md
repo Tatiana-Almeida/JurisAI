@@ -251,6 +251,21 @@
 - [CONFIRMADO_NO_CODIGO] A suite [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py) foi expandida para cobrir settings, opt-in, audit logs, fallback textual e limite de fontes.
 - [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta camada foi registado em [docs/10-checkpoints/2026-04-rag-governance.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-rag-governance.md).
 
+## Mudanca
+
+- ID: `IMP-KB-RAG-004`
+- Titulo: Added optional local embedding pipeline and hybrid retrieval foundation.
+- Risco: medio
+- Estado: implementada e validada tecnicamente
+
+- [CONFIRMADO_NO_CODIGO] Foi criado [knowledge_base/embedding_providers.py](/c:/projectos/JurisAI/knowledge_base/embedding_providers.py) com `LocalHashEmbeddingProvider`, deterministico e totalmente local, e `ExternalEmbeddingProviderPlaceholder`, que continua sem chamadas reais para providers externos.
+- [CONFIRMADO_NO_CODIGO] `prepare-embeddings` agora gera `ChunkEmbedding` local com `provider=\"local\"` e `model=\"local-hash-v1\"`, sem duplicar embeddings existentes do mesmo chunk.
+- [CONFIRMADO_NO_CODIGO] O `knowledge_base` agora suporta retrieval `local_embedding` e `hybrid`, combinando score textual e score de similaridade local sem remover o pipeline textual existente.
+- [CONFIRMADO_NO_CODIGO] O endpoint `ask` passou a devolver `final_score`, `text_score` e `embedding_score` nas fontes quando aplicavel, mantendo `sources` obrigatorias e fallback textual seguro.
+- [CONFIRMADO_NO_CODIGO] Providers externos continuam sem implementacao real nesta fase e `prepare-embeddings` registra `EmbeddingAuditLog` com `skipped` e `provider_not_implemented` quando configurados.
+- [CONFIRMADO_NO_CODIGO] A suite [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py) foi expandida para cobrir provider local, retrieval hibrido, fallback textual, nao duplicacao e auditabilidade do placeholder externo.
+- [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta fase foi registado em [docs/10-checkpoints/2026-04-local-embeddings-hybrid-retrieval.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-local-embeddings-hybrid-retrieval.md).
+
 ## v0.3.0 — Tenant-Isolated Legal RAG Foundation
 
 Resumo:

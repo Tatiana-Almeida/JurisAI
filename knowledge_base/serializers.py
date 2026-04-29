@@ -12,6 +12,7 @@ from knowledge_base.models import (
     RAGSettings,
     RetrievalQuery,
 )
+from knowledge_base.embedding_providers import LOCAL_EMBEDDING_MODEL, LOCAL_EMBEDDING_PROVIDER
 from knowledge_base.services import validate_embedding_policy
 
 
@@ -190,6 +191,13 @@ class RAGSettingsSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         instance = self.instance
+        candidate_provider = attrs.get('embedding_provider', getattr(instance, 'embedding_provider', ''))
+        candidate_model = attrs.get('embedding_model', getattr(instance, 'embedding_model', ''))
+
+        if candidate_provider == LOCAL_EMBEDDING_PROVIDER and not candidate_model:
+            attrs['embedding_model'] = LOCAL_EMBEDDING_MODEL
+            candidate_model = LOCAL_EMBEDDING_MODEL
+
         candidate = RAGSettings(
             organization=getattr(instance, 'organization', None),
             retrieval_mode=attrs.get('retrieval_mode', getattr(instance, 'retrieval_mode', 'textual')),
@@ -197,8 +205,8 @@ class RAGSettingsSerializer(serializers.ModelSerializer):
                 'external_embeddings_enabled',
                 getattr(instance, 'external_embeddings_enabled', False),
             ),
-            embedding_provider=attrs.get('embedding_provider', getattr(instance, 'embedding_provider', '')),
-            embedding_model=attrs.get('embedding_model', getattr(instance, 'embedding_model', '')),
+            embedding_provider=candidate_provider,
+            embedding_model=candidate_model,
             require_human_review_for_ai_answers=attrs.get(
                 'require_human_review_for_ai_answers',
                 getattr(instance, 'require_human_review_for_ai_answers', True),

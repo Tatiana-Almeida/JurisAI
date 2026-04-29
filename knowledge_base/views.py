@@ -32,11 +32,10 @@ from knowledge_base.serializers import (
 )
 from knowledge_base.services import (
     build_grounded_answer,
-    generate_embeddings_placeholder,
+    generate_chunk_embeddings,
     get_rag_settings,
     index_document_for_knowledge_base,
-    resolve_retrieval_behavior,
-    search_chunks,
+    retrieve_chunks_for_query,
 )
 
 
@@ -159,26 +158,27 @@ class KnowledgeBaseViewSet(OrganizationScopedViewSet):
         serializer = KnowledgeSearchSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        results = search_chunks(
+        retrieval = retrieve_chunks_for_query(
             organization=request.user.organization,
             query=serializer.validated_data['query'],
             knowledge_base=knowledge_base,
+            settings=settings,
             limit=min(serializer.validated_data['limit'], settings.max_sources_per_answer),
         )
         grounded = build_grounded_answer(
             serializer.validated_data['query'],
-            results,
+            retrieval['results'],
             settings=settings,
+            retrieval_method=retrieval['retrieval_method'],
         )
-        retrieval_behavior = resolve_retrieval_behavior(settings)
         return Response(
             {
                 'query': grounded['query'],
                 'status': grounded['status'],
                 'retrieval_method': grounded['retrieval_method'],
-                'effective_retrieval_mode': retrieval_behavior['effective_retrieval_mode'],
-                'fallback_used': retrieval_behavior['fallback_used'],
-                'fallback_reason': retrieval_behavior['fallback_reason'],
+                'effective_retrieval_mode': retrieval['effective_retrieval_mode'],
+                'fallback_used': retrieval['fallback_used'],
+                'fallback_reason': retrieval['fallback_reason'],
                 'sources_count': grounded['sources_count'],
                 'confidence': grounded['confidence'],
                 'sources': grounded['sources'],
@@ -193,20 +193,22 @@ class KnowledgeBaseViewSet(OrganizationScopedViewSet):
         serializer.is_valid(raise_exception=True)
 
         effective_limit = min(serializer.validated_data['limit'], settings.max_sources_per_answer)
+        retrieval = retrieve_chunks_for_query(
+            organization=request.user.organization,
+            query=serializer.validated_data['query'],
+            knowledge_base=knowledge_base,
+            settings=settings,
+            limit=effective_limit,
+        )
         result = build_grounded_answer(
             serializer.validated_data['query'],
-            search_chunks(
-                organization=request.user.organization,
-                query=serializer.validated_data['query'],
-                knowledge_base=knowledge_base,
-                limit=effective_limit,
-            ),
+            retrieval['results'],
             settings=settings,
+            retrieval_method=retrieval['retrieval_method'],
         )
-        retrieval_behavior = resolve_retrieval_behavior(settings)
-        result['effective_retrieval_mode'] = retrieval_behavior['effective_retrieval_mode']
-        result['fallback_used'] = retrieval_behavior['fallback_used']
-        result['fallback_reason'] = retrieval_behavior['fallback_reason']
+        result['effective_retrieval_mode'] = retrieval['effective_retrieval_mode']
+        result['fallback_used'] = retrieval['fallback_used']
+        result['fallback_reason'] = retrieval['fallback_reason']
 
         RetrievalQuery.objects.create(
             organization=request.user.organization,
@@ -251,18 +253,22 @@ class KnowledgeBaseViewSet(OrganizationScopedViewSet):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-        result = generate_embeddings_placeholder(
-            organization=request.user.organization,
-            settings=settings,
+        result = generate_chunk_embeddings(
+            knowledge_base=knowledge_base,
             knowledge_document=knowledge_document,
-            created_by=request.user,
+            user=request.user,
         )
         return Response(
             {
                 'status': result['status'],
-                'reason': result['reason'],
-                'audit_log_id': result['audit_log_id'],
-                'effective_retrieval_mode': resolve_retrieval_behavior(settings)['effective_retrieval_mode'],
+                'reason': result.get('reason'),
+                'provider': result.get('provider', settings.embedding_provider or ''),
+                'model': result.get('model', settings.embedding_model or ''),
+                'chunks_processed': result.get('chunks_processed', 0),
+                'embeddings_created': result.get('embeddings_created', 0),
+                'embeddings_skipped': result.get('embeddings_skipped', 0),
+                'audit_log_id': result.get('audit_log_id'),
+                'effective_retrieval_mode': result.get('effective_retrieval_mode', settings.retrieval_mode),
             },
             status=status.HTTP_200_OK,
         )

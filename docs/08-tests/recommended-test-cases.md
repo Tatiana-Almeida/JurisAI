@@ -413,3 +413,33 @@
 
 - Risco: medio
 - Estado: [INFERIDO_DO_CODIGO] cobertura recomendada para futuras fases
+
+## CT-071 Validar configuracao de provider local em `RAGSettings` sem consentimento externo
+
+- Risco: medio
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py)
+
+## CT-072 Validar `prepare-embeddings` com provider local e evitar duplicacao
+
+- Risco: medio
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py)
+
+## CT-073 Validar retrieval `local_embedding` e `hybrid` com `final_score`, `text_score` e `embedding_score`
+
+- Risco: medio
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py)
+
+## CT-074 Validar fallback textual quando embeddings locais nao estao preparados
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py)
+
+## CT-075 Validar `prepare-embeddings` externo como `skipped` seguro e auditavel
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py)

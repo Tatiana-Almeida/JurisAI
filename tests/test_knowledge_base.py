@@ -42,6 +42,31 @@ def index_document(client, knowledge_base, document):
     )
 
 
+def configure_local_embeddings(client, mode='embeddings'):
+    return client.patch(
+        '/api/v1/knowledge-base/settings/',
+        {
+            'retrieval_mode': mode,
+            'embedding_provider': 'local',
+            'embedding_model': 'local-hash-v1',
+            'external_embeddings_enabled': False,
+            'allow_document_content_to_external_provider': False,
+        },
+        format='json',
+    )
+
+
+def prepare_embeddings(client, knowledge_base, knowledge_document_id=None):
+    payload = {}
+    if knowledge_document_id is not None:
+        payload['knowledge_document_id'] = str(knowledge_document_id)
+    return client.post(
+        f'/api/v1/knowledge-base/{knowledge_base.id}/prepare-embeddings/',
+        payload,
+        format='json',
+    )
+
+
 @pytest.mark.django_db
 def test_user_creates_knowledge_base_only_in_own_organization():
     tenant = build_service_tenant_fixture()
@@ -685,6 +710,21 @@ def test_patch_settings_accepts_hybrid_with_provider_and_explicit_opt_in():
 
 
 @pytest.mark.django_db
+def test_patch_settings_accepts_local_provider_without_external_consent():
+    tenant = build_service_tenant_fixture()
+    client = authenticated_client(tenant['admin_b'])
+
+    response = configure_local_embeddings(client, mode='embeddings')
+
+    assert response.status_code == 200
+    assert response.data['retrieval_mode'] == 'embeddings'
+    assert response.data['embedding_provider'] == 'local'
+    assert response.data['embedding_model'] == 'local-hash-v1'
+    assert response.data['external_embeddings_enabled'] is False
+    assert response.data['allow_document_content_to_external_provider'] is False
+
+
+@pytest.mark.django_db
 def test_non_admin_cannot_update_rag_settings():
     tenant = build_service_tenant_fixture()
     client = authenticated_client(tenant['lawyer_b'])
@@ -699,7 +739,7 @@ def test_non_admin_cannot_update_rag_settings():
 
 
 @pytest.mark.django_db
-def test_prepare_embeddings_creates_skipped_audit_log_when_provider_disabled():
+def test_prepare_embeddings_returns_skipped_when_retrieval_mode_is_textual():
     tenant = build_service_tenant_fixture()
     knowledge_base = create_base(tenant)
     document = create_document(tenant=tenant, organization_key='org_b', case_key='case_b', content='Texto para placeholder.')
@@ -707,19 +747,110 @@ def test_prepare_embeddings_creates_skipped_audit_log_when_provider_disabled():
     assert index_document(client, knowledge_base, document).status_code == 200
     knowledge_document = knowledge_base.documents.get(document=document)
 
-    response = client.post(
-        f'/api/v1/knowledge-base/{knowledge_base.id}/prepare-embeddings/',
-        {'knowledge_document_id': str(knowledge_document.id)},
-        format='json',
-    )
+    response = prepare_embeddings(client, knowledge_base, knowledge_document.id)
 
     assert response.status_code == 200
     assert response.data['status'] == 'skipped'
-    assert response.data['reason'] == 'external_embeddings_disabled'
+    assert response.data['reason'] == 'retrieval_mode_textual'
     audit_log = EmbeddingAuditLog.objects.get(pk=response.data['audit_log_id'])
     assert audit_log.organization == tenant['org_b']
     assert audit_log.knowledge_document == knowledge_document
     assert audit_log.provider == ''
+
+
+@pytest.mark.django_db
+def test_prepare_embeddings_with_local_provider_creates_chunk_embeddings():
+    tenant = build_service_tenant_fixture()
+    knowledge_base = create_base(tenant)
+    document = create_document(
+        tenant=tenant,
+        organization_key='org_b',
+        case_key='case_b',
+        content='Clausula penal, inadimplemento, multa e rescissao contratual.',
+    )
+    client = authenticated_client(tenant['admin_b'])
+    assert index_document(client, knowledge_base, document).status_code == 200
+    assert configure_local_embeddings(client, mode='embeddings').status_code == 200
+    knowledge_document = knowledge_base.documents.get(document=document)
+
+    response = prepare_embeddings(client, knowledge_base, knowledge_document.id)
+
+    assert response.status_code == 200
+    assert response.data['status'] == 'completed'
+    assert response.data['provider'] == 'local'
+    assert response.data['model'] == 'local-hash-v1'
+    assert response.data['embeddings_created'] >= 1
+    assert ChunkEmbedding.objects.filter(
+        organization=tenant['org_b'],
+        chunk__knowledge_document=knowledge_document,
+        provider='local',
+        model='local-hash-v1',
+        status='generated',
+    ).exists()
+
+
+@pytest.mark.django_db
+def test_prepare_embeddings_with_local_provider_does_not_duplicate_existing_embeddings():
+    tenant = build_service_tenant_fixture()
+    knowledge_base = create_base(tenant)
+    document = create_document(
+        tenant=tenant,
+        organization_key='org_b',
+        case_key='case_b',
+        content='Texto repetido para testar embeddings locais sem duplicacao.',
+    )
+    client = authenticated_client(tenant['admin_b'])
+    assert index_document(client, knowledge_base, document).status_code == 200
+    assert configure_local_embeddings(client, mode='embeddings').status_code == 200
+    knowledge_document = knowledge_base.documents.get(document=document)
+
+    first_response = prepare_embeddings(client, knowledge_base, knowledge_document.id)
+    second_response = prepare_embeddings(client, knowledge_base, knowledge_document.id)
+
+    assert first_response.status_code == 200
+    assert second_response.status_code == 200
+    assert second_response.data['status'] == 'completed'
+    assert second_response.data['embeddings_created'] == 0
+    assert second_response.data['embeddings_skipped'] >= 1
+    assert ChunkEmbedding.objects.filter(
+        organization=tenant['org_b'],
+        chunk__knowledge_document=knowledge_document,
+    ).count() == knowledge_document.chunks.count()
+
+
+@pytest.mark.django_db
+def test_prepare_embeddings_with_external_provider_keeps_safe_skip_and_audit_log():
+    tenant = build_service_tenant_fixture()
+    knowledge_base = create_base(tenant)
+    document = create_document(
+        tenant=tenant,
+        organization_key='org_b',
+        case_key='case_b',
+        content='Texto para provider externo placeholder.',
+    )
+    client = authenticated_client(tenant['admin_b'])
+    assert index_document(client, knowledge_base, document).status_code == 200
+    assert client.patch(
+        '/api/v1/knowledge-base/settings/',
+        {
+            'retrieval_mode': 'embeddings',
+            'embedding_provider': 'openai',
+            'embedding_model': 'text-embedding-placeholder',
+            'external_embeddings_enabled': True,
+            'allow_document_content_to_external_provider': True,
+        },
+        format='json',
+    ).status_code == 200
+
+    response = prepare_embeddings(client, knowledge_base)
+
+    assert response.status_code == 200
+    assert response.data['status'] == 'skipped'
+    assert response.data['reason'] == 'provider_not_implemented'
+    audit_log = EmbeddingAuditLog.objects.get(pk=response.data['audit_log_id'])
+    assert audit_log.organization == tenant['org_b']
+    assert audit_log.provider == 'openai'
+    assert audit_log.status == 'skipped'
 
 
 @pytest.mark.django_db
@@ -778,11 +909,140 @@ def test_ask_uses_textual_fallback_when_hybrid_requested_but_not_effective():
     )
 
     assert response.status_code == 200
-    assert response.data['retrieval_method'] == 'textual'
+    assert response.data['retrieval_method'] == 'textual_fallback'
     assert response.data['effective_retrieval_mode'] == 'textual'
     assert response.data['fallback_used'] is True
     assert response.data['fallback_reason'] == 'external_embeddings_disabled'
     assert response.data['sources']
+
+
+@pytest.mark.django_db
+def test_ask_uses_local_embedding_when_embeddings_exist():
+    tenant = build_service_tenant_fixture()
+    knowledge_base = create_base(tenant)
+    document = create_document(
+        tenant=tenant,
+        organization_key='org_b',
+        case_key='case_b',
+        content='Peticao inicial com pedido de tutela de urgencia e bloqueio de valores.',
+    )
+    client = authenticated_client(tenant['admin_b'])
+    assert index_document(client, knowledge_base, document).status_code == 200
+    assert configure_local_embeddings(client, mode='embeddings').status_code == 200
+    knowledge_document = knowledge_base.documents.get(document=document)
+    assert prepare_embeddings(client, knowledge_base, knowledge_document.id).status_code == 200
+
+    response = client.post(
+        f'/api/v1/knowledge-base/{knowledge_base.id}/ask/',
+        {'query': 'tutela de urgencia e bloqueio de valores', 'limit': 5},
+        format='json',
+    )
+
+    assert response.status_code == 200
+    assert response.data['retrieval_method'] == 'local_embedding'
+    assert response.data['effective_retrieval_mode'] == 'embeddings'
+    assert response.data['fallback_used'] is False
+    assert response.data['sources']
+    assert response.data['sources'][0]['final_score'] >= 0
+    assert 'embedding_score' in response.data['sources'][0]
+
+
+@pytest.mark.django_db
+def test_ask_uses_hybrid_when_local_embeddings_exist():
+    tenant = build_service_tenant_fixture()
+    knowledge_base = create_base(tenant)
+    document = create_document(
+        tenant=tenant,
+        organization_key='org_b',
+        case_key='case_b',
+        content='Contestacao com preliminar processual, ilegitimidade passiva e pedido subsidiario.',
+    )
+    client = authenticated_client(tenant['admin_b'])
+    assert index_document(client, knowledge_base, document).status_code == 200
+    assert configure_local_embeddings(client, mode='hybrid').status_code == 200
+    knowledge_document = knowledge_base.documents.get(document=document)
+    assert prepare_embeddings(client, knowledge_base, knowledge_document.id).status_code == 200
+
+    response = client.post(
+        f'/api/v1/knowledge-base/{knowledge_base.id}/ask/',
+        {'query': 'preliminar processual e ilegitimidade passiva', 'limit': 5},
+        format='json',
+    )
+
+    assert response.status_code == 200
+    assert response.data['retrieval_method'] == 'hybrid'
+    assert response.data['effective_retrieval_mode'] == 'hybrid'
+    assert response.data['fallback_used'] is False
+    assert response.data['sources']
+    first_source = response.data['sources'][0]
+    assert 'final_score' in first_source
+    assert 'text_score' in first_source
+    assert 'embedding_score' in first_source
+
+
+@pytest.mark.django_db
+def test_ask_falls_back_to_textual_when_local_embeddings_are_not_prepared():
+    tenant = build_service_tenant_fixture()
+    knowledge_base = create_base(tenant)
+    document = create_document(
+        tenant=tenant,
+        organization_key='org_b',
+        case_key='case_b',
+        content='Recurso de apelacao com pedido de reforma integral da sentenca.',
+    )
+    client = authenticated_client(tenant['admin_b'])
+    assert index_document(client, knowledge_base, document).status_code == 200
+    assert configure_local_embeddings(client, mode='embeddings').status_code == 200
+
+    response = client.post(
+        f'/api/v1/knowledge-base/{knowledge_base.id}/ask/',
+        {'query': 'pedido de reforma integral da sentenca', 'limit': 5},
+        format='json',
+    )
+
+    assert response.status_code == 200
+    assert response.data['retrieval_method'] == 'textual_fallback'
+    assert response.data['effective_retrieval_mode'] == 'textual'
+    assert response.data['fallback_used'] is True
+    assert response.data['fallback_reason'] == 'embeddings_not_prepared'
+    assert response.data['sources']
+
+
+@pytest.mark.django_db
+def test_embedding_retrieval_preserves_tenant_isolation():
+    tenant = build_service_tenant_fixture()
+    base_a = create_base(tenant, org_key='org_a', user_key='admin_a', name='Base A')
+    base_b = create_base(tenant, org_key='org_b', user_key='admin_b', name='Base B')
+    document_a = create_document(
+        tenant=tenant,
+        organization_key='org_a',
+        case_key='case_a',
+        content='Clausula de confidencialidade e estrategia exclusiva do tenant A.',
+    )
+    document_b = create_document(
+        tenant=tenant,
+        organization_key='org_b',
+        case_key='case_b',
+        content='Clausula de confidencialidade e estrategia exclusiva do tenant B.',
+    )
+    client_a = authenticated_client(tenant['admin_a'])
+    client_b = authenticated_client(tenant['admin_b'])
+    assert index_document(client_a, base_a, document_a).status_code == 200
+    assert index_document(client_b, base_b, document_b).status_code == 200
+    assert configure_local_embeddings(client_a, mode='embeddings').status_code == 200
+    assert configure_local_embeddings(client_b, mode='embeddings').status_code == 200
+    assert prepare_embeddings(client_a, base_a).status_code == 200
+    assert prepare_embeddings(client_b, base_b).status_code == 200
+
+    response = client_b.post(
+        f'/api/v1/knowledge-base/{base_b.id}/ask/',
+        {'query': 'clausula de confidencialidade estrategia exclusiva', 'limit': 5},
+        format='json',
+    )
+
+    assert response.status_code == 200
+    assert response.data['retrieval_method'] == 'local_embedding'
+    assert all(source['document_id'] == str(document_b.id) for source in response.data['sources'])
 
 
 @pytest.mark.django_db

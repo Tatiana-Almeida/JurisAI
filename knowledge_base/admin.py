@@ -51,7 +51,7 @@ class IndexingJobAdmin(admin.ModelAdmin):
 class ChunkEmbeddingAdmin(admin.ModelAdmin):
     list_display = ('chunk', 'organization', 'provider', 'model', 'status', 'created_at')
     search_fields = ('provider', 'model', 'error_message')
-    list_filter = ('status', 'organization')
+    list_filter = ('status', 'organization', 'provider', 'model', 'created_at')
 
 
 @admin.register(RAGSettings)
@@ -72,6 +72,6 @@ class RAGSettingsAdmin(admin.ModelAdmin):
 
 @admin.register(EmbeddingAuditLog)
 class EmbeddingAuditLogAdmin(admin.ModelAdmin):
-    list_display = ('organization', 'knowledge_document', 'action', 'status', 'reason', 'created_at')
-    list_filter = ('action', 'status', 'organization', 'provider')
+    list_display = ('organization', 'knowledge_document', 'provider', 'model', 'action', 'status', 'reason', 'created_at')
+    list_filter = ('action', 'status', 'organization', 'provider', 'model', 'created_at')
     search_fields = ('reason', 'provider', 'model')

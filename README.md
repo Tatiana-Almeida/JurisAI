@@ -4,7 +4,7 @@ JurisAI is a multi-tenant legal SaaS backend built with Django REST Framework, d
 
 It currently provides core legal operations, initial AI support, SaaS billing, auditability, and the first wave of expanded legal services, while keeping organization isolation as a central architectural rule.
 
-Current milestone: `v0.3.0` consolidates the tenant-isolated legal RAG foundation with textual retrieval, indexing observability and organization-level governance for future embeddings.
+Current milestone: `v0.3.0` consolidates the tenant-isolated legal RAG foundation with textual retrieval, indexing observability and organization-level governance. The `v0.4.0` workstream is now adding optional local embeddings and hybrid retrieval without enabling any external provider by default.
 
 ## Features
 
@@ -31,7 +31,7 @@ Current milestone: `v0.3.0` consolidates the tenant-isolated legal RAG foundatio
 ### AI and automation foundations
 
 - AI assistant
-- Knowledge base / RAG initial retrieval
+- Knowledge base / RAG with textual retrieval and local embeddings foundation
 - OCR foundation
 - Document analysis foundation
 
@@ -81,17 +81,21 @@ These apps are present in the codebase with initial models and safe base routes,
 - Tenant-isolated knowledge bases
 - Document indexing into textual chunks
 - Local textual retrieval with explicit sources
+- Optional deterministic local embeddings via `local-hash-v1`
+- Hybrid retrieval foundation combining textual and local embedding scores
 - Retrieval ranking improved with exact phrase, term frequency and title hits
 - Indexing observability through indexing jobs
 - Knowledge base stats and safe document reindexing
 - Grounded answers without external provider calls
-- Embedding foundation prepared, but not active
+- `ask` responses with `retrieval_method`, `sources_count`, `confidence`, `effective_retrieval_mode`, `fallback_used` and `fallback_reason`
+- Local embedding preparation through `prepare-embeddings`
 - Organization-level RAG governance and opt-in controls for future external embeddings
 - Mandatory textual fallback when embeddings are not effective
+- External providers still disabled by default and not implemented in this phase
 
 ### Future functional expansion
 
-- Embedding-based retrieval and ranking
+- Richer semantic retrieval and vector-backed ranking
 - OCR provider integration
 - Advanced document comparison and deadline extraction
 - Provider-backed electronic signature flows
@@ -172,6 +176,7 @@ Current primary routes include:
 - `GET/PATCH /api/v1/knowledge-base/settings/`
 - `GET /api/v1/knowledge-base/embedding-audit-logs/`
 - `POST /api/v1/knowledge-base/{id}/prepare-embeddings/`
+- `GET /api/v1/knowledge-base/chunks/`
 - `POST /api/v1/ai/generate-petition/`
 - `POST /api/v1/ai/summarize-document/`
 - `POST /api/v1/ai/analyze-risk/`
@@ -306,8 +311,11 @@ The current backend already includes important safety measures:
 - Tenant-isolated knowledge retrieval with explicit source payloads
 - No external provider calls for knowledge base retrieval in the current phase
 - Indexing jobs and retrieval history stay organization-scoped
-- Embedding fields and chunk embedding records are foundation-only in this phase and do not call any external provider
+- Deterministic local embeddings run fully inside the backend and do not send content to third parties
+- Local embeddings are a pipeline foundation and not a semantic/legal model replacement
+- Chunk embedding records and audit logs stay organization-scoped
 - External embeddings remain disabled by default and require explicit organization opt-in
+- Even with external configuration present, provider-backed embeddings remain blocked and fall back safely to textual retrieval
 - Textual fallback remains mandatory when retrieval is configured as `hybrid` or `embeddings` but external embeddings are not effective
 
 Remaining production hardening areas include:
@@ -321,7 +329,7 @@ Remaining production hardening areas include:
 ## Roadmap
 
 - Production hardening
-- Embedding-based RAG with optional per-tenant providers and richer citations
+- Embedding-based RAG with stronger local semantics and optional per-tenant external providers
 - OCR provider integration
 - Advanced CRM workflows
 - E-signature provider integration
