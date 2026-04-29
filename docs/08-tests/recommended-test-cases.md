@@ -331,7 +331,49 @@
 - Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
 - Cobertura preparada: [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py)
 
-## CT-057 Validar placeholders seguros remanescentes de `ocr` e `document_analysis`
+## CT-057 Validar `IndexingJob` em indexacao bem-sucedida
+
+- Risco: medio
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py)
+
+## CT-058 Validar `IndexingJob` em erro controlado
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py)
+
+## CT-059 Validar ranking textual por frase exata e limite de resultados em `knowledge_base`
+
+- Risco: medio
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py)
+
+## CT-060 Validar `stats` sem mistura entre tenants em `knowledge_base`
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py)
+
+## CT-061 Validar `reindex-document` com `chunks_deleted` e `chunks_created`
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py)
+
+## CT-062 Validar fundacao de embeddings opcionais por tenant
+
+- Risco: medio
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py)
+
+## CT-063 Validar `ask` com `retrieval_method`, `sources_count` e `confidence`
+
+- Risco: medio
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py)
+
+## CT-064 Validar placeholders seguros remanescentes de `ocr` e `document_analysis`
 
 - Risco: medio
 - Estado: [INFERIDO_DO_CODIGO] cobertura recomendada para futuras fases

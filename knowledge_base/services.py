@@ -8,25 +8,36 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 
-from knowledge_base.models import DocumentChunk, KnowledgeDocument
+from knowledge_base.models import DocumentChunk, IndexingJob, KnowledgeDocument
 
 
 DEFAULT_CHUNK_SIZE = 1200
 DEFAULT_CHUNK_OVERLAP = 150
 DEFAULT_SEARCH_LIMIT = 5
 MAX_SOURCE_EXCERPT_LENGTH = 280
+MIN_CONFIDENCE_SCORE = 4
 
 
 @dataclass
 class SearchResult:
     chunk: DocumentChunk
-    score: int
+    score: float
+    exact_phrase_matches: int
+    terms_found: int
+    term_frequency: int
+    title_hits: int
 
 
 def normalize_text(text):
     text = (text or '').strip().lower()
     normalized = unicodedata.normalize('NFKD', text)
     return ''.join(char for char in normalized if not unicodedata.combining(char))
+
+
+def tokenize_query(query):
+    normalized_query = normalize_text(query)
+    terms = re.findall(r'[a-z0-9]+', normalized_query)
+    return [term for term in terms if len(term) >= 2]
 
 
 def split_text_into_chunks(text, chunk_size=DEFAULT_CHUNK_SIZE, overlap=DEFAULT_CHUNK_OVERLAP):
@@ -87,15 +98,74 @@ def _build_document_index_text(document):
     return ' '.join(part for part in fallback_parts if part), metadata
 
 
-def _tokenize_query(query):
-    normalized_query = normalize_text(query)
-    terms = re.findall(r'[a-z0-9]+', normalized_query)
-    return [term for term in terms if len(term) >= 2]
-
-
 def _count_term_hits(text, terms):
     normalized_text = normalize_text(text)
     return sum(normalized_text.count(term) for term in terms)
+
+
+def calculate_text_score(query, chunk):
+    terms = tokenize_query(query)
+    if not terms:
+        return SearchResult(
+            chunk=chunk,
+            score=0,
+            exact_phrase_matches=0,
+            terms_found=0,
+            term_frequency=0,
+            title_hits=0,
+        )
+
+    normalized_query = normalize_text(query)
+    normalized_content = normalize_text(chunk.content)
+    normalized_title = normalize_text(chunk.knowledge_document.title)
+
+    exact_phrase_matches = normalized_content.count(normalized_query) if normalized_query else 0
+    title_phrase_matches = normalized_title.count(normalized_query) if normalized_query else 0
+    term_frequency = _count_term_hits(chunk.content, terms)
+    title_hits = _count_term_hits(chunk.knowledge_document.title, terms)
+    terms_found = sum(
+        1
+        for term in terms
+        if term in normalized_content or term in normalized_title
+    )
+
+    score = (
+        exact_phrase_matches * 10
+        + title_phrase_matches * 12
+        + terms_found * 3
+        + term_frequency
+        + title_hits * 2
+    )
+
+    return SearchResult(
+        chunk=chunk,
+        score=score,
+        exact_phrase_matches=exact_phrase_matches + title_phrase_matches,
+        terms_found=terms_found,
+        term_frequency=term_frequency,
+        title_hits=title_hits,
+    )
+
+
+def rank_chunks(query, chunks, limit=DEFAULT_SEARCH_LIMIT):
+    ranked = []
+    for chunk in chunks:
+        result = calculate_text_score(query, chunk)
+        if result.score > 0 and result.terms_found > 0:
+            ranked.append(result)
+
+    ranked.sort(
+        key=lambda result: (
+            -result.score,
+            -result.exact_phrase_matches,
+            -result.terms_found,
+            -result.term_frequency,
+            -result.title_hits,
+            -result.chunk.created_at.timestamp(),
+            result.chunk.chunk_index,
+        )
+    )
+    return ranked[: max(1, min(limit or DEFAULT_SEARCH_LIMIT, 10))]
 
 
 def _build_source_payload(result):
@@ -112,16 +182,37 @@ def _build_source_payload(result):
     }
 
 
-@transaction.atomic
-def index_document_for_knowledge_base(document, knowledge_base, user):
+def _resolve_confidence(chunks):
+    if not chunks:
+        return None
+
+    top_score = chunks[0].score
+    sources_count = len(chunks)
+
+    if top_score >= 18 and sources_count >= 2:
+        return 'high'
+    if top_score >= 8:
+        return 'medium'
+    if top_score >= MIN_CONFIDENCE_SCORE:
+        return 'low'
+    return None
+
+
+def _create_indexing_job(knowledge_base, user, document=None, knowledge_document=None, metadata=None):
+    return IndexingJob.objects.create(
+        organization=knowledge_base.organization,
+        knowledge_base=knowledge_base,
+        knowledge_document=knowledge_document,
+        document=document,
+        status='pending',
+        metadata=metadata or {},
+        created_by=user,
+    )
+
+
+def index_document_for_knowledge_base(document, knowledge_base, user, *, reindex=False):
     organization = knowledge_base.organization
     title = _build_document_title(document)
-    indexed_text, metadata = _build_document_index_text(document)
-    chunks = split_text_into_chunks(indexed_text)
-
-    if not chunks and indexed_text:
-        chunks = [indexed_text]
-
     knowledge_document, _ = KnowledgeDocument.objects.get_or_create(
         organization=organization,
         knowledge_base=knowledge_base,
@@ -134,54 +225,97 @@ def index_document_for_knowledge_base(document, knowledge_base, user):
         },
     )
 
-    knowledge_document.title = title
-    knowledge_document.source_type = 'document'
-    knowledge_document.created_by = knowledge_document.created_by or user
-    knowledge_document.error_message = ''
-    knowledge_document.status = 'pending'
-    knowledge_document.save(
-        update_fields=[
-            'title',
-            'source_type',
-            'created_by',
-            'error_message',
-            'status',
-            'updated_at',
-        ]
+    job = _create_indexing_job(
+        knowledge_base=knowledge_base,
+        user=user,
+        document=document,
+        knowledge_document=knowledge_document,
+        metadata={'reindex': reindex},
     )
+    job.status = 'running'
+    job.started_at = timezone.now()
+    job.save(update_fields=['status', 'started_at', 'updated_at'])
 
-    knowledge_document.chunks.all().delete()
+    try:
+        with transaction.atomic():
+            indexed_text, metadata = _build_document_index_text(document)
+            chunks = split_text_into_chunks(indexed_text)
 
-    chunk_models = []
-    for index, chunk_content in enumerate(chunks):
-        chunk_metadata = {
-            **metadata,
-            'document_type': getattr(document, 'type', ''),
-            'law_case_id': str(document.law_case_id) if document.law_case_id else None,
-        }
-        chunk_models.append(
-            DocumentChunk(
-                organization=organization,
-                knowledge_document=knowledge_document,
-                document=document,
-                chunk_index=index,
-                content=chunk_content,
-                content_hash=hashlib.sha256(chunk_content.encode('utf-8')).hexdigest(),
-                metadata=chunk_metadata,
-                char_count=len(chunk_content),
+            if not chunks and indexed_text:
+                chunks = [indexed_text]
+
+            knowledge_document.title = title
+            knowledge_document.source_type = 'document'
+            knowledge_document.created_by = knowledge_document.created_by or user
+            knowledge_document.error_message = ''
+            knowledge_document.status = 'pending'
+            knowledge_document.save(
+                update_fields=[
+                    'title',
+                    'source_type',
+                    'created_by',
+                    'error_message',
+                    'status',
+                    'updated_at',
+                ]
             )
+
+            chunks_deleted, _ = knowledge_document.chunks.all().delete()
+
+            chunk_models = []
+            for index, chunk_content in enumerate(chunks):
+                chunk_metadata = {
+                    **metadata,
+                    'document_type': getattr(document, 'type', ''),
+                    'law_case_id': str(document.law_case_id) if document.law_case_id else None,
+                }
+                chunk_models.append(
+                    DocumentChunk(
+                        organization=organization,
+                        knowledge_document=knowledge_document,
+                        document=document,
+                        chunk_index=index,
+                        content=chunk_content,
+                        content_hash=hashlib.sha256(chunk_content.encode('utf-8')).hexdigest(),
+                        metadata=chunk_metadata,
+                        char_count=len(chunk_content),
+                        embedding_status='not_generated',
+                    )
+                )
+
+            DocumentChunk.objects.bulk_create(chunk_models)
+            knowledge_document.status = 'indexed'
+            knowledge_document.indexed_at = timezone.now()
+            knowledge_document.save(update_fields=['status', 'indexed_at', 'updated_at'])
+
+        job.status = 'completed'
+        job.finished_at = timezone.now()
+        job.chunks_created = len(chunk_models)
+        job.chunks_deleted = chunks_deleted
+        job.save(
+            update_fields=[
+                'status',
+                'finished_at',
+                'chunks_created',
+                'chunks_deleted',
+                'updated_at',
+            ]
         )
+        return knowledge_document, len(chunk_models), chunks_deleted, job
+    except Exception as exc:
+        knowledge_document.status = 'failed'
+        knowledge_document.error_message = str(exc)
+        knowledge_document.save(update_fields=['status', 'error_message', 'updated_at'])
 
-    DocumentChunk.objects.bulk_create(chunk_models)
-    knowledge_document.status = 'indexed'
-    knowledge_document.indexed_at = timezone.now()
-    knowledge_document.save(update_fields=['status', 'indexed_at', 'updated_at'])
-
-    return knowledge_document, len(chunk_models)
+        job.status = 'failed'
+        job.finished_at = timezone.now()
+        job.error_message = str(exc)
+        job.save(update_fields=['status', 'finished_at', 'error_message', 'updated_at'])
+        raise
 
 
 def search_chunks(organization, query, knowledge_base=None, limit=DEFAULT_SEARCH_LIMIT):
-    terms = _tokenize_query(query)
+    terms = tokenize_query(query)
     if not terms:
         return []
 
@@ -202,25 +336,12 @@ def search_chunks(organization, query, knowledge_base=None, limit=DEFAULT_SEARCH
         search_filter |= Q(knowledge_document__title__icontains=term)
 
     candidates = queryset.filter(search_filter)
-    ranked = []
-    for chunk in candidates:
-        score = _count_term_hits(chunk.content, terms)
-        score += _count_term_hits(chunk.knowledge_document.title, terms)
-        if score > 0:
-            ranked.append(SearchResult(chunk=chunk, score=score))
-
-    ranked.sort(
-        key=lambda result: (
-            -result.score,
-            -result.chunk.created_at.timestamp(),
-            result.chunk.chunk_index,
-        )
-    )
-    return ranked[: max(1, min(limit or DEFAULT_SEARCH_LIMIT, 10))]
+    return rank_chunks(query, candidates, limit=limit)
 
 
 def build_grounded_answer(query, chunks):
-    if not chunks:
+    confidence = _resolve_confidence(chunks)
+    if not chunks or confidence is None:
         return {
             'query': query,
             'status': 'no_sources',
@@ -228,11 +349,16 @@ def build_grounded_answer(query, chunks):
                 'Nao foram encontradas fontes suficientes na base de conhecimento '
                 'da organizacao para responder com seguranca.'
             ),
+            'retrieval_method': 'textual',
+            'sources_count': 0,
+            'confidence': 'low',
             'sources': [],
         }
 
     sources = [_build_source_payload(result) for result in chunks]
-    lines = ['Resposta gerada com base nos documentos encontrados na base de conhecimento:']
+    lines = [
+        'Resposta baseada nos trechos encontrados na base de conhecimento da organizacao.',
+    ]
     for source in sources:
         lines.append(f"- {source['title']}: {source['excerpt']}")
 
@@ -240,5 +366,8 @@ def build_grounded_answer(query, chunks):
         'query': query,
         'status': 'completed',
         'answer': '\n'.join(lines),
+        'retrieval_method': 'textual',
+        'sources_count': len(sources),
+        'confidence': confidence,
         'sources': sources,
     }

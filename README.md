@@ -79,7 +79,11 @@ These apps are present in the codebase with initial models and safe base routes,
 - Tenant-isolated knowledge bases
 - Document indexing into textual chunks
 - Local textual retrieval with explicit sources
+- Retrieval ranking improved with exact phrase, term frequency and title hits
+- Indexing observability through indexing jobs
+- Knowledge base stats and safe document reindexing
 - Grounded answers without external provider calls
+- Embedding foundation prepared, but not active
 
 ### Future functional expansion
 
@@ -156,8 +160,11 @@ Current primary routes include:
 - `GET /api/v1/legal-finance/summary/`
 - `GET /api/v1/knowledge-base/`
 - `POST /api/v1/knowledge-base/{id}/index-document/`
+- `POST /api/v1/knowledge-base/{id}/reindex-document/`
 - `POST /api/v1/knowledge-base/{id}/search/`
 - `POST /api/v1/knowledge-base/{id}/ask/`
+- `GET /api/v1/knowledge-base/{id}/stats/`
+- `GET /api/v1/knowledge-base/indexing-jobs/`
 - `POST /api/v1/ai/generate-petition/`
 - `POST /api/v1/ai/summarize-document/`
 - `POST /api/v1/ai/analyze-risk/`
@@ -291,19 +298,21 @@ The current backend already includes important safety measures:
 - Lightweight binary signature validation for PDF, PNG, JPEG and structural validation for DOCX
 - Tenant-isolated knowledge retrieval with explicit source payloads
 - No external provider calls for knowledge base retrieval in the current phase
+- Indexing jobs and retrieval history stay organization-scoped
+- Embedding fields and chunk embedding records are foundation-only in this phase and do not call any external provider
 
 Remaining production hardening areas include:
 
 - stronger production secret management and key length hygiene
 - deeper binary or malware scanning for uploaded files
 - broader validation coverage for legacy document formats
-- future provider-backed RAG controls, including embeddings governance and retrieval observability
+- future provider-backed RAG controls, including embeddings governance, consent and retrieval observability
 - operational hardening around infrastructure, monitoring and secrets rotation
 
 ## Roadmap
 
 - Production hardening
-- Embedding-based RAG with richer citations and ranking
+- Embedding-based RAG with optional per-tenant providers and richer citations
 - OCR provider integration
 - Advanced CRM workflows
 - E-signature provider integration

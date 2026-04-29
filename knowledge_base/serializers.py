@@ -2,7 +2,14 @@ from rest_framework import serializers
 
 from documents.models import Document
 from jurisai.serializers import OrganizationScopedValidationMixin, TenantRelationValidationMixin
-from knowledge_base.models import DocumentChunk, KnowledgeBase, KnowledgeDocument, RetrievalQuery
+from knowledge_base.models import (
+    ChunkEmbedding,
+    DocumentChunk,
+    IndexingJob,
+    KnowledgeBase,
+    KnowledgeDocument,
+    RetrievalQuery,
+)
 
 
 class KnowledgeBaseSerializer(OrganizationScopedValidationMixin, serializers.ModelSerializer):
@@ -76,9 +83,49 @@ class KnowledgeDocumentSerializer(
         )
 
 
+class ChunkEmbeddingSerializer(
+    TenantRelationValidationMixin,
+    OrganizationScopedValidationMixin,
+    serializers.ModelSerializer,
+):
+    organization_id = serializers.UUIDField(write_only=True, required=False)
+    chunk_id = serializers.UUIDField(write_only=True)
+    tenant_relation_fields = {'chunk_id': DocumentChunk}
+
+    class Meta:
+        model = ChunkEmbedding
+        fields = [
+            'id',
+            'organization',
+            'organization_id',
+            'chunk',
+            'chunk_id',
+            'provider',
+            'model',
+            'vector',
+            'status',
+            'error_message',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['organization', 'chunk', 'created_at', 'updated_at']
+
+    def create(self, validated_data):
+        return ChunkEmbedding.objects.create(
+            organization_id=validated_data['organization_id'],
+            chunk_id=validated_data['chunk_id'],
+            provider=validated_data.get('provider', ''),
+            model=validated_data.get('model', ''),
+            vector=validated_data.get('vector'),
+            status=validated_data.get('status', 'not_generated'),
+            error_message=validated_data.get('error_message', ''),
+        )
+
+
 class DocumentChunkSerializer(serializers.ModelSerializer):
     knowledge_document_id = serializers.UUIDField(source='knowledge_document_id', read_only=True)
     document_id = serializers.UUIDField(source='document_id', read_only=True, allow_null=True)
+    embedding = ChunkEmbeddingSerializer(read_only=True)
 
     class Meta:
         model = DocumentChunk
@@ -92,6 +139,8 @@ class DocumentChunkSerializer(serializers.ModelSerializer):
             'content_hash',
             'metadata',
             'char_count',
+            'embedding_status',
+            'embedding',
             'created_at',
         ]
         read_only_fields = fields
@@ -108,8 +157,34 @@ class RetrievalQuerySerializer(serializers.ModelSerializer):
             'query',
             'answer',
             'status',
+            'retrieval_method',
+            'confidence',
+            'sources_count',
             'sources_payload',
             'created_at',
+        ]
+        read_only_fields = fields
+
+
+class IndexingJobSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = IndexingJob
+        fields = [
+            'id',
+            'organization',
+            'knowledge_base',
+            'knowledge_document',
+            'document',
+            'status',
+            'started_at',
+            'finished_at',
+            'chunks_created',
+            'chunks_deleted',
+            'error_message',
+            'metadata',
+            'created_by',
+            'created_at',
+            'updated_at',
         ]
         read_only_fields = fields
 
@@ -125,6 +200,10 @@ class IndexDocumentSerializer(TenantRelationValidationMixin, serializers.Seriali
 
         data['organization_id'] = str(organization.id)
         return self.validate_tenant_relations(data)
+
+
+class ReindexDocumentSerializer(IndexDocumentSerializer):
+    pass
 
 
 class KnowledgeSearchSerializer(serializers.Serializer):

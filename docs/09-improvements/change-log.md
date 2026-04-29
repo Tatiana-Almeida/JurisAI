@@ -219,3 +219,19 @@
 - [CONFIRMADO_NO_CODIGO] O endpoint `ask` retorna resposta fundamentada apenas com base nos chunks encontrados e devolve `no_sources` quando nao ha base suficiente para responder com seguranca.
 - [CONFIRMADO_NO_CODIGO] Foi criada a suite [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py) cobrindo tenant isolation, indexacao, busca e respostas com fontes.
 - [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta entrega foi registado em [docs/10-checkpoints/2026-04-knowledge-base-rag-initial.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-knowledge-base-rag-initial.md).
+
+## Mudanca
+
+- ID: `IMP-KB-RAG-002`
+- Titulo: Improved Knowledge Base retrieval with indexing observability, safer ranking, stats and embedding foundation.
+- Risco: medio
+- Estado: implementada e validada tecnicamente
+
+- [CONFIRMADO_NO_CODIGO] O `knowledge_base` passou a registrar `IndexingJob` para observabilidade de indexacao e reindexacao por tenant.
+- [CONFIRMADO_NO_CODIGO] A busca textual ganhou ranking mais robusto com frase exata, frequencia de termos, ocorrencias no titulo e desempate por recencia.
+- [CONFIRMADO_NO_CODIGO] O endpoint `ask` agora retorna `retrieval_method`, `sources_count`, `confidence` e `sources` ordenadas por score.
+- [CONFIRMADO_NO_CODIGO] Foi adicionado `GET /api/v1/knowledge-base/{id}/stats/` com contagens e datas agregadas por base e por tenant.
+- [CONFIRMADO_NO_CODIGO] Foi adicionado `POST /api/v1/knowledge-base/{id}/reindex-document/` com reposicao segura de chunks e registro de `chunks_deleted` e `chunks_created`.
+- [CONFIRMADO_NO_CODIGO] Foi criada a fundacao `ChunkEmbedding` para embeddings opcionais futuros, sem chamar provider externo nesta fase.
+- [CONFIRMADO_NO_CODIGO] A suite [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py) foi expandida para cobrir jobs, ranking, `stats`, reindexacao, embeddings foundation e os novos campos de `ask`.
+- [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta fase foi registado em [docs/10-checkpoints/2026-04-knowledge-base-rag-phase-2.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-knowledge-base-rag-phase-2.md).

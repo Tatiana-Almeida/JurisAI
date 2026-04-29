@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from knowledge_base.models import DocumentChunk, KnowledgeBase, KnowledgeDocument, RetrievalQuery
+from knowledge_base.models import ChunkEmbedding, DocumentChunk, IndexingJob, KnowledgeBase, KnowledgeDocument, RetrievalQuery
 
 
 @admin.register(KnowledgeBase)
@@ -19,7 +19,7 @@ class KnowledgeDocumentAdmin(admin.ModelAdmin):
 
 @admin.register(DocumentChunk)
 class DocumentChunkAdmin(admin.ModelAdmin):
-    list_display = ('knowledge_document', 'organization', 'chunk_index', 'char_count', 'created_at')
+    list_display = ('knowledge_document', 'organization', 'chunk_index', 'char_count', 'embedding_status', 'created_at')
     search_fields = ('content',)
     list_filter = ('organization',)
 
@@ -28,4 +28,18 @@ class DocumentChunkAdmin(admin.ModelAdmin):
 class RetrievalQueryAdmin(admin.ModelAdmin):
     list_display = ('organization', 'knowledge_base', 'created_by', 'status', 'created_at')
     search_fields = ('query', 'answer')
+    list_filter = ('status', 'organization')
+
+
+@admin.register(IndexingJob)
+class IndexingJobAdmin(admin.ModelAdmin):
+    list_display = ('knowledge_base', 'document', 'status', 'chunks_created', 'chunks_deleted', 'created_at')
+    search_fields = ('error_message',)
+    list_filter = ('status', 'organization')
+
+
+@admin.register(ChunkEmbedding)
+class ChunkEmbeddingAdmin(admin.ModelAdmin):
+    list_display = ('chunk', 'organization', 'provider', 'model', 'status', 'created_at')
+    search_fields = ('provider', 'model', 'error_message')
     list_filter = ('status', 'organization')
