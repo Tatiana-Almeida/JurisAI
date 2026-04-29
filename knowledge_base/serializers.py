@@ -7,21 +7,28 @@ from knowledge_base.models import DocumentChunk, KnowledgeBase, KnowledgeDocumen
 
 class KnowledgeBaseSerializer(OrganizationScopedValidationMixin, serializers.ModelSerializer):
     organization_id = serializers.UUIDField(write_only=True, required=False)
+
     class Meta:
         model = KnowledgeBase
-        fields = ['id', 'organization', 'organization_id', 'name', 'description', 'created_by', 'created_at']
-        read_only_fields = ['organization', 'created_by', 'created_at']
+        fields = [
+            'id',
+            'organization',
+            'organization_id',
+            'name',
+            'description',
+            'is_active',
+            'created_by',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['organization', 'created_by', 'created_at', 'updated_at']
 
-    def create(self, validated_data):
-        return KnowledgeBase.objects.create(
-            organization_id=validated_data['organization_id'],
-            name=validated_data['name'],
-            description=validated_data.get('description', ''),
-            created_by=self.context['request'].user,
-        )
 
-
-class KnowledgeDocumentSerializer(TenantRelationValidationMixin, OrganizationScopedValidationMixin, serializers.ModelSerializer):
+class KnowledgeDocumentSerializer(
+    TenantRelationValidationMixin,
+    OrganizationScopedValidationMixin,
+    serializers.ModelSerializer,
+):
     organization_id = serializers.UUIDField(write_only=True, required=False)
     knowledge_base_id = serializers.UUIDField(write_only=True)
     document_id = serializers.UUIDField(write_only=True, required=False, allow_null=True)
@@ -29,8 +36,34 @@ class KnowledgeDocumentSerializer(TenantRelationValidationMixin, OrganizationSco
 
     class Meta:
         model = KnowledgeDocument
-        fields = ['id', 'organization', 'organization_id', 'knowledge_base', 'knowledge_base_id', 'document', 'document_id', 'title', 'status', 'created_at']
-        read_only_fields = ['organization', 'knowledge_base', 'document', 'created_at']
+        fields = [
+            'id',
+            'organization',
+            'organization_id',
+            'knowledge_base',
+            'knowledge_base_id',
+            'document',
+            'document_id',
+            'title',
+            'source_type',
+            'status',
+            'indexed_at',
+            'error_message',
+            'created_by',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = [
+            'organization',
+            'knowledge_base',
+            'document',
+            'status',
+            'indexed_at',
+            'error_message',
+            'created_by',
+            'created_at',
+            'updated_at',
+        ]
 
     def create(self, validated_data):
         return KnowledgeDocument.objects.create(
@@ -38,44 +71,66 @@ class KnowledgeDocumentSerializer(TenantRelationValidationMixin, OrganizationSco
             knowledge_base_id=validated_data['knowledge_base_id'],
             document_id=validated_data.get('document_id'),
             title=validated_data['title'],
-            status=validated_data.get('status', 'pending'),
+            source_type=validated_data.get('source_type', 'manual'),
+            created_by=validated_data.get('created_by', self.context['request'].user),
         )
 
 
-class DocumentChunkSerializer(TenantRelationValidationMixin, OrganizationScopedValidationMixin, serializers.ModelSerializer):
-    organization_id = serializers.UUIDField(write_only=True, required=False)
-    knowledge_document_id = serializers.UUIDField(write_only=True)
-    tenant_relation_fields = {'knowledge_document_id': KnowledgeDocument}
+class DocumentChunkSerializer(serializers.ModelSerializer):
+    knowledge_document_id = serializers.UUIDField(source='knowledge_document_id', read_only=True)
+    document_id = serializers.UUIDField(source='document_id', read_only=True, allow_null=True)
 
     class Meta:
         model = DocumentChunk
-        fields = ['id', 'organization', 'organization_id', 'knowledge_document', 'knowledge_document_id', 'chunk_index', 'content', 'created_at']
-        read_only_fields = ['organization', 'knowledge_document', 'created_at']
+        fields = [
+            'id',
+            'organization',
+            'knowledge_document_id',
+            'document_id',
+            'chunk_index',
+            'content',
+            'content_hash',
+            'metadata',
+            'char_count',
+            'created_at',
+        ]
+        read_only_fields = fields
 
-    def create(self, validated_data):
-        return DocumentChunk.objects.create(
-            organization_id=validated_data['organization_id'],
-            knowledge_document_id=validated_data['knowledge_document_id'],
-            chunk_index=validated_data.get('chunk_index', 0),
-            content=validated_data['content'],
-        )
 
-
-class RetrievalQuerySerializer(TenantRelationValidationMixin, OrganizationScopedValidationMixin, serializers.ModelSerializer):
-    organization_id = serializers.UUIDField(write_only=True, required=False)
-    knowledge_base_id = serializers.UUIDField(write_only=True)
-    tenant_relation_fields = {'knowledge_base_id': KnowledgeBase}
-
+class RetrievalQuerySerializer(serializers.ModelSerializer):
     class Meta:
         model = RetrievalQuery
-        fields = ['id', 'organization', 'organization_id', 'knowledge_base', 'knowledge_base_id', 'user', 'query', 'status', 'created_at']
-        read_only_fields = ['organization', 'knowledge_base', 'user', 'status', 'created_at']
+        fields = [
+            'id',
+            'organization',
+            'knowledge_base',
+            'created_by',
+            'query',
+            'answer',
+            'status',
+            'sources_payload',
+            'created_at',
+        ]
+        read_only_fields = fields
 
-    def create(self, validated_data):
-        return RetrievalQuery.objects.create(
-            organization_id=validated_data['organization_id'],
-            knowledge_base_id=validated_data['knowledge_base_id'],
-            user=self.context['request'].user,
-            query=validated_data['query'],
-            status='not_implemented',
-        )
+
+class IndexDocumentSerializer(TenantRelationValidationMixin, serializers.Serializer):
+    document_id = serializers.UUIDField()
+    tenant_relation_fields = {'document_id': Document}
+
+    def validate(self, data):
+        organization = getattr(self.context['request'].user, 'organization', None)
+        if organization is None:
+            raise serializers.ValidationError({'document_id': 'Organizacao atual nao encontrada.'})
+
+        data['organization_id'] = str(organization.id)
+        return self.validate_tenant_relations(data)
+
+
+class KnowledgeSearchSerializer(serializers.Serializer):
+    query = serializers.CharField()
+    limit = serializers.IntegerField(required=False, min_value=1, max_value=10, default=5)
+
+
+class KnowledgeAskSerializer(KnowledgeSearchSerializer):
+    pass

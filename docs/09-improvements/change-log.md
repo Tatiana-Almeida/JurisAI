@@ -203,3 +203,19 @@
 - [CONFIRMADO_NO_CODIGO] Foram adicionadas as suites [tests/test_tasks.py](/c:/projectos/JurisAI/tests/test_tasks.py), [tests/test_dashboard.py](/c:/projectos/JurisAI/tests/test_dashboard.py), [tests/test_client_portal.py](/c:/projectos/JurisAI/tests/test_client_portal.py), [tests/test_calendar_events.py](/c:/projectos/JurisAI/tests/test_calendar_events.py), [tests/test_legal_templates.py](/c:/projectos/JurisAI/tests/test_legal_templates.py) e [tests/test_legal_finance.py](/c:/projectos/JurisAI/tests/test_legal_finance.py).
 - [CONFIRMADO_NO_CODIGO] As migrations iniciais dos novos apps foram geradas e aplicadas localmente em SQLite.
 - [CONFIRMADO_NO_CODIGO] O checkpoint documental da fase publicada em `b69d65e` foi registado em [docs/10-checkpoints/2026-04-legal-services-foundation.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-legal-services-foundation.md).
+- [CONFIRMADO_NO_CODIGO] A consolidacao da release publicada em `v0.2.0` foi registada em [docs/10-checkpoints/2026-04-release-v0.2.0.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-release-v0.2.0.md).
+
+## Mudanca
+
+- ID: `IMP-KB-RAG-001`
+- Titulo: Added initial functional Knowledge Base / RAG with tenant-isolated textual retrieval and source citations.
+- Risco: medio
+- Estado: implementada e validada tecnicamente
+
+- [CONFIRMADO_NO_CODIGO] O app `knowledge_base` deixou de ser apenas placeholder e passou a suportar bases por tenant, documentos indexados, `DocumentChunk` e historico de `RetrievalQuery`.
+- [CONFIRMADO_NO_CODIGO] Foram implementados os endpoints `GET/POST /api/v1/knowledge-base/`, `GET/POST /api/v1/knowledge-base/documents/`, `POST /api/v1/knowledge-base/{id}/index-document/`, `POST /api/v1/knowledge-base/{id}/search/`, `POST /api/v1/knowledge-base/{id}/ask/` e `GET /api/v1/knowledge-base/queries/`.
+- [CONFIRMADO_NO_CODIGO] A indexacao usa conteudo textual local do `Document`, gera chunks por caracteres, persiste `content_hash` e nao envia documentos para provider externo nesta fase.
+- [CONFIRMADO_NO_CODIGO] A busca textual inicial filtra sempre por `organization`, suporta filtro por base de conhecimento e retorna `sources` explicitas sem vazar dados entre tenants.
+- [CONFIRMADO_NO_CODIGO] O endpoint `ask` retorna resposta fundamentada apenas com base nos chunks encontrados e devolve `no_sources` quando nao ha base suficiente para responder com seguranca.
+- [CONFIRMADO_NO_CODIGO] Foi criada a suite [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py) cobrindo tenant isolation, indexacao, busca e respostas com fontes.
+- [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta entrega foi registado em [docs/10-checkpoints/2026-04-knowledge-base-rag-initial.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-knowledge-base-rag-initial.md).

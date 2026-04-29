@@ -29,7 +29,7 @@ It currently provides core legal operations, initial AI support, SaaS billing, a
 ### AI and automation foundations
 
 - AI assistant
-- Knowledge base / RAG foundation
+- Knowledge base / RAG initial retrieval
 - OCR foundation
 - Document analysis foundation
 
@@ -60,6 +60,7 @@ It currently provides core legal operations, initial AI support, SaaS billing, a
 - `calendar_events`
 - `legal_templates`
 - `legal_finance`
+- `knowledge_base`
 
 ### Foundation modules
 
@@ -70,13 +71,19 @@ These apps are present in the codebase with initial models and safe base routes,
 - `business_intelligence`
 - `compliance`
 - `marketplace`
-- `knowledge_base`
 - `ocr`
 - `document_analysis`
 
+### Initial RAG capabilities
+
+- Tenant-isolated knowledge bases
+- Document indexing into textual chunks
+- Local textual retrieval with explicit sources
+- Grounded answers without external provider calls
+
 ### Future functional expansion
 
-- Functional RAG with retrieval and citations
+- Embedding-based retrieval and ranking
 - OCR provider integration
 - Advanced document comparison and deadline extraction
 - Provider-backed electronic signature flows
@@ -121,7 +128,7 @@ Main apps currently present in the repository:
 - `business_intelligence/`: report and metric foundation
 - `compliance/`: consent and compliance foundation
 - `marketplace/`: marketplace foundation
-- `knowledge_base/`: knowledge base and retrieval foundation
+- `knowledge_base/`: initial tenant-scoped retrieval and source-backed answers
 - `ocr/`: OCR foundation
 - `document_analysis/`: comparison and extraction foundation
 - `jurisai/`: Django settings, permissions, middleware and shared utilities
@@ -147,6 +154,10 @@ Current primary routes include:
 - `GET /api/v1/legal-templates/`
 - `GET /api/v1/generated-documents/`
 - `GET /api/v1/legal-finance/summary/`
+- `GET /api/v1/knowledge-base/`
+- `POST /api/v1/knowledge-base/{id}/index-document/`
+- `POST /api/v1/knowledge-base/{id}/search/`
+- `POST /api/v1/knowledge-base/{id}/ask/`
 - `POST /api/v1/ai/generate-petition/`
 - `POST /api/v1/ai/summarize-document/`
 - `POST /api/v1/ai/analyze-risk/`
@@ -278,18 +289,21 @@ The current backend already includes important safety measures:
 - Upload validation for extension, content type and file size
 - Filename sanitization for uploaded documents
 - Lightweight binary signature validation for PDF, PNG, JPEG and structural validation for DOCX
+- Tenant-isolated knowledge retrieval with explicit source payloads
+- No external provider calls for knowledge base retrieval in the current phase
 
 Remaining production hardening areas include:
 
 - stronger production secret management and key length hygiene
 - deeper binary or malware scanning for uploaded files
 - broader validation coverage for legacy document formats
+- future provider-backed RAG controls, including embeddings governance and retrieval observability
 - operational hardening around infrastructure, monitoring and secrets rotation
 
 ## Roadmap
 
 - Production hardening
-- Functional RAG with sources and citations
+- Embedding-based RAG with richer citations and ranking
 - OCR provider integration
 - Advanced CRM workflows
 - E-signature provider integration

@@ -295,7 +295,43 @@
 - Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
 - Cobertura preparada: [tests/test_legal_finance.py](/c:/projectos/JurisAI/tests/test_legal_finance.py)
 
-## CT-051 Validar placeholders seguros de `knowledge_base`, `ocr` e `document_analysis`
+## CT-051 Criar `KnowledgeBase` apenas na organizacao do utilizador
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py)
+
+## CT-052 Indexar documento proprio em `knowledge_base`
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py)
+
+## CT-053 Bloquear indexacao de documento de outro tenant em `knowledge_base`
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py)
+
+## CT-054 Garantir que busca em `knowledge_base` nao mistura chunks entre tenants
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py)
+
+## CT-055 Garantir `ask` com fontes explicitas em `knowledge_base`
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py)
+
+## CT-056 Retornar `no_sources` quando a base nao tem fontes suficientes
+
+- Risco: medio
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py)
+
+## CT-057 Validar placeholders seguros remanescentes de `ocr` e `document_analysis`
 
 - Risco: medio
 - Estado: [INFERIDO_DO_CODIGO] cobertura recomendada para futuras fases
