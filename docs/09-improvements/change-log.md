@@ -326,6 +326,20 @@
 - [CONFIRMADO_NO_CODIGO] Foi criada a suite [tests/test_local_image_ocr.py](/c:/projectos/JurisAI/tests/test_local_image_ocr.py) para validar OCR local mockado, indisponibilidade da engine, tenant isolation e placeholder seguro para PDF escaneado.
 - [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta fase foi registado em [docs/10-checkpoints/2026-04-local-image-ocr-engine.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-local-image-ocr-engine.md).
 
+## Mudanca
+
+- ID: `IMP-OCR-005`
+- Titulo: Added local scanned PDF OCR foundation with safe rasterization fallback and audit logs.
+- Risco: medio
+- Estado: implementada e validada tecnicamente
+
+- [CONFIRMADO_NO_CODIGO] `ocr/local_engines.py` passou a suportar rasterizacao opcional de PDF escaneado via `pdf2image`, com erros controlados para indisponibilidade de `pdf2image` ou Poppler.
+- [CONFIRMADO_NO_CODIGO] `run_local_scanned_pdf_ocr()` agora tenta OCR local por pagina com a engine governada de Tesseract, concatena o texto extraido e cria `OCRResult` quando ha conteudo util.
+- [CONFIRMADO_NO_CODIGO] Quando rasterizacao local nao esta disponivel, o backend retorna `pdf_rasterization_unavailable`; quando Tesseract nao esta disponivel, retorna `local_ocr_engine_unavailable`, sempre com `OCRJob` e `OCRAuditLog`.
+- [CONFIRMADO_NO_CODIGO] Nenhum provider externo e chamado nesta fase; OCR textual de `PDF`, OCR de imagem e o pipeline `OCR -> KnowledgeBase` permaneceram preservados.
+- [CONFIRMADO_NO_CODIGO] Foi criada a suite [tests/test_local_scanned_pdf_ocr.py](/c:/projectos/JurisAI/tests/test_local_scanned_pdf_ocr.py) para validar fluxo mockado, indisponibilidade de rasterizacao, indisponibilidade de Tesseract, tenant isolation e regressao dos fluxos existentes.
+- [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta fase foi registado em [docs/10-checkpoints/2026-04-local-scanned-pdf-ocr.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-local-scanned-pdf-ocr.md).
+
 ## v0.3.0 — Tenant-Isolated Legal RAG Foundation
 
 Resumo:

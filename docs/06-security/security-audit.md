@@ -44,5 +44,7 @@
 - [CONFIRMADO_NO_CODIGO] `advanced-run` para imagens e PDFs escaneados nao chama provider externo nesta fase; retorna `skipped` ou placeholder seguro conforme a configuracao por tenant.
 - [CONFIRMADO_NO_CODIGO] Foi adicionada a fundacao de OCR local para imagem com adapter opcional de Tesseract; o processamento continua totalmente interno e nunca envia conteudo documental para terceiros.
 - [CONFIRMADO_NO_CODIGO] Quando a engine local ou o binario nativo do Tesseract nao estao disponiveis, o backend retorna falha controlada e registra `OCRAuditLog` com motivo tecnico, sem quebrar a suite nem o fluxo de documentos.
-- [CONFIRMADO_NO_CODIGO] OCR de PDF escaneado continua governado e nao implementado nesta fase; a tentativa resulta em placeholder seguro e auditavel.
+- [CONFIRMADO_NO_CODIGO] Foi adicionada a fundacao de OCR local para PDF escaneado com rasterizacao opcional via `pdf2image`; quando Poppler ou a dependencia Python nao estao disponiveis, o backend retorna falha controlada e auditavel.
+- [CONFIRMADO_NO_CODIGO] OCR de PDF escaneado continua totalmente local nesta fase e nao envia qualquer documento para provider externo.
+- [CONFIRMADO_NO_CODIGO] Quando o binario do Tesseract nao esta disponivel para OCR de PDF escaneado, o backend registra `OCRAuditLog` e `OCRJob` com falha controlada, preservando o documento original.
 - [PRECISA_VALIDAR] PDF escaneado ou imagem ainda nao recebe OCR real nesta fase; isso reduz superficie externa, mas deixa cobertura funcional incompleta para documentos sem camada textual.

@@ -6,7 +6,12 @@ from docx import Document as DocxDocument
 from pypdf import PdfReader
 
 from knowledge_base.services import index_document_for_knowledge_base
-from ocr.local_engines import LocalOCREngineUnavailable, get_local_ocr_engine
+from ocr.local_engines import (
+    LocalOCREngineUnavailable,
+    PDFRasterizationUnavailable,
+    ScannedPDFOCRUnavailable,
+    get_local_ocr_engine,
+)
 from ocr.models import (
     OCRAuditLog,
     OCRJob,
@@ -477,25 +482,143 @@ def run_local_image_ocr(document, user):
 def run_local_scanned_pdf_ocr(document, user):
     settings = get_ocr_settings(document.organization)
     provider = settings.preferred_ocr_provider or 'local'
-    reason = 'scanned_pdf_local_ocr_not_implemented'
-    job = _build_advanced_ocr_failure_job(document, user, reason)
-    audit_log = record_ocr_audit_log(
-        organization=document.organization,
-        document=document,
-        ocr_job=job,
-        action='skipped',
-        provider=provider,
-        mode=settings.scanned_pdf_ocr_mode,
-        status='skipped',
-        reason=reason,
-        metadata={
-            'document_id': str(document.id),
-            'target_type': 'scanned_pdf',
-            'configured_mode': settings.scanned_pdf_ocr_mode,
-        },
-        created_by=user,
-    )
-    return {'status': 'skipped', 'reason': reason, 'job': job, 'result': None, 'audit_log': audit_log}
+    metadata = {
+        'document_id': str(document.id),
+        'advanced_ocr_enabled': settings.advanced_ocr_enabled,
+        'configured_mode': settings.scanned_pdf_ocr_mode,
+        'provider': provider,
+        'target_type': 'scanned_pdf',
+    }
+
+    job = _create_advanced_ocr_job(document, user, 'scanned_pdf_local')
+
+    try:
+        file_bytes = _read_document_bytes(document)
+        engine = get_local_ocr_engine(settings)
+        extracted_text = engine.extract_text_from_scanned_pdf(file_bytes, max_pages=10)
+
+        result = OCRResult.objects.create(
+            organization=document.organization,
+            job=job,
+            document=document,
+            extracted_text=extracted_text,
+            char_count=len(extracted_text),
+            metadata={
+                **_build_result_metadata(document, 'scanned_pdf_local', extracted_text),
+                'provider': getattr(engine, 'provider', provider),
+                'model': getattr(engine, 'model', settings.preferred_ocr_model or ''),
+                'target_type': 'scanned_pdf',
+                'max_pages': 10,
+            },
+        )
+        _complete_advanced_ocr_job(job)
+        audit_log = record_ocr_audit_log(
+            organization=document.organization,
+            document=document,
+            ocr_job=job,
+            action='completed',
+            provider=getattr(engine, 'provider', provider),
+            mode=settings.scanned_pdf_ocr_mode,
+            status='ok',
+            reason='local_scanned_pdf_ocr_completed',
+            metadata={**metadata, 'char_count': result.char_count, 'max_pages': 10},
+            created_by=user,
+        )
+        return {
+            'status': 'completed',
+            'reason': 'local_scanned_pdf_ocr_completed',
+            'job': job,
+            'result': result,
+            'audit_log': audit_log,
+        }
+    except PDFRasterizationUnavailable as exc:
+        reason = str(exc)
+        _fail_advanced_ocr_job(job, reason)
+        audit_log = record_ocr_audit_log(
+            organization=document.organization,
+            document=document,
+            ocr_job=job,
+            action='failed',
+            provider=provider,
+            mode=settings.scanned_pdf_ocr_mode,
+            status='failed',
+            reason='pdf_rasterization_unavailable',
+            metadata={**metadata, 'engine_reason': reason},
+            created_by=user,
+        )
+        return {
+            'status': 'failed',
+            'reason': 'pdf_rasterization_unavailable',
+            'job': job,
+            'result': None,
+            'audit_log': audit_log,
+        }
+    except LocalOCREngineUnavailable as exc:
+        reason = str(exc)
+        _fail_advanced_ocr_job(job, reason)
+        audit_log = record_ocr_audit_log(
+            organization=document.organization,
+            document=document,
+            ocr_job=job,
+            action='failed',
+            provider=provider,
+            mode=settings.scanned_pdf_ocr_mode,
+            status='failed',
+            reason='local_ocr_engine_unavailable',
+            metadata={**metadata, 'engine_reason': reason},
+            created_by=user,
+        )
+        return {
+            'status': 'failed',
+            'reason': 'local_ocr_engine_unavailable',
+            'job': job,
+            'result': None,
+            'audit_log': audit_log,
+        }
+    except ScannedPDFOCRUnavailable as exc:
+        reason = str(exc)
+        _fail_advanced_ocr_job(job, reason)
+        audit_log = record_ocr_audit_log(
+            organization=document.organization,
+            document=document,
+            ocr_job=job,
+            action='failed',
+            provider=provider,
+            mode=settings.scanned_pdf_ocr_mode,
+            status='failed',
+            reason='local_scanned_pdf_ocr_failed',
+            metadata={**metadata, 'engine_reason': reason},
+            created_by=user,
+        )
+        return {
+            'status': 'failed',
+            'reason': 'local_scanned_pdf_ocr_failed',
+            'job': job,
+            'result': None,
+            'audit_log': audit_log,
+        }
+    except Exception as exc:
+        reason = str(exc)
+        _fail_advanced_ocr_job(job, reason)
+        audit_log = record_ocr_audit_log(
+            organization=document.organization,
+            document=document,
+            ocr_job=job,
+            action='failed',
+            provider=provider,
+            mode=settings.scanned_pdf_ocr_mode,
+            status='failed',
+            reason='local_scanned_pdf_ocr_failed',
+            metadata={**metadata, 'engine_reason': reason},
+            created_by=user,
+        )
+        return {
+            'status': 'failed',
+            'reason': 'local_scanned_pdf_ocr_failed',
+            'job': job,
+            'result': None,
+            'audit_log': audit_log,
+        }
 
 
 def run_advanced_ocr(document, user, mode='auto'):

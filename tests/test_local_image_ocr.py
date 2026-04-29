@@ -225,7 +225,7 @@ def test_advanced_run_blocks_cross_tenant_image_document(local_ocr_tenant, clien
 
 
 @pytest.mark.django_db
-def test_advanced_run_scanned_pdf_local_mode_returns_placeholder(
+def test_advanced_run_scanned_pdf_local_placeholder_returns_placeholder(
     local_ocr_tenant, client_b, isolated_media_root
 ):
     document = create_document_with_file(
@@ -242,7 +242,7 @@ def test_advanced_run_scanned_pdf_local_mode_returns_placeholder(
         {
             'advanced_ocr_enabled': True,
             'preferred_ocr_provider': 'tesseract',
-            'scanned_pdf_ocr_mode': 'local',
+            'scanned_pdf_ocr_mode': 'local_placeholder',
         },
         format='json',
     ).status_code == 200

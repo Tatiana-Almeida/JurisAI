@@ -599,3 +599,33 @@
 - Risco: alto
 - Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
 - Cobertura preparada: [tests/test_ocr_governance.py](/c:/projectos/JurisAI/tests/test_ocr_governance.py)
+
+## CT-102 Validar OCR local mockado para PDF escaneado via `advanced-run`
+
+- Risco: medio
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_local_scanned_pdf_ocr.py](/c:/projectos/JurisAI/tests/test_local_scanned_pdf_ocr.py)
+
+## CT-103 Validar falha controlada quando rasterizacao local de PDF nao esta disponivel
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_local_scanned_pdf_ocr.py](/c:/projectos/JurisAI/tests/test_local_scanned_pdf_ocr.py)
+
+## CT-104 Validar falha controlada quando Tesseract nao esta disponivel para PDF escaneado
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_local_scanned_pdf_ocr.py](/c:/projectos/JurisAI/tests/test_local_scanned_pdf_ocr.py)
+
+## CT-105 Validar isolamento multi-tenant no OCR local de PDF escaneado
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_local_scanned_pdf_ocr.py](/c:/projectos/JurisAI/tests/test_local_scanned_pdf_ocr.py)
+
+## CT-106 Preservar regressao do OCR textual de PDF, OCR de imagem e pipeline OCR -> KnowledgeBase apos OCR local de PDF escaneado
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_local_scanned_pdf_ocr.py](/c:/projectos/JurisAI/tests/test_local_scanned_pdf_ocr.py)

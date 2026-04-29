@@ -5,6 +5,14 @@ class LocalOCREngineUnavailable(Exception):
     """Raised when the optional local OCR engine cannot be used safely."""
 
 
+class PDFRasterizationUnavailable(Exception):
+    """Raised when scanned PDFs cannot be rasterized locally."""
+
+
+class ScannedPDFOCRUnavailable(Exception):
+    """Raised when scanned PDF OCR cannot complete safely."""
+
+
 class BaseLocalOCREngine:
     provider = 'local'
     model = 'local'
@@ -16,7 +24,7 @@ class BaseLocalOCREngine:
         raise NotImplementedError
 
     def extract_text_from_scanned_pdf(self, file_bytes):
-        raise LocalOCREngineUnavailable('scanned_pdf_local_ocr_not_implemented')
+        raise ScannedPDFOCRUnavailable('scanned_pdf_local_ocr_not_implemented')
 
 
 class TesseractOCREngine(BaseLocalOCREngine):
@@ -56,8 +64,37 @@ class TesseractOCREngine(BaseLocalOCREngine):
         except Exception as exc:
             raise LocalOCREngineUnavailable('local_image_ocr_failed') from exc
 
-    def extract_text_from_scanned_pdf(self, file_bytes):
-        raise LocalOCREngineUnavailable('scanned_pdf_local_ocr_not_implemented')
+    def extract_text_from_scanned_pdf(self, file_bytes, max_pages=None):
+        self.is_available()
+
+        try:
+            from pdf2image import convert_from_bytes
+        except ImportError as exc:
+            raise PDFRasterizationUnavailable('pdf2image_not_available') from exc
+
+        page_limit = max_pages or 10
+        try:
+            images = convert_from_bytes(file_bytes, first_page=1, last_page=page_limit)
+        except Exception as exc:
+            raise PDFRasterizationUnavailable('poppler_not_available') from exc
+
+        if not images:
+            raise ScannedPDFOCRUnavailable('scanned_pdf_local_ocr_no_pages')
+
+        extracted_pages = []
+        for image in images:
+            buffer = BytesIO()
+            image.save(buffer, format='PNG')
+            page_text = self.extract_text_from_image(buffer.getvalue())
+            page_text = page_text.strip()
+            if page_text:
+                extracted_pages.append(page_text)
+
+        extracted_text = '\n\n'.join(extracted_pages).strip()
+        if not extracted_text:
+            raise ScannedPDFOCRUnavailable('scanned_pdf_local_ocr_no_text')
+
+        return extracted_text
 
 
 def get_local_ocr_engine(settings):

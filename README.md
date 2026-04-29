@@ -4,7 +4,7 @@ JurisAI is a multi-tenant legal SaaS backend built with Django REST Framework, d
 
 It currently provides core legal operations, initial AI support, SaaS billing, auditability, and the first wave of expanded legal services, while keeping organization isolation as a central architectural rule.
 
-Current milestone: `v0.8.0` adds a local image OCR engine foundation with an optional Tesseract adapter, governed `advanced-run` behavior and safe fallback when local OCR dependencies are unavailable, while keeping all external OCR providers disabled by default.
+Current milestone: work toward `v0.9.0` adds a local scanned PDF OCR foundation with optional `pdf2image` rasterization and Tesseract-based page OCR, while keeping all external OCR providers disabled by default and preserving safe fallback when native dependencies are unavailable.
 
 ## Features
 
@@ -102,6 +102,7 @@ These apps are present in the codebase with initial models and safe base routes,
 - Local text extraction for textual `PDF` layers
 - Local text extraction for `DOCX`
 - Optional local image OCR foundation via Tesseract adapter when available
+- Optional local scanned PDF OCR foundation when `pdf2image` and native tooling are available
 - Explicit `apply-to-document` flow before changing `Document.content`
 - Controlled OCR-to-Knowledge-Base pipeline with explicit `update_document_content=true`
 - Zero external OCR calls in the active pipeline
@@ -127,7 +128,14 @@ These apps are present in the codebase with initial models and safe base routes,
 - `advanced-run` can execute local OCR for `PNG`, `JPG` and `JPEG` when tenant settings explicitly allow local mode
 - Safe failure when the local OCR engine or native Tesseract binary is not available
 - No external OCR calls in the local image OCR path
-- Scanned PDF OCR remains a governed placeholder until a stable local pipeline is introduced
+
+### Local scanned PDF OCR foundation
+
+- Optional local scanned PDF OCR via `pdf2image` plus the governed Tesseract adapter
+- `advanced-run` can attempt scanned PDF OCR when tenant settings explicitly allow local mode
+- Safe failure when `pdf2image`, Poppler or Tesseract are not available
+- No external OCR calls in the scanned PDF OCR path
+- Tests validate the adapter and flow with mocks, not with mandatory native binaries
 
 ### Future functional expansion
 
@@ -372,7 +380,8 @@ The current backend already includes important safety measures:
 - Image/scanned-PDF advanced OCR attempts are audited without storing raw extracted content
 - Local image OCR can use an optional Tesseract adapter entirely inside the backend when the tenant enables local mode
 - If Tesseract or the optional Python bindings are unavailable, the backend returns a controlled failure and records an audit log instead of crashing
-- Scanned PDF advanced OCR still falls back to a governed placeholder in the current phase
+- Scanned PDF advanced OCR can attempt local rasterization and OCR when the tenant enables local mode
+- If `pdf2image` or Poppler are unavailable, scanned PDF OCR returns a controlled failure and records an audit log instead of crashing
 
 Remaining production hardening areas include:
 
@@ -386,7 +395,7 @@ Remaining production hardening areas include:
 
 - Production hardening
 - Embedding-based RAG with stronger local semantics and optional per-tenant external providers
-- Stronger local OCR for images and scanned PDFs
+- Stronger local OCR quality and observability for scanned PDFs
 - Controlled OCR-to-Knowledge-Base indexing automation and observability
 - Advanced CRM workflows
 - E-signature provider integration
