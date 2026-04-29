@@ -490,3 +490,16 @@ Resumo:
 - Kept all external OCR providers disabled.
 - Full suite: `190 passed`.
 - Release checkpoint: [docs/10-checkpoints/2026-04-release-v0.11.0.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-release-v0.11.0.md)
+
+## Mudanca
+
+- ID: `IMP-STAB-001`
+- Titulo: Added CI workflow, healthcheck endpoint and backend stabilization checks.
+- Risco: baixo
+- Estado: implementada e validada tecnicamente
+
+- [CONFIRMADO_NO_CODIGO] Foi criado o workflow [ .github/workflows/ci.yml ](/c:/projectos/JurisAI/.github/workflows/ci.yml) para `push` e `pull_request` em `main`, usando SQLite e executando `manage.py check`, `makemigrations --check --dry-run` e `pytest`.
+- [CONFIRMADO_NO_CODIGO] Foi adicionado o endpoint publico `GET /health/`, preservando tambem `GET /api/v1/health/` para compatibilidade.
+- [CONFIRMADO_NO_CODIGO] O healthcheck retorna apenas `status`, `service` e `version`, sem consultar dados sensiveis nem expor segredos.
+- [CONFIRMADO_NO_CODIGO] Foi criada a suite [tests/test_healthcheck.py](/c:/projectos/JurisAI/tests/test_healthcheck.py) cobrindo disponibilidade publica do healthcheck e compatibilidade com a rota legada.
+- [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta fase foi registado em [docs/10-checkpoints/2026-04-backend-stabilization-ci-healthcheck.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-backend-stabilization-ci-healthcheck.md).

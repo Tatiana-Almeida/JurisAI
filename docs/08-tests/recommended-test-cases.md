@@ -701,3 +701,27 @@
 - Risco: alto
 - Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
 - Cobertura preparada: [tests/test_ocr_observability.py](/c:/projectos/JurisAI/tests/test_ocr_observability.py)
+
+## CT-119 Validar healthcheck publico do backend
+
+- Risco: baixo
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_healthcheck.py](/c:/projectos/JurisAI/tests/test_healthcheck.py)
+
+## CT-120 Validar rota legada de healthcheck sem autenticacao
+
+- Risco: baixo
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_healthcheck.py](/c:/projectos/JurisAI/tests/test_healthcheck.py)
+
+## CT-121 Validar `manage.py check` e drift de migrations no CI
+
+- Risco: medio
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura operacional preparada no workflow
+- Cobertura preparada: [.github/workflows/ci.yml](/c:/projectos/JurisAI/.github/workflows/ci.yml)
+
+## CT-122 Validar smoke de estabilizacao backend em SQLite
+
+- Risco: medio
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura operacional preparada no workflow
+- Cobertura preparada: [.github/workflows/ci.yml](/c:/projectos/JurisAI/.github/workflows/ci.yml)

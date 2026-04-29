@@ -53,4 +53,7 @@
 - [CONFIRMADO_NO_CODIGO] Ficheiros acima do limite de OCR falham antes do processamento e geram `OCRAuditLog` com `reason="ocr_file_size_limit_exceeded"`, evitando custo excessivo no backend.
 - [CONFIRMADO_NO_CODIGO] Quando a observabilidade por pagina esta ativa, cada pagina processada gera `OCRPageResult` filtrado por `organization`, sem exposicao cross-tenant.
 - [CONFIRMADO_NO_CODIGO] O OCR de PDF escaneado pode truncar output acima do limite configurado e registra `output_truncated` e metadados de paginas no `OCRResult`, preservando fallback seguro sem apagar ficheiros originais.
+- [CONFIRMADO_NO_CODIGO] O backend agora expõe `GET /health/` e `GET /api/v1/health/` com payload minimo e sem dados sensiveis, sem exigir autenticacao.
+- [CONFIRMADO_NO_CODIGO] A pipeline de CI valida `manage.py check`, drift de migrations via `makemigrations --check --dry-run` e a suite `pytest` usando SQLite, sem depender de servicos externos reais.
+- [PRECISA_VALIDAR] O projeto ganhou uma primeira camada de estabilizacao para CI e healthcheck, mas o hardening de producao para deploy real continua pendente em areas como observabilidade operacional, runtime nativo de OCR e gestao de segredos.
 - [PRECISA_VALIDAR] PDF escaneado ou imagem ainda nao recebe OCR real nesta fase; isso reduz superficie externa, mas deixa cobertura funcional incompleta para documentos sem camada textual.

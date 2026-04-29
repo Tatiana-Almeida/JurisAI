@@ -4,7 +4,7 @@ JurisAI is a multi-tenant legal SaaS backend built with Django REST Framework, d
 
 It currently provides core legal operations, initial AI support, SaaS billing, auditability, and the first wave of expanded legal services, while keeping organization isolation as a central architectural rule.
 
-Current milestone: `v0.11.0` adds tenant-configurable OCR limits and page-level observability for scanned PDF OCR, keeping processing local, fallback safe and zero external OCR calls.
+Current milestone: `v0.11.0` adds tenant-configurable OCR limits and page-level observability for scanned PDF OCR, plus a first backend stabilization layer with CI, migration checks and a public healthcheck.
 
 ## Features
 
@@ -351,6 +351,34 @@ Notes:
 
 - Swagger: `http://localhost:8000/swagger/` when `DEBUG=True`
 - Redoc: `http://localhost:8000/redoc/` when `DEBUG=True`
+
+## Continuous Integration
+
+The repository now includes GitHub Actions CI at `.github/workflows/ci.yml`.
+
+The CI pipeline runs with SQLite for simplicity and stability and executes:
+
+- `python manage.py check`
+- `python manage.py makemigrations --check --dry-run`
+- `python -m pytest`
+
+This keeps the backend validation lightweight and independent from external services.
+
+## Healthcheck
+
+A lightweight public healthcheck is available at:
+
+- `GET /health/`
+- `GET /api/v1/health/`
+
+It returns a simple payload with service status and version and does not expose secrets or tenant data.
+
+## Production Readiness Notes
+
+- CI currently validates Django checks, migration drift and the full test suite using SQLite.
+- The public healthcheck is intentionally simple and avoids sensitive runtime details.
+- Production deployment still needs environment-specific hardening for infrastructure, monitoring, secrets rotation and native OCR dependencies.
+- Optional local OCR paths for image and scanned PDF continue to rely on native tooling such as Tesseract and Poppler in the runtime environment.
 
 ## Tests
 
