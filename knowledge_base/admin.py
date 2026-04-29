@@ -1,6 +1,15 @@
 from django.contrib import admin
 
-from knowledge_base.models import ChunkEmbedding, DocumentChunk, IndexingJob, KnowledgeBase, KnowledgeDocument, RetrievalQuery
+from knowledge_base.models import (
+    ChunkEmbedding,
+    DocumentChunk,
+    EmbeddingAuditLog,
+    IndexingJob,
+    KnowledgeBase,
+    KnowledgeDocument,
+    RAGSettings,
+    RetrievalQuery,
+)
 
 
 @admin.register(KnowledgeBase)
@@ -43,3 +52,26 @@ class ChunkEmbeddingAdmin(admin.ModelAdmin):
     list_display = ('chunk', 'organization', 'provider', 'model', 'status', 'created_at')
     search_fields = ('provider', 'model', 'error_message')
     list_filter = ('status', 'organization')
+
+
+@admin.register(RAGSettings)
+class RAGSettingsAdmin(admin.ModelAdmin):
+    list_display = (
+        'organization',
+        'retrieval_mode',
+        'external_embeddings_enabled',
+        'embedding_provider',
+        'allow_document_content_to_external_provider',
+        'max_sources_per_answer',
+        'min_confidence_threshold',
+        'updated_at',
+    )
+    list_filter = ('retrieval_mode', 'external_embeddings_enabled', 'min_confidence_threshold')
+    search_fields = ('organization__name', 'embedding_provider', 'embedding_model')
+
+
+@admin.register(EmbeddingAuditLog)
+class EmbeddingAuditLogAdmin(admin.ModelAdmin):
+    list_display = ('organization', 'knowledge_document', 'action', 'status', 'reason', 'created_at')
+    list_filter = ('action', 'status', 'organization', 'provider')
+    search_fields = ('reason', 'provider', 'model')

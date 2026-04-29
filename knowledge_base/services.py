@@ -8,7 +8,13 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 
-from knowledge_base.models import DocumentChunk, IndexingJob, KnowledgeDocument
+from knowledge_base.models import (
+    DocumentChunk,
+    EmbeddingAuditLog,
+    IndexingJob,
+    KnowledgeDocument,
+    RAGSettings,
+)
 
 
 DEFAULT_CHUNK_SIZE = 1200
@@ -198,6 +204,133 @@ def _resolve_confidence(chunks):
     return None
 
 
+def _confidence_rank(confidence):
+    return {
+        'low': 1,
+        'medium': 2,
+        'high': 3,
+    }.get(confidence, 0)
+
+
+def get_rag_settings(organization):
+    settings, _ = RAGSettings.objects.get_or_create(
+        organization=organization,
+        defaults={
+            'retrieval_mode': 'textual',
+            'external_embeddings_enabled': False,
+            'allow_document_content_to_external_provider': False,
+            'max_sources_per_answer': DEFAULT_SEARCH_LIMIT,
+            'min_confidence_threshold': 'low',
+        },
+    )
+    return settings
+
+
+def validate_embedding_policy(settings):
+    errors = {}
+    if settings.external_embeddings_enabled and not settings.allow_document_content_to_external_provider:
+        errors['external_embeddings_enabled'] = (
+            'Nao e permitido ativar embeddings externos sem consentimento para '
+            'envio de conteudo documental.'
+        )
+
+    if settings.retrieval_mode in {'hybrid', 'embeddings'} and not settings.embedding_provider:
+        errors['embedding_provider'] = (
+            'Embedding provider e obrigatorio quando retrieval_mode e hybrid ou embeddings.'
+        )
+
+    max_sources = settings.max_sources_per_answer
+    if max_sources < 1 or max_sources > 20:
+        errors['max_sources_per_answer'] = 'Este campo deve ficar entre 1 e 20.'
+
+    return errors
+
+
+def should_use_external_embeddings(settings):
+    return bool(
+        settings.external_embeddings_enabled
+        and settings.allow_document_content_to_external_provider
+        and settings.embedding_provider
+    )
+
+
+def get_effective_retrieval_mode(settings):
+    if settings.retrieval_mode == 'textual':
+        return 'textual'
+    if should_use_external_embeddings(settings):
+        return 'textual'
+    return 'textual'
+
+
+def _resolve_embedding_fallback_reason(settings):
+    if not settings.external_embeddings_enabled:
+        return 'external_embeddings_disabled'
+    if not settings.allow_document_content_to_external_provider:
+        return 'external_provider_not_allowed'
+    if not settings.embedding_provider:
+        return 'embedding_provider_not_configured'
+    return 'provider_not_implemented'
+
+
+def record_embedding_audit_log(
+    *,
+    organization,
+    provider='',
+    model='',
+    action,
+    status='ok',
+    reason='',
+    metadata=None,
+    created_by=None,
+    chunk=None,
+    knowledge_document=None,
+):
+    return EmbeddingAuditLog.objects.create(
+        organization=organization,
+        provider=provider,
+        model=model,
+        action=action,
+        status=status,
+        reason=reason,
+        metadata=metadata or {},
+        created_by=created_by,
+        chunk=chunk,
+        knowledge_document=knowledge_document,
+    )
+
+
+def generate_embeddings_placeholder(
+    *,
+    organization,
+    settings,
+    knowledge_document=None,
+    created_by=None,
+):
+    provider = settings.embedding_provider or ''
+    model = settings.embedding_model or ''
+    reason = _resolve_embedding_fallback_reason(settings)
+    audit_log = record_embedding_audit_log(
+        organization=organization,
+        provider=provider,
+        model=model,
+        action='skipped',
+        status='skipped',
+        reason=reason,
+        metadata={
+            'retrieval_mode': settings.retrieval_mode,
+            'effective_retrieval_mode': get_effective_retrieval_mode(settings),
+            'external_embeddings_enabled': settings.external_embeddings_enabled,
+        },
+        created_by=created_by,
+        knowledge_document=knowledge_document,
+    )
+    return {
+        'status': 'skipped',
+        'reason': reason,
+        'audit_log_id': str(audit_log.id),
+    }
+
+
 def _create_indexing_job(knowledge_base, user, document=None, knowledge_document=None, metadata=None):
     return IndexingJob.objects.create(
         organization=knowledge_base.organization,
@@ -339,8 +472,12 @@ def search_chunks(organization, query, knowledge_base=None, limit=DEFAULT_SEARCH
     return rank_chunks(query, candidates, limit=limit)
 
 
-def build_grounded_answer(query, chunks):
+def build_grounded_answer(query, chunks, *, settings=None):
     confidence = _resolve_confidence(chunks)
+    min_threshold = getattr(settings, 'min_confidence_threshold', 'low') if settings is not None else 'low'
+    threshold_rank = _confidence_rank(min_threshold)
+    confidence_rank = _confidence_rank(confidence)
+    meets_threshold = confidence is not None and confidence_rank >= threshold_rank
     if not chunks or confidence is None:
         return {
             'query': query,
@@ -352,6 +489,20 @@ def build_grounded_answer(query, chunks):
             'retrieval_method': 'textual',
             'sources_count': 0,
             'confidence': 'low',
+            'sources': [],
+        }
+
+    if not meets_threshold:
+        return {
+            'query': query,
+            'status': 'no_sources',
+            'answer': (
+                'Nao foram encontradas fontes suficientes na base de conhecimento '
+                'da organizacao para responder com seguranca.'
+            ),
+            'retrieval_method': 'textual',
+            'sources_count': 0,
+            'confidence': confidence or 'low',
             'sources': [],
         }
 
@@ -370,4 +521,20 @@ def build_grounded_answer(query, chunks):
         'sources_count': len(sources),
         'confidence': confidence,
         'sources': sources,
+    }
+
+
+def resolve_retrieval_behavior(settings):
+    effective_mode = get_effective_retrieval_mode(settings)
+    configured_mode = settings.retrieval_mode
+    fallback_used = configured_mode != effective_mode
+    fallback_reason = None
+
+    if fallback_used:
+        fallback_reason = _resolve_embedding_fallback_reason(settings)
+
+    return {
+        'effective_retrieval_mode': effective_mode,
+        'fallback_used': fallback_used,
+        'fallback_reason': fallback_reason,
     }

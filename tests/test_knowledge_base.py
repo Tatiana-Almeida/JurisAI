@@ -1,7 +1,15 @@
 import pytest
 
 from documents.models import Document
-from knowledge_base.models import ChunkEmbedding, DocumentChunk, IndexingJob, KnowledgeBase, RetrievalQuery
+from knowledge_base.models import (
+    ChunkEmbedding,
+    DocumentChunk,
+    EmbeddingAuditLog,
+    IndexingJob,
+    KnowledgeBase,
+    RAGSettings,
+    RetrievalQuery,
+)
 from knowledge_base.serializers import ChunkEmbeddingSerializer
 from knowledge_base.services import index_document_for_knowledge_base, rank_chunks, search_chunks
 from tests.legal_services_helpers import authenticated_client, build_service_tenant_fixture
@@ -580,3 +588,248 @@ def test_chunk_embedding_serializer_rejects_cross_tenant_chunk():
 
     assert not serializer.is_valid()
     assert 'chunk_id' in serializer.errors
+
+
+@pytest.mark.django_db
+def test_get_settings_creates_safe_default_per_organization():
+    tenant = build_service_tenant_fixture()
+    client = authenticated_client(tenant['lawyer_b'])
+
+    response = client.get('/api/v1/knowledge-base/settings/')
+
+    assert response.status_code == 200
+    assert response.data['retrieval_mode'] == 'textual'
+    assert response.data['external_embeddings_enabled'] is False
+    assert response.data['allow_document_content_to_external_provider'] is False
+    assert RAGSettings.objects.filter(organization=tenant['org_b']).exists()
+
+
+@pytest.mark.django_db
+def test_user_only_sees_settings_from_own_organization():
+    tenant = build_service_tenant_fixture()
+    client_a = authenticated_client(tenant['admin_a'])
+    client_b = authenticated_client(tenant['admin_b'])
+
+    response_a = client_a.get('/api/v1/knowledge-base/settings/')
+    response_b = client_b.get('/api/v1/knowledge-base/settings/')
+
+    assert response_a.status_code == 200
+    assert response_b.status_code == 200
+    assert response_a.data['organization'] != response_b.data['organization']
+    assert RAGSettings.objects.count() == 2
+
+
+@pytest.mark.django_db
+def test_patch_settings_rejects_external_embeddings_without_document_opt_in():
+    tenant = build_service_tenant_fixture()
+    client = authenticated_client(tenant['admin_b'])
+
+    response = client.patch(
+        '/api/v1/knowledge-base/settings/',
+        {
+            'external_embeddings_enabled': True,
+            'allow_document_content_to_external_provider': False,
+        },
+        format='json',
+    )
+
+    assert response.status_code == 400
+    assert 'external_embeddings_enabled' in response.data['details']
+
+
+@pytest.mark.django_db
+def test_patch_settings_rejects_embeddings_mode_without_provider():
+    tenant = build_service_tenant_fixture()
+    client = authenticated_client(tenant['admin_b'])
+
+    response = client.patch(
+        '/api/v1/knowledge-base/settings/',
+        {
+            'retrieval_mode': 'embeddings',
+            'allow_document_content_to_external_provider': True,
+            'external_embeddings_enabled': True,
+            'embedding_provider': '',
+        },
+        format='json',
+    )
+
+    assert response.status_code == 400
+    assert 'embedding_provider' in response.data['details']
+
+
+@pytest.mark.django_db
+def test_patch_settings_accepts_hybrid_with_provider_and_explicit_opt_in():
+    tenant = build_service_tenant_fixture()
+    client = authenticated_client(tenant['admin_b'])
+
+    response = client.patch(
+        '/api/v1/knowledge-base/settings/',
+        {
+            'retrieval_mode': 'hybrid',
+            'external_embeddings_enabled': True,
+            'allow_document_content_to_external_provider': True,
+            'embedding_provider': 'openai',
+            'embedding_model': 'text-embedding-placeholder',
+            'max_sources_per_answer': 3,
+            'min_confidence_threshold': 'medium',
+        },
+        format='json',
+    )
+
+    assert response.status_code == 200
+    assert response.data['retrieval_mode'] == 'hybrid'
+    assert response.data['external_embeddings_enabled'] is True
+    assert response.data['allow_document_content_to_external_provider'] is True
+    assert response.data['embedding_provider'] == 'openai'
+    assert response.data['max_sources_per_answer'] == 3
+
+
+@pytest.mark.django_db
+def test_non_admin_cannot_update_rag_settings():
+    tenant = build_service_tenant_fixture()
+    client = authenticated_client(tenant['lawyer_b'])
+
+    response = client.patch(
+        '/api/v1/knowledge-base/settings/',
+        {'retrieval_mode': 'hybrid'},
+        format='json',
+    )
+
+    assert response.status_code == 403
+
+
+@pytest.mark.django_db
+def test_prepare_embeddings_creates_skipped_audit_log_when_provider_disabled():
+    tenant = build_service_tenant_fixture()
+    knowledge_base = create_base(tenant)
+    document = create_document(tenant=tenant, organization_key='org_b', case_key='case_b', content='Texto para placeholder.')
+    client = authenticated_client(tenant['admin_b'])
+    assert index_document(client, knowledge_base, document).status_code == 200
+    knowledge_document = knowledge_base.documents.get(document=document)
+
+    response = client.post(
+        f'/api/v1/knowledge-base/{knowledge_base.id}/prepare-embeddings/',
+        {'knowledge_document_id': str(knowledge_document.id)},
+        format='json',
+    )
+
+    assert response.status_code == 200
+    assert response.data['status'] == 'skipped'
+    assert response.data['reason'] == 'external_embeddings_disabled'
+    audit_log = EmbeddingAuditLog.objects.get(pk=response.data['audit_log_id'])
+    assert audit_log.organization == tenant['org_b']
+    assert audit_log.knowledge_document == knowledge_document
+    assert audit_log.provider == ''
+
+
+@pytest.mark.django_db
+def test_embedding_audit_logs_are_filtered_by_organization():
+    tenant = build_service_tenant_fixture()
+    EmbeddingAuditLog.objects.create(
+        organization=tenant['org_a'],
+        action='skipped',
+        status='skipped',
+        reason='external_embeddings_disabled',
+        created_by=tenant['admin_a'],
+    )
+    EmbeddingAuditLog.objects.create(
+        organization=tenant['org_b'],
+        action='skipped',
+        status='skipped',
+        reason='external_embeddings_disabled',
+        created_by=tenant['admin_b'],
+    )
+    client = authenticated_client(tenant['admin_b'])
+
+    response = client.get('/api/v1/knowledge-base/embedding-audit-logs/')
+
+    assert response.status_code == 200
+    assert response.data['count'] == 1
+    assert str(response.data['results'][0]['organization']) == str(tenant['org_b'].id)
+
+
+@pytest.mark.django_db
+def test_ask_uses_textual_fallback_when_hybrid_requested_but_not_effective():
+    tenant = build_service_tenant_fixture()
+    knowledge_base = create_base(tenant)
+    document = create_document(
+        tenant=tenant,
+        organization_key='org_b',
+        case_key='case_b',
+        content='A contestacao apresenta argumentos defensivos e documentos anexos.',
+    )
+    client = authenticated_client(tenant['admin_b'])
+    assert index_document(client, knowledge_base, document).status_code == 200
+    assert client.patch(
+        '/api/v1/knowledge-base/settings/',
+        {
+            'retrieval_mode': 'hybrid',
+            'embedding_provider': 'openai',
+            'external_embeddings_enabled': False,
+            'allow_document_content_to_external_provider': False,
+        },
+        format='json',
+    ).status_code == 200
+
+    response = client.post(
+        f'/api/v1/knowledge-base/{knowledge_base.id}/ask/',
+        {'query': 'Quais argumentos defensivos a contestacao apresenta?', 'limit': 5},
+        format='json',
+    )
+
+    assert response.status_code == 200
+    assert response.data['retrieval_method'] == 'textual'
+    assert response.data['effective_retrieval_mode'] == 'textual'
+    assert response.data['fallback_used'] is True
+    assert response.data['fallback_reason'] == 'external_embeddings_disabled'
+    assert response.data['sources']
+
+
+@pytest.mark.django_db
+def test_max_sources_per_answer_limits_ask_sources():
+    tenant = build_service_tenant_fixture()
+    knowledge_base = create_base(tenant)
+    client = authenticated_client(tenant['admin_b'])
+    assert client.patch(
+        '/api/v1/knowledge-base/settings/',
+        {'max_sources_per_answer': 2},
+        format='json',
+    ).status_code == 200
+
+    for index in range(5):
+        document = create_document(
+            tenant=tenant,
+            organization_key='org_b',
+            case_key='case_b',
+            content=f'Clausula contratual relevante numero {index}. Clausula contratual relevante.',
+        )
+        assert index_document(client, knowledge_base, document).status_code == 200
+
+    response = client.post(
+        f'/api/v1/knowledge-base/{knowledge_base.id}/ask/',
+        {'query': 'clausula contratual relevante', 'limit': 5},
+        format='json',
+    )
+
+    assert response.status_code == 200
+    assert response.data['sources_count'] == 2
+    assert len(response.data['sources']) == 2
+
+
+@pytest.mark.django_db
+def test_prepare_embeddings_respects_tenant_isolation():
+    tenant = build_service_tenant_fixture()
+    base_a = create_base(tenant, org_key='org_a', user_key='admin_a', name='Base A')
+    document_a = create_document(tenant=tenant, organization_key='org_a', case_key='case_a', content='Texto A para prepare.')
+    client_a = authenticated_client(tenant['admin_a'])
+    client_b = authenticated_client(tenant['admin_b'])
+    assert index_document(client_a, base_a, document_a).status_code == 200
+    knowledge_document_a = base_a.documents.get(document=document_a)
+
+    response = client_b.post(
+        f'/api/v1/knowledge-base/{base_a.id}/prepare-embeddings/',
+        {'knowledge_document_id': str(knowledge_document_a.id)},
+        format='json',
+    )
+
+    assert response.status_code == 404

@@ -5,11 +5,14 @@ from jurisai.serializers import OrganizationScopedValidationMixin, TenantRelatio
 from knowledge_base.models import (
     ChunkEmbedding,
     DocumentChunk,
+    EmbeddingAuditLog,
     IndexingJob,
     KnowledgeBase,
     KnowledgeDocument,
+    RAGSettings,
     RetrievalQuery,
 )
+from knowledge_base.services import validate_embedding_policy
 
 
 class KnowledgeBaseSerializer(OrganizationScopedValidationMixin, serializers.ModelSerializer):
@@ -166,6 +169,79 @@ class RetrievalQuerySerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+class RAGSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RAGSettings
+        fields = [
+            'organization',
+            'retrieval_mode',
+            'external_embeddings_enabled',
+            'embedding_provider',
+            'embedding_model',
+            'require_human_review_for_ai_answers',
+            'allow_document_content_to_external_provider',
+            'max_sources_per_answer',
+            'min_confidence_threshold',
+            'updated_by',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['organization', 'updated_by', 'created_at', 'updated_at']
+
+    def validate(self, attrs):
+        instance = self.instance
+        candidate = RAGSettings(
+            organization=getattr(instance, 'organization', None),
+            retrieval_mode=attrs.get('retrieval_mode', getattr(instance, 'retrieval_mode', 'textual')),
+            external_embeddings_enabled=attrs.get(
+                'external_embeddings_enabled',
+                getattr(instance, 'external_embeddings_enabled', False),
+            ),
+            embedding_provider=attrs.get('embedding_provider', getattr(instance, 'embedding_provider', '')),
+            embedding_model=attrs.get('embedding_model', getattr(instance, 'embedding_model', '')),
+            require_human_review_for_ai_answers=attrs.get(
+                'require_human_review_for_ai_answers',
+                getattr(instance, 'require_human_review_for_ai_answers', True),
+            ),
+            allow_document_content_to_external_provider=attrs.get(
+                'allow_document_content_to_external_provider',
+                getattr(instance, 'allow_document_content_to_external_provider', False),
+            ),
+            max_sources_per_answer=attrs.get(
+                'max_sources_per_answer',
+                getattr(instance, 'max_sources_per_answer', 5),
+            ),
+            min_confidence_threshold=attrs.get(
+                'min_confidence_threshold',
+                getattr(instance, 'min_confidence_threshold', 'low'),
+            ),
+        )
+        errors = validate_embedding_policy(candidate)
+        if errors:
+            raise serializers.ValidationError(errors)
+        return attrs
+
+
+class EmbeddingAuditLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EmbeddingAuditLog
+        fields = [
+            'id',
+            'organization',
+            'chunk',
+            'knowledge_document',
+            'provider',
+            'model',
+            'action',
+            'status',
+            'reason',
+            'metadata',
+            'created_by',
+            'created_at',
+        ]
+        read_only_fields = fields
+
+
 class IndexingJobSerializer(serializers.ModelSerializer):
     class Meta:
         model = IndexingJob
@@ -204,6 +280,19 @@ class IndexDocumentSerializer(TenantRelationValidationMixin, serializers.Seriali
 
 class ReindexDocumentSerializer(IndexDocumentSerializer):
     pass
+
+
+class PrepareEmbeddingsSerializer(TenantRelationValidationMixin, serializers.Serializer):
+    knowledge_document_id = serializers.UUIDField(required=False)
+    tenant_relation_fields = {'knowledge_document_id': KnowledgeDocument}
+
+    def validate(self, data):
+        organization = getattr(self.context['request'].user, 'organization', None)
+        if organization is None:
+            raise serializers.ValidationError({'knowledge_document_id': 'Organizacao atual nao encontrada.'})
+
+        data['organization_id'] = str(organization.id)
+        return self.validate_tenant_relations(data)
 
 
 class KnowledgeSearchSerializer(serializers.Serializer):

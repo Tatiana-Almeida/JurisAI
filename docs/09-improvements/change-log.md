@@ -235,3 +235,18 @@
 - [CONFIRMADO_NO_CODIGO] Foi criada a fundacao `ChunkEmbedding` para embeddings opcionais futuros, sem chamar provider externo nesta fase.
 - [CONFIRMADO_NO_CODIGO] A suite [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py) foi expandida para cobrir jobs, ranking, `stats`, reindexacao, embeddings foundation e os novos campos de `ask`.
 - [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta fase foi registado em [docs/10-checkpoints/2026-04-knowledge-base-rag-phase-2.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-knowledge-base-rag-phase-2.md).
+
+## Mudanca
+
+- ID: `IMP-KB-RAG-003`
+- Titulo: Added RAG governance settings, embedding opt-in controls and audit logs without enabling external providers.
+- Risco: medio
+- Estado: implementada e validada tecnicamente
+
+- [CONFIRMADO_NO_CODIGO] Foi adicionado `RAGSettings` por `organization` com defaults seguros, `retrieval_mode`, opt-in explicito para embeddings externos, `max_sources_per_answer` e limiar minimo de confianca.
+- [CONFIRMADO_NO_CODIGO] Foi adicionado `EmbeddingAuditLog` para registrar tentativas de embeddings sem expor conteudo bruto do documento.
+- [CONFIRMADO_NO_CODIGO] Foram adicionados `GET/PATCH /api/v1/knowledge-base/settings/`, `GET /api/v1/knowledge-base/embedding-audit-logs/` e `POST /api/v1/knowledge-base/{id}/prepare-embeddings/`.
+- [CONFIRMADO_NO_CODIGO] `prepare-embeddings` nao chama provider externo nesta fase e retorna `skipped` seguro com motivo auditavel.
+- [CONFIRMADO_NO_CODIGO] O endpoint `ask` passou a retornar `effective_retrieval_mode`, `fallback_used` e `fallback_reason`, mantendo `retrieval_method=\"textual\"` enquanto embeddings nao estao efetivos.
+- [CONFIRMADO_NO_CODIGO] A suite [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py) foi expandida para cobrir settings, opt-in, audit logs, fallback textual e limite de fontes.
+- [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta camada foi registado em [docs/10-checkpoints/2026-04-rag-governance.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-rag-governance.md).

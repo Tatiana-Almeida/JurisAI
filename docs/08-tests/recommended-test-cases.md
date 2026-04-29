@@ -373,7 +373,43 @@
 - Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
 - Cobertura preparada: [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py)
 
-## CT-064 Validar placeholders seguros remanescentes de `ocr` e `document_analysis`
+## CT-064 Validar `RAGSettings` com defaults seguros por organizacao
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py)
+
+## CT-065 Validar opt-in explicito para embeddings externos
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py)
+
+## CT-066 Validar `prepare-embeddings` com `skipped` seguro e auditavel
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py)
+
+## CT-067 Validar `EmbeddingAuditLog` filtrado por tenant
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py)
+
+## CT-068 Validar fallback textual obrigatorio em `ask`
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py)
+
+## CT-069 Validar `max_sources_per_answer` em `RAGSettings`
+
+- Risco: medio
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_knowledge_base.py](/c:/projectos/JurisAI/tests/test_knowledge_base.py)
+
+## CT-070 Validar placeholders seguros remanescentes de `ocr` e `document_analysis`
 
 - Risco: medio
 - Estado: [INFERIDO_DO_CODIGO] cobertura recomendada para futuras fases

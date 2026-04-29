@@ -1,4 +1,4 @@
-from rest_framework import filters, status, viewsets
+from rest_framework import filters, generics, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -7,19 +7,37 @@ from django.db.models import Max
 
 from documents.models import Document
 from jurisai.permissions import IsOrganizationMember
-from knowledge_base.models import DocumentChunk, IndexingJob, KnowledgeBase, KnowledgeDocument, RetrievalQuery
+from knowledge_base.models import (
+    DocumentChunk,
+    EmbeddingAuditLog,
+    IndexingJob,
+    KnowledgeBase,
+    KnowledgeDocument,
+    RAGSettings,
+    RetrievalQuery,
+)
 from knowledge_base.serializers import (
     DocumentChunkSerializer,
+    EmbeddingAuditLogSerializer,
     IndexDocumentSerializer,
     IndexingJobSerializer,
     KnowledgeAskSerializer,
     KnowledgeBaseSerializer,
     KnowledgeDocumentSerializer,
     KnowledgeSearchSerializer,
+    PrepareEmbeddingsSerializer,
+    RAGSettingsSerializer,
     ReindexDocumentSerializer,
     RetrievalQuerySerializer,
 )
-from knowledge_base.services import build_grounded_answer, index_document_for_knowledge_base, search_chunks
+from knowledge_base.services import (
+    build_grounded_answer,
+    generate_embeddings_placeholder,
+    get_rag_settings,
+    index_document_for_knowledge_base,
+    resolve_retrieval_behavior,
+    search_chunks,
+)
 
 
 class OrganizationScopedViewSet(viewsets.ModelViewSet):
@@ -40,6 +58,29 @@ class OrganizationScopedViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(organization=self.get_organization(), created_by=self.request.user)
+
+
+class OrganizationRAGSettingsView(generics.RetrieveUpdateAPIView):
+    serializer_class = RAGSettingsSerializer
+    permission_classes = [IsAuthenticated, IsOrganizationMember]
+
+    def get_object(self):
+        organization = getattr(self.request.user, 'organization', None)
+        return get_rag_settings(organization)
+
+    def update(self, request, *args, **kwargs):
+        if getattr(request.user, 'role', None) != 'admin':
+            return Response(
+                {'detail': 'Apenas administradores podem atualizar as configuracoes de RAG.'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(updated_by=request.user)
+        return Response(serializer.data)
 
 
 class KnowledgeBaseViewSet(OrganizationScopedViewSet):
@@ -114,6 +155,7 @@ class KnowledgeBaseViewSet(OrganizationScopedViewSet):
     @action(detail=True, methods=['post'])
     def search(self, request, pk=None):
         knowledge_base = self.get_object()
+        settings = get_rag_settings(request.user.organization)
         serializer = KnowledgeSearchSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -121,14 +163,22 @@ class KnowledgeBaseViewSet(OrganizationScopedViewSet):
             organization=request.user.organization,
             query=serializer.validated_data['query'],
             knowledge_base=knowledge_base,
-            limit=serializer.validated_data['limit'],
+            limit=min(serializer.validated_data['limit'], settings.max_sources_per_answer),
         )
-        grounded = build_grounded_answer(serializer.validated_data['query'], results)
+        grounded = build_grounded_answer(
+            serializer.validated_data['query'],
+            results,
+            settings=settings,
+        )
+        retrieval_behavior = resolve_retrieval_behavior(settings)
         return Response(
             {
                 'query': grounded['query'],
                 'status': grounded['status'],
                 'retrieval_method': grounded['retrieval_method'],
+                'effective_retrieval_mode': retrieval_behavior['effective_retrieval_mode'],
+                'fallback_used': retrieval_behavior['fallback_used'],
+                'fallback_reason': retrieval_behavior['fallback_reason'],
                 'sources_count': grounded['sources_count'],
                 'confidence': grounded['confidence'],
                 'sources': grounded['sources'],
@@ -138,18 +188,25 @@ class KnowledgeBaseViewSet(OrganizationScopedViewSet):
     @action(detail=True, methods=['post'])
     def ask(self, request, pk=None):
         knowledge_base = self.get_object()
+        settings = get_rag_settings(request.user.organization)
         serializer = KnowledgeAskSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
+        effective_limit = min(serializer.validated_data['limit'], settings.max_sources_per_answer)
         result = build_grounded_answer(
             serializer.validated_data['query'],
             search_chunks(
                 organization=request.user.organization,
                 query=serializer.validated_data['query'],
                 knowledge_base=knowledge_base,
-                limit=serializer.validated_data['limit'],
+                limit=effective_limit,
             ),
+            settings=settings,
         )
+        retrieval_behavior = resolve_retrieval_behavior(settings)
+        result['effective_retrieval_mode'] = retrieval_behavior['effective_retrieval_mode']
+        result['fallback_used'] = retrieval_behavior['fallback_used']
+        result['fallback_reason'] = retrieval_behavior['fallback_reason']
 
         RetrievalQuery.objects.create(
             organization=request.user.organization,
@@ -163,12 +220,52 @@ class KnowledgeBaseViewSet(OrganizationScopedViewSet):
             sources_count=result['sources_count'],
             sources_payload={
                 'retrieval_method': result['retrieval_method'],
+                'effective_retrieval_mode': result['effective_retrieval_mode'],
+                'fallback_used': result['fallback_used'],
+                'fallback_reason': result['fallback_reason'],
                 'sources_count': result['sources_count'],
                 'confidence': result['confidence'],
                 'sources': result['sources'],
             },
         )
         return Response(result)
+
+    @action(detail=True, methods=['post'], url_path='prepare-embeddings')
+    def prepare_embeddings(self, request, pk=None):
+        knowledge_base = self.get_object()
+        settings = get_rag_settings(request.user.organization)
+        serializer = PrepareEmbeddingsSerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+
+        knowledge_document = None
+        knowledge_document_id = serializer.validated_data.get('knowledge_document_id')
+        if knowledge_document_id:
+            knowledge_document = KnowledgeDocument.objects.filter(
+                pk=knowledge_document_id,
+                organization=request.user.organization,
+                knowledge_base=knowledge_base,
+            ).first()
+            if knowledge_document is None:
+                return Response(
+                    {'knowledge_document_id': ['Este recurso nao pertence a organizacao atual.']},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        result = generate_embeddings_placeholder(
+            organization=request.user.organization,
+            settings=settings,
+            knowledge_document=knowledge_document,
+            created_by=request.user,
+        )
+        return Response(
+            {
+                'status': result['status'],
+                'reason': result['reason'],
+                'audit_log_id': result['audit_log_id'],
+                'effective_retrieval_mode': resolve_retrieval_behavior(settings)['effective_retrieval_mode'],
+            },
+            status=status.HTTP_200_OK,
+        )
 
     @action(detail=True, methods=['get'])
     def stats(self, request, pk=None):
@@ -252,6 +349,25 @@ class IndexingJobViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['knowledge_base_id', 'knowledge_document_id', 'document_id', 'status']
     ordering_fields = ['created_at', 'started_at', 'finished_at']
+
+    def get_queryset(self):
+        organization = getattr(self.request.user, 'organization', None)
+        queryset = super().get_queryset()
+        return queryset.filter(organization=organization) if organization else queryset.none()
+
+
+class EmbeddingAuditLogViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = EmbeddingAuditLog.objects.select_related(
+        'organization',
+        'knowledge_document',
+        'chunk',
+        'created_by',
+    ).all()
+    serializer_class = EmbeddingAuditLogSerializer
+    permission_classes = [IsAuthenticated, IsOrganizationMember]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['knowledge_document_id', 'chunk_id', 'action', 'status', 'reason']
+    ordering_fields = ['created_at']
 
     def get_queryset(self):
         organization = getattr(self.request.user, 'organization', None)

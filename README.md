@@ -84,6 +84,8 @@ These apps are present in the codebase with initial models and safe base routes,
 - Knowledge base stats and safe document reindexing
 - Grounded answers without external provider calls
 - Embedding foundation prepared, but not active
+- Organization-level RAG governance and opt-in controls for future external embeddings
+- Mandatory textual fallback when embeddings are not effective
 
 ### Future functional expansion
 
@@ -165,6 +167,9 @@ Current primary routes include:
 - `POST /api/v1/knowledge-base/{id}/ask/`
 - `GET /api/v1/knowledge-base/{id}/stats/`
 - `GET /api/v1/knowledge-base/indexing-jobs/`
+- `GET/PATCH /api/v1/knowledge-base/settings/`
+- `GET /api/v1/knowledge-base/embedding-audit-logs/`
+- `POST /api/v1/knowledge-base/{id}/prepare-embeddings/`
 - `POST /api/v1/ai/generate-petition/`
 - `POST /api/v1/ai/summarize-document/`
 - `POST /api/v1/ai/analyze-risk/`
@@ -300,6 +305,8 @@ The current backend already includes important safety measures:
 - No external provider calls for knowledge base retrieval in the current phase
 - Indexing jobs and retrieval history stay organization-scoped
 - Embedding fields and chunk embedding records are foundation-only in this phase and do not call any external provider
+- External embeddings remain disabled by default and require explicit organization opt-in
+- Textual fallback remains mandatory when retrieval is configured as `hybrid` or `embeddings` but external embeddings are not effective
 
 Remaining production hardening areas include:
 

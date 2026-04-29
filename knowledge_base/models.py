@@ -183,3 +183,118 @@ class ChunkEmbedding(models.Model):
 
     def __str__(self):
         return f'{self.chunk_id} - {self.status}'
+
+
+class RAGSettings(models.Model):
+    RETRIEVAL_MODE_CHOICES = [
+        ('textual', 'Textual'),
+        ('hybrid', 'Hybrid'),
+        ('embeddings', 'Embeddings'),
+    ]
+    EMBEDDING_PROVIDER_CHOICES = [
+        ('local', 'Local'),
+        ('openai', 'OpenAI'),
+        ('azure_openai', 'Azure OpenAI'),
+        ('other', 'Other'),
+    ]
+    CONFIDENCE_THRESHOLD_CHOICES = [
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+    ]
+
+    organization = models.OneToOneField(
+        'organizations.Organization',
+        on_delete=models.PROTECT,
+        related_name='rag_settings',
+    )
+    retrieval_mode = models.CharField(
+        max_length=20,
+        choices=RETRIEVAL_MODE_CHOICES,
+        default='textual',
+    )
+    external_embeddings_enabled = models.BooleanField(default=False)
+    embedding_provider = models.CharField(
+        max_length=40,
+        choices=EMBEDDING_PROVIDER_CHOICES,
+        blank=True,
+    )
+    embedding_model = models.CharField(max_length=120, blank=True)
+    require_human_review_for_ai_answers = models.BooleanField(default=True)
+    allow_document_content_to_external_provider = models.BooleanField(default=False)
+    max_sources_per_answer = models.PositiveIntegerField(default=5)
+    min_confidence_threshold = models.CharField(
+        max_length=20,
+        choices=CONFIDENCE_THRESHOLD_CHOICES,
+        default='low',
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name='rag_settings_updates',
+        null=True,
+        blank=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['organization_id']
+
+    def __str__(self):
+        return f'RAG settings - {self.organization_id}'
+
+
+class EmbeddingAuditLog(models.Model):
+    ACTION_CHOICES = [
+        ('requested', 'Requested'),
+        ('skipped', 'Skipped'),
+        ('failed', 'Failed'),
+        ('completed', 'Completed'),
+    ]
+    STATUS_CHOICES = [
+        ('ok', 'OK'),
+        ('skipped', 'Skipped'),
+        ('failed', 'Failed'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization = models.ForeignKey(
+        'organizations.Organization',
+        on_delete=models.PROTECT,
+        related_name='embedding_audit_logs',
+    )
+    chunk = models.ForeignKey(
+        'knowledge_base.DocumentChunk',
+        on_delete=models.SET_NULL,
+        related_name='embedding_audit_logs',
+        null=True,
+        blank=True,
+    )
+    knowledge_document = models.ForeignKey(
+        'knowledge_base.KnowledgeDocument',
+        on_delete=models.SET_NULL,
+        related_name='embedding_audit_logs',
+        null=True,
+        blank=True,
+    )
+    provider = models.CharField(max_length=120, blank=True)
+    model = models.CharField(max_length=120, blank=True)
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ok')
+    reason = models.CharField(max_length=120, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name='embedding_audit_logs',
+        null=True,
+        blank=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at', 'id']
+
+    def __str__(self):
+        return f'{self.organization_id} - {self.action} - {self.reason}'
