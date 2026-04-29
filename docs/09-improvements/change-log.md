@@ -306,3 +306,17 @@ Resumo:
 - Kept external providers disabled/not implemented
 - Full suite: `129 passed`
 - Release checkpoint: [docs/10-checkpoints/2026-04-release-v0.4.0.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-release-v0.4.0.md)
+
+## v0.5.0 - OCR and Document Text Extraction Foundation
+
+- Added `OCRJob` and `OCRResult`.
+- Added local TXT extraction.
+- Added textual PDF extraction.
+- Added DOCX extraction.
+- Added explicit `apply-to-document` flow.
+- Added tenant-isolated OCR jobs and results.
+- Preserved original document files.
+- Added controlled failure handling for unsupported formats.
+- No external OCR provider enabled.
+- Full suite: `140 passed`.
+- Release checkpoint: [docs/10-checkpoints/2026-04-release-v0.5.0.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-release-v0.5.0.md)
