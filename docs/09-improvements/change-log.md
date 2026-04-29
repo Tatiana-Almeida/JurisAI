@@ -449,3 +449,17 @@ Resumo:
 - Kept all external OCR providers disabled.
 - Full suite: `174 passed`.
 - Release checkpoint: [docs/10-checkpoints/2026-04-release-v0.9.0.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-release-v0.9.0.md)
+
+## v0.10.0 - Scanned PDF OCR to Knowledge Base Pipeline
+
+- Integrated local scanned PDF OCR with the OCR-to-KnowledgeBase pipeline.
+- Added fallback from textual PDF extraction to governed scanned PDF OCR.
+- Added has_useful_extracted_text(...).
+- Updated run_ocr_to_knowledge_base_pipeline(...).
+- Added used_advanced_ocr, advanced_ocr_reason and ocr_audit_log in pipeline payloads.
+- Preserved explicit update_document_content=true requirement.
+- Preserved OCRJob, OCRResult, OCRAuditLog and pipeline metadata on failures.
+- Preserved tenant isolation.
+- Kept all external OCR providers disabled.
+- Full suite: `180 passed`.
+- Release checkpoint: [docs/10-checkpoints/2026-04-release-v0.10.0.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-release-v0.10.0.md)
