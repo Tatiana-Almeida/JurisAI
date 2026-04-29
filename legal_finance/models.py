@@ -21,6 +21,7 @@ class ClientInvoice(models.Model):
 
     class Meta:
         unique_together = ('organization', 'invoice_number')
+        ordering = ['-created_at', 'id']
 
 
 class LegalFee(models.Model):
@@ -37,6 +38,9 @@ class LegalFee(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['-created_at', 'id']
+
 
 class Expense(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -49,6 +53,9 @@ class Expense(models.Model):
     reimbursable = models.BooleanField(default=False)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='created_expenses')
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at', 'id']
 
 
 class PaymentRecord(models.Model):
@@ -64,3 +71,5 @@ class PaymentRecord(models.Model):
     reference = models.CharField(max_length=120, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['-created_at', 'id']

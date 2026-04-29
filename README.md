@@ -1,173 +1,304 @@
-# JurisAI Backend
+# JurisAI
 
-Backend SaaS juridico com Django, Django REST Framework, PostgreSQL, Redis, Celery e integracao de IA.
+JurisAI is a multi-tenant legal SaaS backend built with Django REST Framework, designed for law firms and legal departments.
 
-## Recursos
+It currently provides core legal operations, initial AI support, SaaS billing, auditability, and the first wave of expanded legal services, while keeping organization isolation as a central architectural rule.
 
-- Multi-tenant por organizacao
-- Autenticacao JWT com refresh
-- Gestao de usuarios, casos, prazos, documentos, pagamentos e auditoria
-- Assistente de IA com geracao de peticoes, resumo de documentos, analise de risco e pesquisa de jurisprudencia
-- Tarefas assincronas com Celery
-- Documentacao Swagger e Redoc
+## Features
 
-## Expanded Legal Services
+### Core legal management
 
-- Dashboard juridico
-- Portal do cliente
-- Tarefas internas
-- Agenda juridica
-- Templates juridicos
-- Financeiro de honorarios
-- CRM juridico
-- Base de conhecimento / RAG
-- IA com fontes
-- OCR
-- Comparacao de documentos
-- Extracao automatica de prazos
-- Assinatura eletronica
-- BI juridico
-- Compliance
-- Marketplace
+- Organizations and multi-tenancy
+- User management and JWT authentication
+- Legal cases
+- Deadlines
+- Documents with upload hardening
+- SaaS billing and webhook processing
+- Audit logs
+- Notifications
 
-## Estrutura de pastas
+### Expanded legal services
 
-- `accounts/`: usuarios e controle de acesso
-- `organizations/`: dados de escritorios juridicos e planos
-- `law_cases/`: processos juridicos e fluxo de casos
-- `deadlines/`: prazos processuais e alertas
-- `documents/`: uploads, versionamento e modelos de documentos
-- `ai_assistant/`: integracao OpenAI e RAG-ready
-- `billing/`: pagamentos e faturamento
-- `notifications/`: envio de email e WhatsApp mock
-- `audit_logs/`: trilha completa de auditoria
-- `tasks/`: tarefas internas, checklist e comentarios
-- `dashboard/`: agregacoes read-only por tenant
-- `client_portal/`: visibilidade controlada de casos, documentos e mensagens
-- `calendar_events/`: agenda juridica e eventos futuros
-- `legal_templates/`: templates dinamicos e documentos gerados
-- `legal_finance/`: invoices, honorarios, despesas e pagamentos
-- `crm/`: fundacao comercial para leads e consultas
-- `knowledge_base/`: fundacao RAG por organizacao
-- `document_analysis/`: fundacao para comparacao e extracao de prazos
-- `ocr/`: fundacao para OCR
-- `e_signature/`: fundacao para assinatura eletronica
-- `business_intelligence/`: fundacao para relatorios e snapshots
-- `compliance/`: fundacao para consentimento, retencao e pedidos LGPD
-- `marketplace/`: fundacao para marketplace de modelos
-- `jurisai/`: configuracao Django, middleware, permissoes e Celery
+- Tasks
+- Dashboard
+- Client portal
+- Legal calendar
+- Legal templates
+- Legal finance
 
-## Como rodar com Docker
+### AI and automation foundations
 
-1. Copie o arquivo `.env.example` para `.env` e configure as variaveis.
-2. Construa e suba os servicos:
+- AI assistant
+- Knowledge base / RAG foundation
+- OCR foundation
+- Document analysis foundation
 
-```bash
-docker compose up --build
-```
+### Business foundations
 
-3. Acesse:
-- API: `http://localhost:8000/api/v1/`
-- Swagger: `http://localhost:8000/swagger/`
-- Flower: `http://localhost:5555`
+- CRM foundation
+- E-signature foundation
+- BI foundation
+- Compliance foundation
+- Marketplace foundation
 
-## Fluxo Docker / Compose
+## Implementation Status
 
-1. Crie o arquivo `.env` a partir do `.env.example`:
+### Implemented modules
+
+- `accounts`
+- `organizations`
+- `law_cases`
+- `deadlines`
+- `documents`
+- `ai_assistant`
+- `billing`
+- `notifications`
+- `audit_logs`
+- `tasks`
+- `dashboard`
+- `client_portal`
+- `calendar_events`
+- `legal_templates`
+- `legal_finance`
+
+### Foundation modules
+
+These apps are present in the codebase with initial models and safe base routes, but are not positioned as complete business features yet:
+
+- `crm`
+- `e_signature`
+- `business_intelligence`
+- `compliance`
+- `marketplace`
+- `knowledge_base`
+- `ocr`
+- `document_analysis`
+
+### Future functional expansion
+
+- Functional RAG with retrieval and citations
+- OCR provider integration
+- Advanced document comparison and deadline extraction
+- Provider-backed electronic signature flows
+- Rich BI dashboards and analytics
+- Compliance workflows and automation
+- Marketplace workflows and purchases
+
+## Tech Stack
+
+- Python
+- Django
+- Django REST Framework
+- PostgreSQL
+- Redis
+- Celery
+- Docker
+- Pytest
+- Swagger
+- Redoc
+
+## Project Structure
+
+Main apps currently present in the repository:
+
+- `accounts/`: user accounts, roles, authentication and profile endpoints
+- `organizations/`: law firm organizations and plan controls
+- `law_cases/`: legal case management
+- `deadlines/`: deadline tracking
+- `documents/`: document records, uploads and versioning
+- `ai_assistant/`: legal AI assistant and related services
+- `billing/`: SaaS billing, payments and webhook processing
+- `notifications/`: notification flows
+- `audit_logs/`: audit trail
+- `tasks/`: internal tasks, comments and checklist items
+- `dashboard/`: tenant-scoped read-only aggregations
+- `client_portal/`: explicit case/document visibility and messaging
+- `calendar_events/`: legal calendar and event scheduling
+- `legal_templates/`: template management and generated documents
+- `legal_finance/`: invoices, fees, expenses and payment records
+- `crm/`: lead and consultation foundation
+- `e_signature/`: signature request foundation
+- `business_intelligence/`: report and metric foundation
+- `compliance/`: consent and compliance foundation
+- `marketplace/`: marketplace foundation
+- `knowledge_base/`: knowledge base and retrieval foundation
+- `ocr/`: OCR foundation
+- `document_analysis/`: comparison and extraction foundation
+- `jurisai/`: Django settings, permissions, middleware and shared utilities
+
+## Main API Endpoints
+
+Current primary routes include:
+
+- `POST /api/v1/auth/token/`
+- `POST /api/v1/auth/token/refresh/`
+- `GET /api/v1/users/`
+- `GET /api/v1/users/profile/`
+- `GET /api/v1/cases/`
+- `GET /api/v1/deadlines/`
+- `GET /api/v1/documents/`
+- `GET /api/v1/payments/`
+- `GET /api/v1/audit-logs/`
+- `GET /api/v1/tasks/`
+- `GET /api/v1/dashboard/summary/`
+- `GET /api/v1/client-portal/cases/`
+- `GET /api/v1/client-portal/documents/`
+- `GET /api/v1/calendar/events/`
+- `GET /api/v1/legal-templates/`
+- `GET /api/v1/generated-documents/`
+- `GET /api/v1/legal-finance/summary/`
+- `POST /api/v1/ai/generate-petition/`
+- `POST /api/v1/ai/summarize-document/`
+- `POST /api/v1/ai/analyze-risk/`
+- `POST /api/v1/ai/search-jurisprudence/`
+
+## Getting Started
+
+### Installation
+
+1. Clone the repository.
+2. Create a local environment file from the example:
 
 ```bash
 copy .env.example .env
 ```
 
-2. Suba PostgreSQL e Redis:
+3. Choose one of the supported runtime flows below:
+- Docker with PostgreSQL
+- Local lightweight mode with SQLite
+
+## Running with Docker
+
+Use this flow when you want the stack closer to the intended deployment shape.
+
+1. Create `.env` from `.env.example`:
+
+```bash
+copy .env.example .env
+```
+
+2. Start the services:
+
+```bash
+docker compose up --build
+```
+
+3. Or run the database and supporting services first:
 
 ```bash
 docker compose up -d db redis
 ```
 
-3. Execute migracoes e seed:
+4. Apply migrations and load demo data if needed:
 
 ```bash
 docker compose run --rm web python manage.py migrate
 docker compose run --rm web python manage.py seed_demo
 ```
 
-4. Alternativa tudo em um passo com o comando customizado:
+5. Optional helper command:
 
 ```bash
 docker compose run --rm web python manage.py setup_local
 ```
 
-Observacao:
-- O host `db` e esperado neste fluxo porque ele existe dentro do `docker-compose`.
+Notes:
 
-## Fluxo local leve com SQLite
+- In this flow, the PostgreSQL host `db` is expected to exist via Docker Compose.
+- Swagger and Redoc are available only when `DEBUG=True`.
 
-Use este fluxo apenas para desenvolvimento local fora do Docker/Compose.
+## Running Locally with SQLite
 
-1. Crie o arquivo `.env` a partir do `.env.example` e ative SQLite explicitamente:
+Use this flow for lightweight local development outside Docker.
+
+1. Create `.env` from `.env.example`:
 
 ```bash
 copy .env.example .env
 ```
 
-Edite o `.env` e defina:
+2. Enable SQLite explicitly:
 
 ```env
 DJANGO_USE_SQLITE=True
 ```
 
-2. Rode as migracoes localmente:
+3. Apply migrations:
 
 ```powershell
 DJANGO_USE_SQLITE=True .\.venv\Scripts\python.exe manage.py migrate
 ```
 
-3. Se quiser carregar dados de demonstracao:
+4. Optional demo seed:
 
 ```powershell
 DJANGO_USE_SQLITE=True .\.venv\Scripts\python.exe manage.py seed_demo
 ```
 
-4. Rode os testes:
+5. Run the server:
+
+```powershell
+DJANGO_USE_SQLITE=True .\.venv\Scripts\python.exe manage.py runserver
+```
+
+Notes:
+
+- `DJANGO_USE_SQLITE=True` is intentionally explicit and is not an automatic fallback.
+- It should not be used for production environments.
+
+## API Docs
+
+- Swagger: `http://localhost:8000/swagger/` when `DEBUG=True`
+- Redoc: `http://localhost:8000/redoc/` when `DEBUG=True`
+
+## Tests
+
+Run the full suite with:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest
 ```
 
-Observacoes:
-- `DJANGO_USE_SQLITE=True` deve continuar sendo explicito; ele nao e fallback automatico.
-- Nao use `DJANGO_USE_SQLITE=True` em producao.
+The repository currently includes coverage for:
 
-## Endpoints principais
+- tenant isolation regressions
+- billing webhook security and orchestration
+- document upload hardening
+- expanded legal services phase 1
 
-- `POST /api/v1/auth/token/`
-- `POST /api/v1/auth/token/refresh/`
-- `GET /api/v1/users/`
-- `GET /api/v1/cases/`
-- `GET /api/v1/deadlines/`
-- `GET /api/v1/documents/`
-- `GET /api/v1/payments/`
-- `GET /api/v1/audit-logs/`
-- `POST /api/v1/ai/generate-petition/`
-- `POST /api/v1/ai/summarize-document/`
-- `POST /api/v1/ai/analyze-risk/`
-- `POST /api/v1/ai/search-jurisprudence/`
-- `GET /api/v1/dashboard/summary/`
-- `GET /api/v1/client-portal/cases/`
-- `GET /api/v1/client-portal/documents/`
-- `GET /api/v1/tasks/`
-- `GET /api/v1/calendar/events/`
-- `GET /api/v1/legal-templates/`
-- `GET /api/v1/legal-finance/summary/`
+## Security Notes
 
-## Testes
+The current backend already includes important safety measures:
 
-```bash
-pytest
-```
+- Tenant isolation by `organization` across authenticated business queries
+- Validation of cross-tenant foreign key relations in serializers
+- JWT-based authentication
+- Billing webhook signature validation, timestamp validation and idempotency
+- Audit logging support
+- Upload validation for extension, content type and file size
+- Filename sanitization for uploaded documents
+- Lightweight binary signature validation for PDF, PNG, JPEG and structural validation for DOCX
 
-## Observacoes
+Remaining production hardening areas include:
 
-- O servico de WhatsApp e mock, mas estruturado para integracao real futura.
-- O modulo de IA esta preparado para RAG com `ai_assistant.services.vector_store.VectorStore`.
+- stronger production secret management and key length hygiene
+- deeper binary or malware scanning for uploaded files
+- broader validation coverage for legacy document formats
+- operational hardening around infrastructure, monitoring and secrets rotation
+
+## Roadmap
+
+- Production hardening
+- Functional RAG with sources and citations
+- OCR provider integration
+- Advanced CRM workflows
+- E-signature provider integration
+- BI dashboards
+- Compliance workflows
+- Marketplace workflows
+- Advanced document analysis and extraction pipelines
+
+## Additional Notes
+
+- WhatsApp notification behavior is still mock-oriented.
+- Some foundation modules expose safe placeholders and are intentionally not presented as complete features yet.
