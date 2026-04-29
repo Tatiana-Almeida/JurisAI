@@ -7,13 +7,14 @@ from django_filters.rest_framework import DjangoFilterBackend
 from documents.models import Document
 from jurisai.permissions import IsOrganizationMember
 from knowledge_base.models import KnowledgeBase
-from ocr.models import OCRAuditLog, OCRJob, OCRKnowledgeBasePipelineRun, OCRResult
+from ocr.models import OCRAuditLog, OCRJob, OCRKnowledgeBasePipelineRun, OCRPageResult, OCRResult
 from ocr.serializers import (
     AdvancedOCRRunSerializer,
     ApplyOCRResultSerializer,
     OCRAuditLogSerializer,
     OCRJobSerializer,
     OCRKnowledgeBasePipelineRunSerializer,
+    OCRPageResultSerializer,
     OCRResultSerializer,
     OCRSettingsSerializer,
     RunOCRKnowledgeBasePipelineSerializer,
@@ -51,6 +52,20 @@ class OCRResultViewSet(OrganizationFilteredReadOnlyViewSet):
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['document_id', 'job_id']
     ordering_fields = ['created_at']
+
+    @action(detail=True, methods=['get'], url_path='pages')
+    def pages(self, request, pk=None):
+        result = self.get_object()
+        queryset = OCRPageResult.objects.filter(
+            organization=request.user.organization,
+            ocr_result=result,
+        ).order_by('page_number', 'created_at', 'id')
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = OCRPageResultSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = OCRPageResultSerializer(queryset, many=True)
+        return Response(serializer.data)
 
     @action(detail=True, methods=['post'], url_path='apply-to-document')
     def apply_to_document(self, request, pk=None):
@@ -197,6 +212,19 @@ class OCRAuditLogViewSet(OrganizationFilteredReadOnlyViewSet):
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['document_id', 'ocr_job_id', 'action', 'status', 'reason', 'provider', 'mode']
     ordering_fields = ['created_at']
+
+
+class OCRPageResultViewSet(OrganizationFilteredReadOnlyViewSet):
+    queryset = OCRPageResult.objects.select_related(
+        'organization',
+        'ocr_result',
+        'ocr_job',
+        'document',
+    ).all()
+    serializer_class = OCRPageResultSerializer
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['document_id', 'ocr_job_id', 'ocr_result_id', 'status', 'page_number']
+    ordering_fields = ['created_at', 'page_number']
 
 
 class OCRAdvancedRunView(generics.GenericAPIView):

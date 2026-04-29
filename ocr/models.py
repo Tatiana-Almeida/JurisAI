@@ -56,6 +56,33 @@ class OCRResult(models.Model):
         return f'{self.document_id} - {self.char_count}'
 
 
+class OCRPageResult(models.Model):
+    STATUS_CHOICES = [
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+        ('skipped', 'Skipped'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization = models.ForeignKey('organizations.Organization', on_delete=models.PROTECT, related_name='ocr_page_results')
+    ocr_result = models.ForeignKey('ocr.OCRResult', on_delete=models.CASCADE, related_name='page_results')
+    ocr_job = models.ForeignKey('ocr.OCRJob', on_delete=models.CASCADE, related_name='page_results')
+    document = models.ForeignKey('documents.Document', on_delete=models.PROTECT, related_name='ocr_page_results')
+    page_number = models.PositiveIntegerField()
+    extracted_text = models.TextField(blank=True)
+    char_count = models.PositiveIntegerField(default=0)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='completed')
+    error_message = models.TextField(blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['page_number', 'created_at', 'id']
+
+    def __str__(self):
+        return f'{self.document_id} - pagina {self.page_number} - {self.status}'
+
+
 class OCRKnowledgeBasePipelineRun(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
@@ -166,6 +193,10 @@ class OCRSettings(models.Model):
     preferred_ocr_model = models.CharField(max_length=120, blank=True)
     image_ocr_mode = models.CharField(max_length=30, choices=OCR_MODE_CHOICES, default='disabled')
     scanned_pdf_ocr_mode = models.CharField(max_length=30, choices=OCR_MODE_CHOICES, default='disabled')
+    max_scanned_pdf_pages = models.PositiveIntegerField(default=10)
+    max_ocr_file_size_mb = models.PositiveIntegerField(default=25)
+    max_ocr_chars_output = models.PositiveIntegerField(default=200000)
+    store_page_level_ocr = models.BooleanField(default=True)
     require_human_review = models.BooleanField(default=True)
     updated_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,

@@ -7,6 +7,7 @@ from ocr.models import (
     OCRAuditLog,
     OCRJob,
     OCRKnowledgeBasePipelineRun,
+    OCRPageResult,
     OCRResult,
     OCRSettings,
 )
@@ -54,6 +55,31 @@ class OCRResultSerializer(serializers.ModelSerializer):
             'document_id',
             'extracted_text',
             'char_count',
+            'metadata',
+            'created_at',
+        ]
+        read_only_fields = fields
+
+
+class OCRPageResultSerializer(serializers.ModelSerializer):
+    organization = serializers.UUIDField(source='organization_id', read_only=True)
+    ocr_result = serializers.UUIDField(source='ocr_result_id', read_only=True)
+    ocr_job = serializers.UUIDField(source='ocr_job_id', read_only=True)
+    document = serializers.UUIDField(source='document_id', read_only=True)
+
+    class Meta:
+        model = OCRPageResult
+        fields = [
+            'id',
+            'organization',
+            'ocr_result',
+            'ocr_job',
+            'document',
+            'page_number',
+            'extracted_text',
+            'char_count',
+            'status',
+            'error_message',
             'metadata',
             'created_at',
         ]
@@ -176,6 +202,10 @@ class OCRSettingsSerializer(serializers.ModelSerializer):
             'preferred_ocr_model',
             'image_ocr_mode',
             'scanned_pdf_ocr_mode',
+            'max_scanned_pdf_pages',
+            'max_ocr_file_size_mb',
+            'max_ocr_chars_output',
+            'store_page_level_ocr',
             'require_human_review',
             'updated_by',
             'created_at',
@@ -215,12 +245,34 @@ class OCRSettingsSerializer(serializers.ModelSerializer):
                 'scanned_pdf_ocr_mode',
                 getattr(instance, 'scanned_pdf_ocr_mode', 'disabled'),
             ),
+            max_scanned_pdf_pages=attrs.get(
+                'max_scanned_pdf_pages',
+                getattr(instance, 'max_scanned_pdf_pages', 10),
+            ),
+            max_ocr_file_size_mb=attrs.get(
+                'max_ocr_file_size_mb',
+                getattr(instance, 'max_ocr_file_size_mb', 25),
+            ),
+            max_ocr_chars_output=attrs.get(
+                'max_ocr_chars_output',
+                getattr(instance, 'max_ocr_chars_output', 200000),
+            ),
+            store_page_level_ocr=attrs.get(
+                'store_page_level_ocr',
+                getattr(instance, 'store_page_level_ocr', True),
+            ),
             require_human_review=attrs.get(
                 'require_human_review',
                 getattr(instance, 'require_human_review', True),
             ),
         )
         errors = validate_ocr_provider_policy(candidate)
+        if not 1 <= candidate.max_scanned_pdf_pages <= 100:
+            errors['max_scanned_pdf_pages'] = 'max_scanned_pdf_pages deve estar entre 1 e 100.'
+        if not 1 <= candidate.max_ocr_file_size_mb <= 200:
+            errors['max_ocr_file_size_mb'] = 'max_ocr_file_size_mb deve estar entre 1 e 200.'
+        if not 1000 <= candidate.max_ocr_chars_output <= 2000000:
+            errors['max_ocr_chars_output'] = 'max_ocr_chars_output deve estar entre 1000 e 2000000.'
         if errors:
             raise serializers.ValidationError(errors)
         return attrs

@@ -16,6 +16,7 @@ from ocr.models import (
     OCRAuditLog,
     OCRJob,
     OCRKnowledgeBasePipelineRun,
+    OCRPageResult,
     OCRResult,
     OCRSettings,
 )
@@ -62,6 +63,10 @@ def get_ocr_settings(organization):
             'preferred_ocr_model': '',
             'image_ocr_mode': 'disabled',
             'scanned_pdf_ocr_mode': 'disabled',
+            'max_scanned_pdf_pages': 10,
+            'max_ocr_file_size_mb': 25,
+            'max_ocr_chars_output': 200000,
+            'store_page_level_ocr': True,
             'require_human_review': True,
         },
     )
@@ -83,6 +88,17 @@ def validate_ocr_provider_policy(settings):
         errors['scanned_pdf_ocr_mode'] = 'OCR externo deve estar ativado para scanned_pdf_ocr_mode=external.'
 
     return errors
+
+
+def _document_file_size_bytes(document):
+    file_field = getattr(document, 'file', None)
+    if not file_field:
+        return 0
+    size = getattr(file_field, 'size', None)
+    if size is not None:
+        return size
+    file_bytes = _read_document_bytes(document)
+    return len(file_bytes)
 
 
 def should_use_external_ocr(settings):
@@ -179,6 +195,36 @@ def _build_result_metadata(document, extraction_method, extracted_text):
         'content_updated': False,
         'has_text': bool(extracted_text.strip()),
     }
+
+
+def _normalize_scanned_pdf_engine_output(output):
+    if isinstance(output, str):
+        text = output.strip()
+        return {
+            'extracted_text': text,
+            'pages': [
+                {
+                    'page_number': 1,
+                    'text': text,
+                    'char_count': len(text),
+                    'status': 'completed' if text else 'skipped',
+                    'error_message': '',
+                    'metadata': {},
+                }
+            ],
+            'pages_processed': 1,
+            'pages_failed': 0,
+            'total_pages_detected': 1,
+            'pages_limit_applied': False,
+        }
+    return output
+
+
+def _truncate_output(text, limit):
+    normalized = (text or '').strip()
+    if len(normalized) <= limit:
+        return normalized, False
+    return normalized[:limit], True
 
 
 def run_ocr_for_document(document, user, update_document_content=False):
@@ -534,6 +580,23 @@ def run_local_image_ocr(document, user):
 def run_local_scanned_pdf_ocr(document, user):
     settings = get_ocr_settings(document.organization)
     provider = settings.preferred_ocr_provider or 'local'
+    if settings.scanned_pdf_ocr_mode != 'local':
+        reason = 'scanned_pdf_local_ocr_not_enabled'
+        job = _build_advanced_ocr_failure_job(document, user, reason)
+        audit_log = record_ocr_audit_log(
+            organization=document.organization,
+            document=document,
+            ocr_job=job,
+            action='skipped',
+            provider=provider,
+            mode=settings.scanned_pdf_ocr_mode,
+            status='skipped',
+            reason=reason,
+            metadata={'document_id': str(document.id), 'target_type': 'scanned_pdf'},
+            created_by=user,
+        )
+        return {'status': 'skipped', 'reason': reason, 'job': job, 'result': None, 'audit_log': audit_log}
+
     metadata = {
         'document_id': str(document.id),
         'advanced_ocr_enabled': settings.advanced_ocr_enabled,
@@ -542,12 +605,41 @@ def run_local_scanned_pdf_ocr(document, user):
         'target_type': 'scanned_pdf',
     }
 
+    file_size_bytes = _document_file_size_bytes(document)
+    file_size_limit_bytes = settings.max_ocr_file_size_mb * 1024 * 1024
+    if file_size_bytes > file_size_limit_bytes:
+        reason = 'ocr_file_size_limit_exceeded'
+        job = _build_advanced_ocr_failure_job(document, user, reason)
+        audit_log = record_ocr_audit_log(
+            organization=document.organization,
+            document=document,
+            ocr_job=job,
+            action='failed',
+            provider=provider,
+            mode=settings.scanned_pdf_ocr_mode,
+            status='failed',
+            reason=reason,
+            metadata={
+                **metadata,
+                'file_size_bytes': file_size_bytes,
+                'file_size_limit_bytes': file_size_limit_bytes,
+            },
+            created_by=user,
+        )
+        return {'status': 'failed', 'reason': reason, 'job': job, 'result': None, 'audit_log': audit_log}
+
     job = _create_advanced_ocr_job(document, user, 'scanned_pdf_local')
 
     try:
         file_bytes = _read_document_bytes(document)
         engine = get_local_ocr_engine(settings)
-        extracted_text = engine.extract_text_from_scanned_pdf(file_bytes, max_pages=10)
+        engine_output = _normalize_scanned_pdf_engine_output(
+            engine.extract_text_from_scanned_pdf(file_bytes, max_pages=settings.max_scanned_pdf_pages)
+        )
+        extracted_text, output_truncated = _truncate_output(
+            engine_output['extracted_text'],
+            settings.max_ocr_chars_output,
+        )
 
         result = OCRResult.objects.create(
             organization=document.organization,
@@ -560,9 +652,35 @@ def run_local_scanned_pdf_ocr(document, user):
                 'provider': getattr(engine, 'provider', provider),
                 'model': getattr(engine, 'model', settings.preferred_ocr_model or ''),
                 'target_type': 'scanned_pdf',
-                'max_pages': 10,
+                'max_pages': settings.max_scanned_pdf_pages,
+                'pages_processed': engine_output.get('pages_processed', 0),
+                'pages_failed': engine_output.get('pages_failed', 0),
+                'total_pages_detected': engine_output.get('total_pages_detected', 0),
+                'output_truncated': output_truncated,
+                'pages_limit_applied': engine_output.get('pages_limit_applied', False),
             },
         )
+        if settings.store_page_level_ocr:
+            for page in engine_output.get('pages', []):
+                page_text, page_truncated = _truncate_output(
+                    page.get('text', ''),
+                    settings.max_ocr_chars_output,
+                )
+                OCRPageResult.objects.create(
+                    organization=document.organization,
+                    ocr_result=result,
+                    ocr_job=job,
+                    document=document,
+                    page_number=page.get('page_number', 1),
+                    extracted_text=page_text,
+                    char_count=len(page_text),
+                    status=page.get('status', 'completed'),
+                    error_message=page.get('error_message', ''),
+                    metadata={
+                        **page.get('metadata', {}),
+                        'output_truncated': page_truncated,
+                    },
+                )
         _complete_advanced_ocr_job(job)
         audit_log = record_ocr_audit_log(
             organization=document.organization,
@@ -573,7 +691,15 @@ def run_local_scanned_pdf_ocr(document, user):
             mode=settings.scanned_pdf_ocr_mode,
             status='ok',
             reason='local_scanned_pdf_ocr_completed',
-            metadata={**metadata, 'char_count': result.char_count, 'max_pages': 10},
+            metadata={
+                **metadata,
+                'char_count': result.char_count,
+                'max_pages': settings.max_scanned_pdf_pages,
+                'pages_processed': result.metadata['pages_processed'],
+                'pages_failed': result.metadata['pages_failed'],
+                'pages_limit_applied': result.metadata['pages_limit_applied'],
+                'output_truncated': result.metadata['output_truncated'],
+            },
             created_by=user,
         )
         return {

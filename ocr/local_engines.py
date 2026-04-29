@@ -1,5 +1,7 @@
 from io import BytesIO
 
+from pypdf import PdfReader
+
 
 class LocalOCREngineUnavailable(Exception):
     """Raised when the optional local OCR engine cannot be used safely."""
@@ -72,6 +74,11 @@ class TesseractOCREngine(BaseLocalOCREngine):
         except ImportError as exc:
             raise PDFRasterizationUnavailable('pdf2image_not_available') from exc
 
+        try:
+            total_pages_detected = len(PdfReader(BytesIO(file_bytes)).pages)
+        except Exception:
+            total_pages_detected = None
+
         page_limit = max_pages or 10
         try:
             images = convert_from_bytes(file_bytes, first_page=1, last_page=page_limit)
@@ -82,19 +89,36 @@ class TesseractOCREngine(BaseLocalOCREngine):
             raise ScannedPDFOCRUnavailable('scanned_pdf_local_ocr_no_pages')
 
         extracted_pages = []
-        for image in images:
+        for index, image in enumerate(images, start=1):
             buffer = BytesIO()
             image.save(buffer, format='PNG')
             page_text = self.extract_text_from_image(buffer.getvalue())
             page_text = page_text.strip()
-            if page_text:
-                extracted_pages.append(page_text)
+            extracted_pages.append(
+                {
+                    'page_number': index,
+                    'text': page_text,
+                    'char_count': len(page_text),
+                    'status': 'completed' if page_text else 'skipped',
+                    'error_message': '' if page_text else 'Nenhum texto util extraido da pagina.',
+                    'metadata': {'provider': self.provider, 'model': self.model},
+                }
+            )
 
-        extracted_text = '\n\n'.join(extracted_pages).strip()
+        extracted_text = '\n\n'.join(
+            page['text'] for page in extracted_pages if page['text']
+        ).strip()
         if not extracted_text:
             raise ScannedPDFOCRUnavailable('scanned_pdf_local_ocr_no_text')
 
-        return extracted_text
+        return {
+            'extracted_text': extracted_text,
+            'pages': extracted_pages,
+            'pages_processed': len(extracted_pages),
+            'pages_failed': len([page for page in extracted_pages if page['status'] == 'failed']),
+            'total_pages_detected': total_pages_detected or len(extracted_pages),
+            'pages_limit_applied': bool(total_pages_detected and total_pages_detected > page_limit),
+        }
 
 
 def get_local_ocr_engine(settings):

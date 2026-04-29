@@ -49,4 +49,8 @@
 - [CONFIRMADO_NO_CODIGO] Quando o binario do Tesseract nao esta disponivel para OCR de PDF escaneado, o backend registra `OCRAuditLog` e `OCRJob` com falha controlada, preservando o documento original.
 - [CONFIRMADO_NO_CODIGO] O pipeline `OCR -> Document.content -> KnowledgeBase` agora pode fazer fallback para OCR local de PDF escaneado apenas quando a extracao textual padrao nao e util e `scanned_pdf_ocr_mode=local` esta habilitado no tenant.
 - [CONFIRMADO_NO_CODIGO] Mesmo no fallback do pipeline, `Document.content` so e atualizado com `update_document_content=true`, e qualquer falha de OCR avancado impede a indexacao sem apagar o conteudo anterior do documento.
+- [CONFIRMADO_NO_CODIGO] `OCRSettings` agora permite limites por tenant para `max_scanned_pdf_pages`, `max_ocr_file_size_mb`, `max_ocr_chars_output` e a decisao de armazenar `OCRPageResult`.
+- [CONFIRMADO_NO_CODIGO] Ficheiros acima do limite de OCR falham antes do processamento e geram `OCRAuditLog` com `reason="ocr_file_size_limit_exceeded"`, evitando custo excessivo no backend.
+- [CONFIRMADO_NO_CODIGO] Quando a observabilidade por pagina esta ativa, cada pagina processada gera `OCRPageResult` filtrado por `organization`, sem exposicao cross-tenant.
+- [CONFIRMADO_NO_CODIGO] O OCR de PDF escaneado pode truncar output acima do limite configurado e registra `output_truncated` e metadados de paginas no `OCRResult`, preservando fallback seguro sem apagar ficheiros originais.
 - [PRECISA_VALIDAR] PDF escaneado ou imagem ainda nao recebe OCR real nesta fase; isso reduz superficie externa, mas deixa cobertura funcional incompleta para documentos sem camada textual.

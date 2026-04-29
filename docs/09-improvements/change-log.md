@@ -354,6 +354,21 @@
 - [CONFIRMADO_NO_CODIGO] Foi criada a suite [tests/test_scanned_pdf_ocr_pipeline.py](/c:/projectos/JurisAI/tests/test_scanned_pdf_ocr_pipeline.py) para cobrir PDF textual, fallback mockado para PDF escaneado, falhas de configuracao, falhas sem Poppler/Tesseract e `ask` com `sources` apos indexacao.
 - [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta fase foi registado em [docs/10-checkpoints/2026-04-scanned-pdf-ocr-to-knowledge-base-pipeline.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-scanned-pdf-ocr-to-knowledge-base-pipeline.md).
 
+## Mudanca
+
+- ID: `IMP-OCR-007`
+- Titulo: Added OCR page-level observability and tenant-configurable OCR limits.
+- Risco: medio
+- Estado: implementada e validada tecnicamente
+
+- [CONFIRMADO_NO_CODIGO] `OCRSettings` passou a suportar `max_scanned_pdf_pages`, `max_ocr_file_size_mb`, `max_ocr_chars_output` e `store_page_level_ocr` por `organization`.
+- [CONFIRMADO_NO_CODIGO] Foi adicionado o modelo `OCRPageResult` para observabilidade por pagina em OCR de PDF escaneado, sempre filtrado por tenant.
+- [CONFIRMADO_NO_CODIGO] `run_local_scanned_pdf_ocr()` agora aplica limite de paginas, limite de tamanho de ficheiro, truncamento seguro de output e metadata como `pages_processed`, `pages_failed`, `total_pages_detected`, `pages_limit_applied` e `output_truncated`.
+- [CONFIRMADO_NO_CODIGO] Foram adicionados `GET /api/v1/ocr/page-results/` e `GET /api/v1/ocr/results/{id}/pages/`, sempre isolados por `organization`.
+- [CONFIRMADO_NO_CODIGO] Ficheiros acima do limite falham com `ocr_file_size_limit_exceeded` e geram `OCRAuditLog`, sem enviar documentos para provider externo nem apagar artefatos anteriores.
+- [CONFIRMADO_NO_CODIGO] Foi criada a suite [tests/test_ocr_observability.py](/c:/projectos/JurisAI/tests/test_ocr_observability.py) cobrindo limites, truncamento, `OCRPageResult`, isolamento por tenant e regressao do pipeline com metadata de paginas.
+- [CONFIRMADO_NO_CODIGO] O checkpoint tecnico desta fase foi registado em [docs/10-checkpoints/2026-04-ocr-observability-tenant-limits.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-ocr-observability-tenant-limits.md).
+
 ## v0.3.0 — Tenant-Isolated Legal RAG Foundation
 
 Resumo:

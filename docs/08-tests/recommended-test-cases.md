@@ -665,3 +665,39 @@
 - Risco: alto
 - Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
 - Cobertura preparada: [tests/test_scanned_pdf_ocr_pipeline.py](/c:/projectos/JurisAI/tests/test_scanned_pdf_ocr_pipeline.py)
+
+## CT-113 Validar `OCRPageResult` por pagina em OCR de PDF escaneado
+
+- Risco: medio
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_ocr_observability.py](/c:/projectos/JurisAI/tests/test_ocr_observability.py)
+
+## CT-114 Validar limites de OCR por tenant em `OCRSettings`
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_ocr_observability.py](/c:/projectos/JurisAI/tests/test_ocr_observability.py)
+
+## CT-115 Validar truncamento de output OCR com metadata auditavel
+
+- Risco: medio
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_ocr_observability.py](/c:/projectos/JurisAI/tests/test_ocr_observability.py)
+
+## CT-116 Validar bloqueio seguro por limite de tamanho de ficheiro OCR
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_ocr_observability.py](/c:/projectos/JurisAI/tests/test_ocr_observability.py)
+
+## CT-117 Validar limite de paginas aplicado em OCR de PDF escaneado
+
+- Risco: medio
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_ocr_observability.py](/c:/projectos/JurisAI/tests/test_ocr_observability.py)
+
+## CT-118 Validar isolamento multi-tenant em endpoints de `OCRPageResult`
+
+- Risco: alto
+- Estado: [CONFIRMADO_NO_CODIGO] cobertura implementada
+- Cobertura preparada: [tests/test_ocr_observability.py](/c:/projectos/JurisAI/tests/test_ocr_observability.py)

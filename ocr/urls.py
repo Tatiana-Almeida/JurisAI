@@ -7,6 +7,7 @@ from ocr.views import (
     OCRDocumentRunView,
     OCRJobViewSet,
     OCRKnowledgeBasePipelineRunViewSet,
+    OCRPageResultViewSet,
     OCRResultViewSet,
     OrganizationOCRSettingsView,
 )
@@ -15,6 +16,7 @@ from ocr.views import (
 router = DefaultRouter()
 router.register(r'jobs', OCRJobViewSet, basename='ocr-job')
 router.register(r'results', OCRResultViewSet, basename='ocr-result')
+router.register(r'page-results', OCRPageResultViewSet, basename='ocr-page-result')
 router.register(r'pipelines', OCRKnowledgeBasePipelineRunViewSet, basename='ocr-pipeline')
 router.register(r'audit-logs', OCRAuditLogViewSet, basename='ocr-audit-log')
 

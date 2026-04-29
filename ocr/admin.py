@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from ocr.models import OCRAuditLog, OCRJob, OCRKnowledgeBasePipelineRun, OCRResult, OCRSettings
+from ocr.models import OCRAuditLog, OCRJob, OCRKnowledgeBasePipelineRun, OCRPageResult, OCRResult, OCRSettings
 
 
 @admin.register(OCRJob)
@@ -24,6 +24,13 @@ class OCRResultAdmin(admin.ModelAdmin):
     list_display = ('document', 'organization', 'char_count', 'created_at')
     list_filter = ('organization', 'created_at')
     search_fields = ('document__id', 'extracted_text')
+
+
+@admin.register(OCRPageResult)
+class OCRPageResultAdmin(admin.ModelAdmin):
+    list_display = ('document', 'organization', 'page_number', 'status', 'char_count', 'created_at')
+    list_filter = ('organization', 'status', 'created_at', 'document')
+    search_fields = ('document__id', 'extracted_text', 'error_message')
 
 
 @admin.register(OCRKnowledgeBasePipelineRun)
@@ -52,6 +59,10 @@ class OCRSettingsAdmin(admin.ModelAdmin):
         'preferred_ocr_provider',
         'image_ocr_mode',
         'scanned_pdf_ocr_mode',
+        'max_scanned_pdf_pages',
+        'max_ocr_file_size_mb',
+        'max_ocr_chars_output',
+        'store_page_level_ocr',
         'updated_at',
     )
     list_filter = (
@@ -60,6 +71,7 @@ class OCRSettingsAdmin(admin.ModelAdmin):
         'preferred_ocr_provider',
         'image_ocr_mode',
         'scanned_pdf_ocr_mode',
+        'store_page_level_ocr',
     )
     search_fields = ('organization__name',)
 

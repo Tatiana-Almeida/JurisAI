@@ -4,7 +4,7 @@ JurisAI is a multi-tenant legal SaaS backend built with Django REST Framework, d
 
 It currently provides core legal operations, initial AI support, SaaS billing, auditability, and the first wave of expanded legal services, while keeping organization isolation as a central architectural rule.
 
-Current milestone: `v0.10.0` integrates governed scanned PDF OCR into the OCR-to-KnowledgeBase pipeline, keeping `update_document_content=true` explicit, tenant-scoped settings mandatory and zero external OCR calls.
+Current milestone: `v0.11.0` adds tenant-configurable OCR limits and page-level observability for scanned PDF OCR, keeping processing local, fallback safe and zero external OCR calls.
 
 ## Features
 
@@ -137,6 +137,14 @@ These apps are present in the codebase with initial models and safe base routes,
 - No external OCR calls in the scanned PDF OCR path
 - Tests validate the adapter and flow with mocks, not with mandatory native binaries
 
+### OCR observability and tenant limits
+
+- `OCRSettings` now supports tenant-level limits for scanned PDF pages, OCR file size and OCR output length
+- `OCRPageResult` stores page-level OCR results when the tenant keeps page observability enabled
+- Scanned PDF OCR can truncate oversized output safely and records `output_truncated` metadata
+- Large OCR files fail safely before processing and generate audit logs instead of crashing
+- Result pages stay organization-scoped through `GET /api/v1/ocr/page-results/` and `GET /api/v1/ocr/results/{id}/pages/`
+
 ### Scanned PDF OCR to KnowledgeBase pipeline
 
 - The OCR pipeline still tries standard textual PDF extraction first
@@ -233,6 +241,8 @@ Current primary routes include:
 - `POST /api/v1/ocr/documents/{document_id}/advanced-run/`
 - `GET /api/v1/ocr/jobs/`
 - `GET /api/v1/ocr/results/`
+- `GET /api/v1/ocr/page-results/`
+- `GET /api/v1/ocr/results/{id}/pages/`
 - `POST /api/v1/ocr/results/{id}/apply-to-document/`
 - `POST /api/v1/ocr/pipelines/knowledge-base/`
 - `GET /api/v1/ocr/pipelines/`
@@ -391,6 +401,8 @@ The current backend already includes important safety measures:
 - Scanned PDF advanced OCR can attempt local rasterization and OCR when the tenant enables local mode
 - If `pdf2image` or Poppler are unavailable, scanned PDF OCR returns a controlled failure and records an audit log instead of crashing
 - The OCR-to-KnowledgeBase pipeline now falls back to governed scanned PDF OCR only when standard textual PDF extraction is not useful and tenant settings explicitly allow local scanned PDF OCR
+- Tenant OCR settings can cap scanned PDF pages, OCR file size and OCR output size to avoid uncontrolled resource usage
+- Page-level scanned PDF OCR observability is optional per tenant and remains organization-scoped
 
 Remaining production hardening areas include:
 
