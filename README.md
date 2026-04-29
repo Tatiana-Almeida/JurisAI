@@ -4,7 +4,7 @@ JurisAI is a multi-tenant legal SaaS backend built with Django REST Framework, d
 
 It currently provides core legal operations, initial AI support, SaaS billing, auditability, and the first wave of expanded legal services, while keeping organization isolation as a central architectural rule.
 
-Current milestone: `v0.3.0` consolidates the tenant-isolated legal RAG foundation with textual retrieval, indexing observability and organization-level governance. The `v0.4.0` workstream is now adding optional local embeddings and hybrid retrieval without enabling any external provider by default.
+Current milestone: `v0.4.0` extends the tenant-isolated legal RAG foundation with optional local embeddings, hybrid retrieval, explicit source scores and zero external provider calls by default.
 
 ## Features
 
@@ -83,11 +83,13 @@ These apps are present in the codebase with initial models and safe base routes,
 - Local textual retrieval with explicit sources
 - Optional deterministic local embeddings via `local-hash-v1`
 - Hybrid retrieval foundation combining textual and local embedding scores
+- Zero external calls in the active embedding pipeline
 - Retrieval ranking improved with exact phrase, term frequency and title hits
 - Indexing observability through indexing jobs
 - Knowledge base stats and safe document reindexing
 - Grounded answers without external provider calls
 - `ask` responses with `retrieval_method`, `sources_count`, `confidence`, `effective_retrieval_mode`, `fallback_used` and `fallback_reason`
+- `ask` sources with `final_score` and optional `text_score` / `embedding_score`
 - Local embedding preparation through `prepare-embeddings`
 - Organization-level RAG governance and opt-in controls for future external embeddings
 - Mandatory textual fallback when embeddings are not effective

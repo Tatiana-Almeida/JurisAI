@@ -278,3 +278,16 @@ Resumo:
 - Added explicit governance for future external embeddings
 - No external provider enabled by default
 - Release checkpoint: [docs/10-checkpoints/2026-04-release-v0.3.0.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-release-v0.3.0.md)
+
+## v0.4.0 — Local Embeddings and Hybrid Retrieval
+
+- Added `LocalHashEmbeddingProvider`
+- Added local `ChunkEmbedding` generation
+- Added `local_embedding` retrieval method
+- Added `hybrid` retrieval method
+- Added `textual_fallback` retrieval method
+- Added `final_score`, `text_score` and `embedding_score` in sources
+- Preserved mandatory sources and textual fallback
+- Kept external providers disabled/not implemented
+- Full suite: `129 passed`
+- Release checkpoint: [docs/10-checkpoints/2026-04-release-v0.4.0.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-04-release-v0.4.0.md)
