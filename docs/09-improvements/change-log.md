@@ -573,3 +573,12 @@ Resumo:
 ## v1.0.0-rc.3 - Real Staging Runtime Validation
 
 - Validated real staging runtime with Docker build/up, healthcheck, smoke tests, network privacy and backup procedure.
+
+## v1.0.0-rc.4 - HTTPS and Monitoring Validation
+
+- Added/validated staging reverse proxy and TLS documentation.
+- Added HTTPS smoke validation.
+- Added staging monitoring validation documentation.
+- Added backup scheduling documentation.
+- Preserved private Redis/PostgreSQL/Flower networking.
+- Preserved environment-managed secrets.

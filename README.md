@@ -4,7 +4,7 @@ JurisAI is a multi-tenant legal SaaS backend built with Django REST Framework, d
 
 It currently provides core legal operations, initial AI support, SaaS billing, auditability, and the first wave of expanded legal services, while keeping organization isolation as a central architectural rule.
 
-Current milestone: `v1.0.0-rc.2` focuses on Staging Deployment Validation, adding staging-specific deployment documentation, a staging compose template, environment templates, smoke tests, rollback guidance and production-oriented operational notes without changing business behavior.
+Current milestone: `v1.0.0-rc.4` focuses on HTTPS and Monitoring Validation, extending the staging track with reverse-proxy examples, backup scheduling and monitoring guidance while keeping public HTTPS validation explicitly dependent on a real staging domain.
 
 ## Features
 
@@ -391,16 +391,23 @@ It returns a simple payload with service status and version and does not expose 
 
 ## Staging Deployment
 
-The `v1.0.0-rc.2` preparation phase focuses on validating a real staging deployment path without locking the project to a specific cloud provider.
+The staging track now spans:
+
+- `v1.0.0-rc.2`: staging compose and operational documentation
+- `v1.0.0-rc.3`: real local runtime validation with Docker daemon active
+- `v1.0.0-rc.4`: HTTPS, reverse proxy, monitoring and backup scheduling guidance
 
 The main staging artifacts are:
 
 - [docker-compose.staging.yml](/c:/projectos/JurisAI/docker-compose.staging.yml)
 - [.env.staging.example](/c:/projectos/JurisAI/.env.staging.example)
 - [docs/11-production/staging-deployment-guide.md](/c:/projectos/JurisAI/docs/11-production/staging-deployment-guide.md)
+- [docs/11-production/staging-caddy-example.md](/c:/projectos/JurisAI/docs/11-production/staging-caddy-example.md)
 - [docs/11-production/production-readiness-checklist.md](/c:/projectos/JurisAI/docs/11-production/production-readiness-checklist.md)
 - [docs/11-production/backup-restore.md](/c:/projectos/JurisAI/docs/11-production/backup-restore.md)
+- [docs/11-production/backup-schedule.md](/c:/projectos/JurisAI/docs/11-production/backup-schedule.md)
 - [docs/11-production/monitoring-observability.md](/c:/projectos/JurisAI/docs/11-production/monitoring-observability.md)
+- [docs/11-production/staging-monitoring-validation.md](/c:/projectos/JurisAI/docs/11-production/staging-monitoring-validation.md)
 - [docs/11-production/rollback-checklist.md](/c:/projectos/JurisAI/docs/11-production/rollback-checklist.md)
 
 This staging baseline keeps:
@@ -410,6 +417,12 @@ This staging baseline keeps:
 - Flower private on the internal Docker network
 - healthchecks enabled
 - secrets outside the repository
+
+Current public-layer status:
+
+- local runtime and HTTP healthchecks were validated in `v1.0.0-rc.3`
+- HTTPS and public monitoring depend on a real staging domain and reverse proxy on the target host
+- `web` should stay bound to `127.0.0.1:8000` and be exposed only through Caddy or Nginx
 
 ## Production Readiness Notes
 
@@ -425,7 +438,10 @@ This staging baseline keeps:
 - The release candidate checklist for `v1.0.0-rc.1` is documented in [docs/11-production/release-candidate-checklist.md](/c:/projectos/JurisAI/docs/11-production/release-candidate-checklist.md).
 - The staging deployment guide for `v1.0.0-rc.2` is documented in [docs/11-production/staging-deployment-guide.md](/c:/projectos/JurisAI/docs/11-production/staging-deployment-guide.md).
 - Reverse proxy and TLS notes are documented in [docs/11-production/reverse-proxy-tls.md](/c:/projectos/JurisAI/docs/11-production/reverse-proxy-tls.md).
+- A concrete Caddy example for staging is documented in [docs/11-production/staging-caddy-example.md](/c:/projectos/JurisAI/docs/11-production/staging-caddy-example.md).
 - Backup and restore notes are documented in [docs/11-production/backup-restore.md](/c:/projectos/JurisAI/docs/11-production/backup-restore.md).
+- Backup scheduling guidance is documented in [docs/11-production/backup-schedule.md](/c:/projectos/JurisAI/docs/11-production/backup-schedule.md).
+- Monitoring validation guidance is documented in [docs/11-production/staging-monitoring-validation.md](/c:/projectos/JurisAI/docs/11-production/staging-monitoring-validation.md).
 - Rollback steps are documented in [docs/11-production/rollback-checklist.md](/c:/projectos/JurisAI/docs/11-production/rollback-checklist.md).
 
 ## Tests
