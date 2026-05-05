@@ -68,3 +68,5 @@
 - [CONFIRMADO_NO_CODIGO] Foi criada uma checklist de producao em [docs/11-production/production-readiness-checklist.md](/c:/projectos/JurisAI/docs/11-production/production-readiness-checklist.md) para reverse proxy, TLS, backups, secrets e observabilidade externa.
 - [CONFIRMADO_NO_CODIGO] O bootstrap de superuser para Render agora e opt-in por `DJANGO_CREATE_SUPERUSER=True`, depende de `DJANGO_SUPERUSER_EMAIL` e `DJANGO_SUPERUSER_PASSWORD`, e deve ser desligado apos o primeiro login administrativo.
 - [PRECISA_VALIDAR] O segredo `DJANGO_SUPERUSER_PASSWORD` nao deve permanecer no ambiente Render depois da criacao do admin e o `DATABASE_URL` exposto anteriormente precisa de rotacao manual imediata no fornecedor.
+- [CONFIRMADO_NO_CODIGO] `RUN_MIGRATIONS` agora e explicito e desativado por defeito, reduzindo risco de migracoes surpresa em ambientes nao controlados.
+- [CONFIRMADO_NO_CODIGO] `DATABASE_URL` passa a ter prioridade para plataformas geridas como Render; `POSTGRES_HOST=db` permanece apenas como fallback de Docker Compose.

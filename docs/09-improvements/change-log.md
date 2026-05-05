@@ -596,3 +596,5 @@ Resumo:
 - Added opt-in superuser bootstrap for Render deployments without Shell access.
 - Added environment examples for one-time admin bootstrap.
 - Added bootstrap coverage tests and Render follow-up checkpoint documentation.
+- Prioritized `DATABASE_URL` for managed deployments such as Render.
+- Added `RUN_MIGRATIONS` startup flag for restricted hosting environments.

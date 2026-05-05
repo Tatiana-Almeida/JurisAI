@@ -2,6 +2,7 @@ import os
 import sys
 from pathlib import Path
 from datetime import timedelta
+from urllib.parse import urlparse
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
@@ -84,6 +85,7 @@ ASGI_APPLICATION = 'jurisai.asgi.application'
 
 USE_SQLITE = os.getenv('DJANGO_USE_SQLITE', 'False').lower() in ('1', 'true', 'yes')
 RUNNING_PYTEST = any('pytest' in arg for arg in sys.argv)
+DATABASE_URL = os.getenv('DATABASE_URL', '').strip()
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 if not SECRET_KEY:
@@ -104,6 +106,18 @@ if USE_SQLITE or RUNNING_PYTEST:
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+elif DATABASE_URL:
+    parsed_db = urlparse(DATABASE_URL)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': parsed_db.path.lstrip('/'),
+            'USER': parsed_db.username,
+            'PASSWORD': parsed_db.password,
+            'HOST': parsed_db.hostname,
+            'PORT': parsed_db.port or 5432,
         }
     }
 else:

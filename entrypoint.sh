@@ -1,6 +1,10 @@
 #!/bin/sh
 set -e
 
+if [ "${RUN_MIGRATIONS:-False}" = "True" ]; then
+  python manage.py migrate --noinput
+fi
+
 if [ "${RUN_COLLECTSTATIC:-False}" = "True" ]; then
   python manage.py collectstatic --noinput
 fi

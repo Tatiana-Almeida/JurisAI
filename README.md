@@ -429,6 +429,9 @@ Current public-layer status:
 - `web` should continue to stay behind a reverse proxy or managed platform edge, without exposing Redis/PostgreSQL/Flower publicly
 - Render Free does not provide an interactive Shell, so admin bootstrap currently depends on the opt-in `bootstrap_superuser` management command executed by `entrypoint.sh`
 - After the first successful Render admin login, `DJANGO_CREATE_SUPERUSER` should be set back to `False` and `DJANGO_SUPERUSER_PASSWORD` should be removed from the Render environment
+- Render Free does not provide Shell or pre-deploy commands, so `RUN_MIGRATIONS=True` is the supported way to run `migrate --noinput` during startup
+- `DATABASE_URL` from Render Postgres has priority over `POSTGRES_HOST=db` and the other `POSTGRES_*` fallbacks
+- `bootstrap_superuser` now runs after startup migrations and before the main process command
 
 ## Production Readiness Notes
 
@@ -450,6 +453,7 @@ Current public-layer status:
 - Monitoring validation guidance is documented in [docs/11-production/staging-monitoring-validation.md](/c:/projectos/JurisAI/docs/11-production/staging-monitoring-validation.md).
 - Rollback steps are documented in [docs/11-production/rollback-checklist.md](/c:/projectos/JurisAI/docs/11-production/rollback-checklist.md).
 - Render bootstrap and credential-rotation notes are documented in [docs/10-checkpoints/2026-05-render-superuser-bootstrap.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-05-render-superuser-bootstrap.md).
+- Render database URL and startup migration notes are documented in [docs/10-checkpoints/2026-05-render-database-url-and-migrations.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-05-render-database-url-and-migrations.md).
 
 ## Tests
 
