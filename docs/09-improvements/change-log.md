@@ -555,3 +555,17 @@ Resumo:
 - Preserved tenant isolation.
 - Preserved external providers disabled by default.
 - Local and container test suites passed.
+
+## v1.0.0-rc.2 - Staging Deployment Validation
+
+- Added staging Docker Compose template.
+- Added staging environment template.
+- Added staging deployment guide.
+- Added reverse proxy and TLS documentation.
+- Added backup and restore documentation.
+- Added monitoring and observability documentation.
+- Added rollback checklist.
+- Added staging smoke test scripts.
+- Preserved secrets outside the repository.
+- Preserved Redis, database and Flower as private services.
+- Local validation passed.

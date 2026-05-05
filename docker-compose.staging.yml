@@ -1,0 +1,106 @@
+services:
+  web:
+    image: jurisai-app:latest
+    build: .
+    command: gunicorn jurisai.wsgi:application --bind 0.0.0.0:8000 --workers 3
+    env_file:
+      - .env.staging
+    environment:
+      REDIS_URL: redis://:${REDIS_PASSWORD:-change-me}@redis:6379/0
+      RUN_COLLECTSTATIC: ${RUN_COLLECTSTATIC:-True}
+    volumes:
+      - media_data:/app/media
+      - static_data:/app/staticfiles
+    ports:
+      - "127.0.0.1:8000:8000"
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/health/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  db:
+    image: postgres:16
+    env_file:
+      - .env.staging
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-jurisai}
+      POSTGRES_USER: ${POSTGRES_USER:-jurisai}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-jurisai} -d ${POSTGRES_DB:-jurisai}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7
+    command: redis-server --requirepass ${REDIS_PASSWORD:-change-me}
+    expose:
+      - "6379"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a ${REDIS_PASSWORD:-change-me} ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  worker:
+    image: jurisai-app:latest
+    build: .
+    command: celery -A jurisai worker --loglevel=info
+    env_file:
+      - .env.staging
+    environment:
+      REDIS_URL: redis://:${REDIS_PASSWORD:-change-me}@redis:6379/0
+    volumes:
+      - media_data:/app/media
+      - static_data:/app/staticfiles
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A jurisai inspect ping -d \"celery@$$HOSTNAME\" || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 30s
+
+  flower:
+    image: jurisai-app:latest
+    build: .
+    command: celery -A jurisai flower --port=5555 --basic_auth=${FLOWER_USER:-admin}:${FLOWER_PASSWORD:-change-me}
+    env_file:
+      - .env.staging
+    environment:
+      REDIS_URL: redis://:${REDIS_PASSWORD:-change-me}@redis:6379/0
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -u ${FLOWER_USER:-admin}:${FLOWER_PASSWORD:-change-me} http://localhost:5555/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  postgres_data:
+  media_data:
+  static_data:

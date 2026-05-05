@@ -4,7 +4,7 @@ JurisAI is a multi-tenant legal SaaS backend built with Django REST Framework, d
 
 It currently provides core legal operations, initial AI support, SaaS billing, auditability, and the first wave of expanded legal services, while keeping organization isolation as a central architectural rule.
 
-Current milestone: `v1.0.0-rc.1` marks the first Backend MVP Stabilization release candidate, consolidating the multi-tenant legal SaaS backend, Knowledge Base / RAG, local OCR foundations, document pipelines, CI, validated Docker runtime and production readiness guidance.
+Current milestone: `v1.0.0-rc.2` focuses on Staging Deployment Validation, adding staging-specific deployment documentation, a staging compose template, environment templates, smoke tests, rollback guidance and production-oriented operational notes without changing business behavior.
 
 ## Features
 
@@ -389,6 +389,28 @@ A lightweight public healthcheck is available at:
 
 It returns a simple payload with service status and version and does not expose secrets or tenant data.
 
+## Staging Deployment
+
+The `v1.0.0-rc.2` preparation phase focuses on validating a real staging deployment path without locking the project to a specific cloud provider.
+
+The main staging artifacts are:
+
+- [docker-compose.staging.yml](/c:/projectos/JurisAI/docker-compose.staging.yml)
+- [.env.staging.example](/c:/projectos/JurisAI/.env.staging.example)
+- [docs/11-production/staging-deployment-guide.md](/c:/projectos/JurisAI/docs/11-production/staging-deployment-guide.md)
+- [docs/11-production/production-readiness-checklist.md](/c:/projectos/JurisAI/docs/11-production/production-readiness-checklist.md)
+- [docs/11-production/backup-restore.md](/c:/projectos/JurisAI/docs/11-production/backup-restore.md)
+- [docs/11-production/monitoring-observability.md](/c:/projectos/JurisAI/docs/11-production/monitoring-observability.md)
+- [docs/11-production/rollback-checklist.md](/c:/projectos/JurisAI/docs/11-production/rollback-checklist.md)
+
+This staging baseline keeps:
+
+- `DEBUG=False`
+- Redis private on the internal Docker network
+- Flower private on the internal Docker network
+- healthchecks enabled
+- secrets outside the repository
+
 ## Production Readiness Notes
 
 - CI currently validates Django checks, migration drift and the full test suite using SQLite.
@@ -401,6 +423,10 @@ It returns a simple payload with service status and version and does not expose 
 - `pytest` no longer uses `--reuse-db` by default; that flag can still be used manually in local debugging when desired.
 - The production rollout checklist is documented in [docs/11-production/production-readiness-checklist.md](/c:/projectos/JurisAI/docs/11-production/production-readiness-checklist.md).
 - The release candidate checklist for `v1.0.0-rc.1` is documented in [docs/11-production/release-candidate-checklist.md](/c:/projectos/JurisAI/docs/11-production/release-candidate-checklist.md).
+- The staging deployment guide for `v1.0.0-rc.2` is documented in [docs/11-production/staging-deployment-guide.md](/c:/projectos/JurisAI/docs/11-production/staging-deployment-guide.md).
+- Reverse proxy and TLS notes are documented in [docs/11-production/reverse-proxy-tls.md](/c:/projectos/JurisAI/docs/11-production/reverse-proxy-tls.md).
+- Backup and restore notes are documented in [docs/11-production/backup-restore.md](/c:/projectos/JurisAI/docs/11-production/backup-restore.md).
+- Rollback steps are documented in [docs/11-production/rollback-checklist.md](/c:/projectos/JurisAI/docs/11-production/rollback-checklist.md).
 
 ## Tests
 
@@ -412,7 +438,7 @@ Run the full suite with:
 
 The repository currently includes coverage for:
 
-- full backend regression validation for the `v1.0.0-rc.1` candidate with `192 passed`
+- full backend regression validation for the `v1.0.0-rc.2` candidate with `192 passed`
 - tenant isolation regressions
 - billing webhook security and orchestration
 - document upload hardening
