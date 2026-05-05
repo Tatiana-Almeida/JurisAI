@@ -427,6 +427,8 @@ Current public-layer status:
 - `/health/` responds publicly and `/admin/` reaches the Django Admin login flow on Render
 - worker Celery, external monitoring, scheduled backups, credential rotation and custom domain are still pending
 - `web` should continue to stay behind a reverse proxy or managed platform edge, without exposing Redis/PostgreSQL/Flower publicly
+- Render Free does not provide an interactive Shell, so admin bootstrap currently depends on the opt-in `bootstrap_superuser` management command executed by `entrypoint.sh`
+- After the first successful Render admin login, `DJANGO_CREATE_SUPERUSER` should be set back to `False` and `DJANGO_SUPERUSER_PASSWORD` should be removed from the Render environment
 
 ## Production Readiness Notes
 
@@ -447,6 +449,7 @@ Current public-layer status:
 - Backup scheduling guidance is documented in [docs/11-production/backup-schedule.md](/c:/projectos/JurisAI/docs/11-production/backup-schedule.md).
 - Monitoring validation guidance is documented in [docs/11-production/staging-monitoring-validation.md](/c:/projectos/JurisAI/docs/11-production/staging-monitoring-validation.md).
 - Rollback steps are documented in [docs/11-production/rollback-checklist.md](/c:/projectos/JurisAI/docs/11-production/rollback-checklist.md).
+- Render bootstrap and credential-rotation notes are documented in [docs/10-checkpoints/2026-05-render-superuser-bootstrap.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-05-render-superuser-bootstrap.md).
 
 ## Tests
 

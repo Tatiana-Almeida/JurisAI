@@ -590,3 +590,9 @@ Resumo:
 - Confirmed Django Admin login page is reachable.
 - Documented Render Free limitations for Shell and background worker.
 - Documented pending superuser bootstrap, credential rotation, monitoring and backups.
+
+## Render operational security follow-up
+
+- Added opt-in superuser bootstrap for Render deployments without Shell access.
+- Added environment examples for one-time admin bootstrap.
+- Added bootstrap coverage tests and Render follow-up checkpoint documentation.

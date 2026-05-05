@@ -66,3 +66,5 @@
 - [CONFIRMADO_NO_CODIGO] Os containers `web`, `worker` e `flower` agora executam como utilizador nao-root, mitigando o `SecurityWarning` do Celery por arranque como `root`.
 - [CONFIRMADO_NO_CODIGO] O Redis deixou de ter exposicao publica por porta no host e permanece acessivel apenas pela rede interna do Compose, mantendo password obrigatoria.
 - [CONFIRMADO_NO_CODIGO] Foi criada uma checklist de producao em [docs/11-production/production-readiness-checklist.md](/c:/projectos/JurisAI/docs/11-production/production-readiness-checklist.md) para reverse proxy, TLS, backups, secrets e observabilidade externa.
+- [CONFIRMADO_NO_CODIGO] O bootstrap de superuser para Render agora e opt-in por `DJANGO_CREATE_SUPERUSER=True`, depende de `DJANGO_SUPERUSER_EMAIL` e `DJANGO_SUPERUSER_PASSWORD`, e deve ser desligado apos o primeiro login administrativo.
+- [PRECISA_VALIDAR] O segredo `DJANGO_SUPERUSER_PASSWORD` nao deve permanecer no ambiente Render depois da criacao do admin e o `DATABASE_URL` exposto anteriormente precisa de rotacao manual imediata no fornecedor.
