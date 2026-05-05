@@ -4,7 +4,7 @@ JurisAI is a multi-tenant legal SaaS backend built with Django REST Framework, d
 
 It currently provides core legal operations, initial AI support, SaaS billing, auditability, and the first wave of expanded legal services, while keeping organization isolation as a central architectural rule.
 
-Current milestone: `v1.0.0-rc.4` focuses on HTTPS and Monitoring Validation, extending the staging track with reverse-proxy examples, backup scheduling and monitoring guidance while keeping public HTTPS validation explicitly dependent on a real staging domain.
+Current milestone: `v1.0.0-rc.5` focuses on Render Public Staging Validation, confirming a real public HTTPS deployment for the web service while keeping worker, monitoring, scheduled backups, credential rotation and custom-domain work clearly marked as pending.
 
 ## Features
 
@@ -396,6 +396,7 @@ The staging track now spans:
 - `v1.0.0-rc.2`: staging compose and operational documentation
 - `v1.0.0-rc.3`: real local runtime validation with Docker daemon active
 - `v1.0.0-rc.4`: HTTPS, reverse proxy, monitoring and backup scheduling guidance
+- `v1.0.0-rc.5`: initial public Render staging validation over HTTPS
 
 The main staging artifacts are:
 
@@ -409,6 +410,7 @@ The main staging artifacts are:
 - [docs/11-production/monitoring-observability.md](/c:/projectos/JurisAI/docs/11-production/monitoring-observability.md)
 - [docs/11-production/staging-monitoring-validation.md](/c:/projectos/JurisAI/docs/11-production/staging-monitoring-validation.md)
 - [docs/11-production/rollback-checklist.md](/c:/projectos/JurisAI/docs/11-production/rollback-checklist.md)
+- [docs/10-checkpoints/2026-05-render-public-staging-validation.md](/c:/projectos/JurisAI/docs/10-checkpoints/2026-05-render-public-staging-validation.md)
 
 This staging baseline keeps:
 
@@ -421,8 +423,10 @@ This staging baseline keeps:
 Current public-layer status:
 
 - local runtime and HTTP healthchecks were validated in `v1.0.0-rc.3`
-- HTTPS and public monitoring depend on a real staging domain and reverse proxy on the target host
-- `web` should stay bound to `127.0.0.1:8000` and be exposed only through Caddy or Nginx
+- public HTTPS is now reachable on Render at `https://jurisai-web-wh9d.onrender.com`
+- `/health/` responds publicly and `/admin/` reaches the Django Admin login flow on Render
+- worker Celery, external monitoring, scheduled backups, credential rotation and custom domain are still pending
+- `web` should continue to stay behind a reverse proxy or managed platform edge, without exposing Redis/PostgreSQL/Flower publicly
 
 ## Production Readiness Notes
 

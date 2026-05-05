@@ -582,3 +582,11 @@ Resumo:
 - Added backup scheduling documentation.
 - Preserved private Redis/PostgreSQL/Flower networking.
 - Preserved environment-managed secrets.
+
+## v1.0.0-rc.5 - Render Public Staging Validation
+
+- Validated initial public Render staging URL.
+- Confirmed public HTTPS `/health/` endpoint.
+- Confirmed Django Admin login page is reachable.
+- Documented Render Free limitations for Shell and background worker.
+- Documented pending superuser bootstrap, credential rotation, monitoring and backups.
