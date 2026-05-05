@@ -569,3 +569,7 @@ Resumo:
 - Preserved secrets outside the repository.
 - Preserved Redis, database and Flower as private services.
 - Local validation passed.
+
+## v1.0.0-rc.3 - Real Staging Runtime Validation
+
+- Validated real staging runtime with Docker build/up, healthcheck, smoke tests, network privacy and backup procedure.
