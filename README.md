@@ -11,7 +11,7 @@ Current milestone: `v1.0.0-rc.5` focuses on Render Public Staging Validation, co
 - Branch: `feature/frontend-mvp`
 - Path: `frontend/`
 - Stack: Next.js, TypeScript, Tailwind, shadcn/ui, TanStack Query
-- Status: initial build
+- Status: auth routing and staging integration hardening
 - Backend remains isolated on `main`
 
 ## Features
@@ -75,7 +75,9 @@ Frontend MVP status:
 
 - [CONFIRMADO_NO_CODIGO] Login, dashboard, cases, clients, documents, OCR, Knowledge Base, deadlines, calendar, finance, billing, settings and client portal now have initial React pages and shared layout.
 - [CONFIRMADO_NO_CODIGO] The frontend respects organization-scoped query keys and clears tenant cache when the active organization changes.
+- [CONFIRMADO_NO_CODIGO] Protected routes, auth bootstrap and organization bootstrap now exist in the frontend MVP foundation.
 - [CONFIRMADO_NO_CODIGO] Billing UI remains intentionally honest and does not expose a fake checkout flow.
+- [CONFIRMADO_NO_CODIGO] A staging environment example now targets `https://jurisai-web-wh9d.onrender.com` for frontend integration.
 - [PRECISA_VALIDAR] A production-grade browser flow still depends on authenticated staging data and final UX refinement.
 
 ## Implementation Status

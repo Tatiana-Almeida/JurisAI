@@ -7,8 +7,18 @@ import { PlanCard } from "@/components/billing/plan-card";
 import { useBillingSummary } from "@/hooks/use-jurisai-queries";
 
 const plans = [
-  { id: "starter", name: "Starter", status: "pending" as const, priceLabel: "Checkout ainda não ativo." },
-  { id: "growth", name: "Growth", status: "pending" as const, priceLabel: "Integração comercial depende de checkout e webhooks." },
+  {
+    id: "starter",
+    name: "Starter",
+    status: "pending" as const,
+    priceLabel: "Checkout ainda não ativo.",
+  },
+  {
+    id: "growth",
+    name: "Growth",
+    status: "pending" as const,
+    priceLabel: "Integração comercial depende de checkout e webhooks.",
+  },
 ];
 
 export default function BillingPage() {
@@ -28,7 +38,8 @@ export default function BillingPage() {
           ))}
         </div>
         <div className="jurisai-panel rounded-3xl p-6 text-sm text-muted-foreground">
-          subscriptions={billingQuery.data?.subscriptions.length ?? 0} · invoices={billingQuery.data?.invoices.length ?? 0}
+          subscriptions={billingQuery.data?.subscriptions.length ?? 0} · invoices=
+          {billingQuery.data?.invoices.length ?? 0}
         </div>
       </div>
     </AppShell>

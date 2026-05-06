@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { CasesTable } from "@/components/cases/cases-table";
-import { ErrorState } from "@/components/shared/error-state";
+import { ModuleErrorState } from "@/components/shared/module-error-state";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
+import { Button } from "@/components/ui/button";
 import { useCases } from "@/hooks/use-jurisai-queries";
 
 export default function CasesPage() {
@@ -26,8 +26,8 @@ export default function CasesPage() {
         />
         {casesQuery.isLoading ? <LoadingSkeleton /> : null}
         {casesQuery.isError ? (
-          <ErrorState
-            title="Não foi possível listar processos"
+          <ModuleErrorState
+            moduleName="processos"
             description="Confirme autenticação, organização ativa e disponibilidade do backend."
           />
         ) : null}

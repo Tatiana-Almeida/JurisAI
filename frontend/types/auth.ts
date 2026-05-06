@@ -17,4 +17,4 @@ export interface AuthTokens {
   refresh?: string;
 }
 
-export type AuthStatus = "loading" | "authenticated" | "unauthenticated";
+export type AuthStatus = "idle" | "loading" | "authenticated" | "unauthenticated";

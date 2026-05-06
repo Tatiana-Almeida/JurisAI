@@ -16,8 +16,8 @@
 ## Skills usadas
 
 - Next.js App Router para roteamento e composição do shell SaaS
-- TanStack Query para cache e polling de módulos jurídicos
-- Zustand para auth e organização ativa
+- TanStack Query para cache, invalidação por tenant e polling de módulos jurídicos
+- Zustand para auth, bootstrap da sessão e organização ativa
 - React Hook Form + Zod para formulários e validação local
 - shadcn/ui + Tailwind para a base visual JurisAI
 - TanStack Table para listas operacionais
@@ -35,13 +35,19 @@
 npm install
 ```
 
-## Env vars
+## Variáveis de ambiente
 
 Copiar um dos exemplos:
 
 ```bash
 copy .env.local.example .env.local
 ```
+
+Arquivos de exemplo:
+
+- `.env.example`
+- `.env.local.example`
+- `.env.staging.example`
 
 Variáveis públicas preparadas:
 
@@ -53,7 +59,14 @@ Variáveis públicas preparadas:
 - `NEXT_PUBLIC_ENABLE_BILLING_UI`
 - `NEXT_PUBLIC_ENABLE_AI_UI`
 
-## Rodar local
+Regras operacionais:
+
+- local usa `http://localhost:8000`
+- staging usa `https://jurisai-web-wh9d.onrender.com`
+- não commitar `.env.local`
+- não commitar tokens
+
+## Rodar localmente
 
 ```bash
 npm run dev
@@ -77,7 +90,8 @@ npm run test:e2e
 - O frontend consome o backend JurisAI via `NEXT_PUBLIC_API_URL`.
 - O client HTTP foi preparado para DRF, JWT e paginação `count/next/previous/results`.
 - Não foram inventados endpoints inexistentes do backend.
-- `DATABASE_URL`, billing, OCR e RAG continuam controlados no backend; o frontend apenas consome contratos já confirmados.
+- O endpoint público de health em staging continua em `GET /health/`.
+- A UI de billing permanece desativada para cobrança real enquanto checkout e webhooks comerciais não estiverem concluídos no backend.
 
 ## Arquitetura
 
@@ -89,17 +103,58 @@ npm run test:e2e
 - `tests/`: Vitest unit/integration
 - `playwright/`: smoke e2e
 
-## Auth
+## Auth e route guards
 
 - Login via `POST /api/v1/auth/token/`
 - Refresh foundation via `POST /api/v1/auth/token/refresh/`
 - Bootstrap do utilizador via `GET /api/v1/users/me/`
 - Interceptor Axios tenta refresh uma vez antes de encerrar a sessão
-- Tokens ficam em `localStorage` nesta fase
+- Rotas públicas:
+  - `/`
+  - `/login`
+- Rotas privadas:
+  - `/dashboard`
+  - `/cases`
+  - `/clients`
+  - `/documents`
+  - `/ocr`
+  - `/knowledge-base`
+  - `/deadlines`
+  - `/calendar`
+  - `/finance`
+  - `/billing`
+  - `/settings`
+- O portal `/client-portal` usa guard dedicado com `portalOnly`
+- O `middleware.ts` usa apenas um session hint cookie para redirecionamento inicial
+- O `ProtectedRoute` faz a proteção real no cliente enquanto os tokens ainda ficam fora de cookies `httpOnly`
 
-TODO hardening:
+## Staging API
 
-- migrar para cookies `httpOnly` quando o backend suportar esse fluxo
+- Base URL de staging: `https://jurisai-web-wh9d.onrender.com`
+- Validação pública confirmada nesta fase:
+  - `GET /health/` responde `200 OK`
+  - `POST /api/v1/auth/token/` responde `400` com erros DRF quando enviado payload vazio
+- O smoke autenticado com credenciais reais continua dependente de credenciais de staging fora do repositório
+
+## Multi-tenancy
+
+- Toda a fundação foi preparada para `organizationId`
+- Query keys organizacionais carregam o identificador ativo
+- Ao trocar organização, o frontend limpa o cache do TanStack Query e redireciona para `/dashboard`
+- O frontend não deve manter dados do tenant anterior visíveis após a troca
+
+## Cache invalidation
+
+- O provider de organização limpa cache ao trocar tenant
+- Queries do tenant novo são invalidadas após a troca
+- Jobs de OCR e indexação usam polling apenas quando ainda existem itens `pending` ou `running`
+
+## DRF errors
+
+- `lib/errors/drf.ts` normaliza:
+  - erros de validação por campo
+  - `non_field_errors`
+  - mensagens amigáveis para React Hook Form
 
 ## Endpoints consumidos
 
@@ -123,29 +178,10 @@ TODO hardening:
 - `GET /api/v1/client-portal/*`
 - `GET /api/v1/subscriptions/` e `GET /api/v1/invoices/`
 
-## Multi-tenancy
-
-- Toda a fundação foi preparada para `organizationId`.
-- Query keys organizacionais carregam o identificador ativo.
-- A troca de organização limpa/invalida cache para evitar mistura entre tenants.
-
-## Cache invalidation
-
-- O provider de organização remove queries do tenant anterior
-- Queries do tenant novo são invalidadas ao trocar organização
-- Jobs de OCR e indexação usam polling apenas quando ainda existem itens `pending` ou `running`
-
-## DRF errors
-
-- `lib/errors/drf.ts` normaliza:
-  - erros de validação por campo
-  - `non_field_errors`
-  - mensagens amigáveis para React Hook Form
-
 ## Módulos implementados nesta fase
 
 - Login
-- Dashboard inicial
+- Dashboard inicial com awareness de staging
 - Processos
 - Clientes
 - Documentos com upload foundation
@@ -163,21 +199,22 @@ TODO hardening:
 - billing comercial completo
 - UX final do client portal
 - fluxos avançados de IA e geração jurídica
-- experiência final de onboarding e guardas de rota
-- autenticação endurecida com cookies `httpOnly`
+- endurecimento final de autenticação com cookies `httpOnly`
+- smoke autenticado real contra staging
 
-## Limitações
+## Limitações conhecidas
 
-- O frontend MVP ainda não representa a experiência final de produto.
-- O login usa storage local porque o backend atual não opera com cookies `httpOnly`.
-- Billing UI permanece honesta: sem checkout ativo enquanto o backend não expuser esse fluxo real.
-- A camada de IA pode continuar a depender de respostas mock no backend quando `OPENAI_API_KEY` não existir.
-- `local-hash-v1` continua a ser uma fundação técnica de retrieval, não um embedding semântico jurídico completo.
-- O logo foi integrado a partir do asset fornecido localmente ao workspace.
+- O frontend MVP ainda não representa a experiência final de produto
+- O login usa `localStorage` porque o backend atual não opera com cookies `httpOnly`
+- O `middleware.ts` não lê `localStorage`; por isso usa apenas um cookie de sessão auxiliar para o redirecionamento inicial
+- Billing UI permanece honesta: sem checkout ativo enquanto o backend não expuser esse fluxo real
+- A camada de IA pode continuar a depender de respostas mock no backend quando `OPENAI_API_KEY` não existir
+- `local-hash-v1` continua a ser uma fundação técnica de retrieval, não um embedding semântico jurídico completo
+- O logo foi integrado a partir do asset fornecido localmente ao workspace
 
 ## Próximos passos
 
-1. Refinar UX, guardas de rota e detalhes de navegação.
-2. Fechar fluxos completos de detalhes, edição e ações críticas por módulo.
-3. Validar o frontend contra dados reais em staging autenticado.
-4. Priorizar billing mínimo e workflows de IA comercialmente úteis.
+1. Refinar UX, guardas de rota e detalhes de navegação
+2. Fechar fluxos completos de detalhes, edição e ações críticas por módulo
+3. Validar o frontend com credenciais reais em staging autenticado
+4. Priorizar billing mínimo e workflows de IA comercialmente úteis

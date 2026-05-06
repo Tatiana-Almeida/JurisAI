@@ -4,8 +4,8 @@ import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { ClientForm } from "@/components/clients/client-form";
 import { ClientsTable } from "@/components/clients/clients-table";
-import { ErrorState } from "@/components/shared/error-state";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
+import { ModuleErrorState } from "@/components/shared/module-error-state";
 import { useClients } from "@/hooks/use-jurisai-queries";
 
 export default function ClientsPage() {
@@ -21,8 +21,8 @@ export default function ClientsPage() {
         <ClientForm />
         {clientsQuery.isLoading ? <LoadingSkeleton /> : null}
         {clientsQuery.isError ? (
-          <ErrorState
-            title="Não foi possível listar clientes"
+          <ModuleErrorState
+            moduleName="clientes"
             description="Confirme autenticação e disponibilidade de `/api/v1/users/`."
           />
         ) : null}

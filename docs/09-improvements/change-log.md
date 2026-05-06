@@ -616,3 +616,11 @@ Resumo:
 - Added dashboard, cases, clients, documents, OCR, Knowledge Base, deadlines, calendar, finance, billing, settings and client portal pages.
 - Added DRF form error mapping across login, client and case flows.
 - Added honest billing UI without pretending checkout is already active.
+
+## Frontend auth routing and staging integration hardening
+
+- Hardened frontend auth routing.
+- Added protected route foundation.
+- Added staging API environment documentation.
+- Improved tenant cache invalidation flow.
+- Improved dashboard staging awareness.

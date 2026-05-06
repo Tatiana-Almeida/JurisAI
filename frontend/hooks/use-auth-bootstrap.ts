@@ -12,12 +12,19 @@ import type { Organization } from "@/types/organization";
 
 export function useAuthBootstrap() {
   const tokens = useAuthStore((state) => state.tokens);
+  const bootstrapAuth = useAuthStore((state) => state.bootstrapAuth);
   const setUser = useAuthStore((state) => state.setUser);
+  const setTokens = useAuthStore((state) => state.setTokens);
   const logout = useAuthStore((state) => state.logout);
   const markBootstrapped = useAuthStore((state) => state.markBootstrapped);
-  const setAvailableOrganizations = useOrganizationStore((state) => state.setAvailableOrganizations);
+  const bootstrapOrganizations = useOrganizationStore((state) => state.bootstrapOrganizations);
+  const resetOrganizations = useOrganizationStore((state) => state.reset);
 
   const enabled = Boolean(tokens?.access);
+
+  useEffect(() => {
+    bootstrapAuth();
+  }, [bootstrapAuth]);
 
   const meQuery = useQuery({
     queryKey: queryKeys.me(),
@@ -41,7 +48,8 @@ export function useAuthBootstrap() {
 
   useEffect(() => {
     if (!enabled) {
-      setAvailableOrganizations([]);
+      setTokens(null);
+      resetOrganizations();
       markBootstrapped();
       return;
     }
@@ -51,10 +59,11 @@ export function useAuthBootstrap() {
     }
 
     if (organizationsQuery.isSuccess) {
-      setAvailableOrganizations(organizationsQuery.data);
+      bootstrapOrganizations(organizationsQuery.data);
     }
 
     if (meQuery.isError || organizationsQuery.isError) {
+      resetOrganizations();
       logout();
     }
 
@@ -78,7 +87,10 @@ export function useAuthBootstrap() {
     organizationsQuery.isError,
     organizationsQuery.isSuccess,
     organizationsQuery.status,
-    setAvailableOrganizations,
+    bootstrapOrganizations,
+    bootstrapAuth,
+    resetOrganizations,
+    setTokens,
     setUser,
   ]);
 }

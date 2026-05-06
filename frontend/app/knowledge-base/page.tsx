@@ -6,9 +6,13 @@ import { KBAsk } from "@/components/knowledge-base/kb-ask";
 import { KBList } from "@/components/knowledge-base/kb-list";
 import { RAGSettingsPanel } from "@/components/knowledge-base/rag-settings-panel";
 import { SourcesList } from "@/components/knowledge-base/sources-list";
-import { ErrorState } from "@/components/shared/error-state";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
-import { useKnowledgeBases, useRAGSettings, useRetrievalQueries } from "@/hooks/use-jurisai-queries";
+import { ModuleErrorState } from "@/components/shared/module-error-state";
+import {
+  useKnowledgeBases,
+  useRAGSettings,
+  useRetrievalQueries,
+} from "@/hooks/use-jurisai-queries";
 
 export default function KnowledgeBasePage() {
   const knowledgeBasesQuery = useKnowledgeBases();
@@ -28,8 +32,8 @@ export default function KnowledgeBasePage() {
   if (knowledgeBasesQuery.isError || settingsQuery.isError) {
     return (
       <AppShell>
-        <ErrorState
-          title="Não foi possível carregar Knowledge Base"
+        <ModuleErrorState
+          moduleName="knowledge base"
           description="Confirme autenticação, organização ativa e endpoints de RAG."
         />
       </AppShell>

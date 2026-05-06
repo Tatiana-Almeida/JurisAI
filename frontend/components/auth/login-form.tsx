@@ -10,13 +10,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { endpoints } from "@/lib/api/endpoints";
 import { apiClient } from "@/lib/api/client";
+import { endpoints } from "@/lib/api/endpoints";
 import { getDRFErrorMessage, mapDRFErrorsToForm } from "@/lib/errors/drf";
 import { loginSchema, type LoginInput } from "@/lib/validation/auth";
 import { useAuthStore } from "@/stores/auth-store";
+import type { User } from "@/types/auth";
 
-export function LoginForm() {
+type LoginFormProps = {
+  nextPath?: string;
+};
+
+export function LoginForm({ nextPath }: LoginFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const setAuthenticated = useAuthStore((state) => state.setAuthenticated);
@@ -34,17 +39,24 @@ export function LoginForm() {
     form.clearErrors();
 
     try {
-      const response = await apiClient.post(endpoints.auth.login, values);
+      const response = await apiClient.post<{ access: string; refresh?: string }>(
+        endpoints.auth.login,
+        values,
+      );
+
       const tokens = {
         access: response.data.access,
         refresh: response.data.refresh,
       };
 
-      setAuthenticated({
-        user: {
-          email: values.email,
-          name: values.email,
+      const meResponse = await apiClient.get<User>(endpoints.auth.me, {
+        headers: {
+          Authorization: `Bearer ${tokens.access}`,
         },
+      });
+
+      setAuthenticated({
+        user: meResponse.data,
         tokens,
       });
 
@@ -53,7 +65,7 @@ export function LoginForm() {
           "A autenticação usa localStorage nesta fase. Migrar para cookies httpOnly fica como hardening futuro.",
       });
 
-      router.push("/dashboard");
+      router.push(nextPath || "/dashboard");
     } catch (error) {
       mapDRFErrorsToForm(error, form.setError);
       toast.error("Não foi possível entrar.", {
@@ -81,9 +93,7 @@ export function LoginForm() {
             <Label htmlFor="email">Email</Label>
             <Input id="email" type="email" {...form.register("email")} />
             {form.formState.errors.email ? (
-              <p className="text-sm text-destructive">
-                {form.formState.errors.email.message}
-              </p>
+              <p className="text-sm text-destructive">{form.formState.errors.email.message}</p>
             ) : null}
           </div>
 

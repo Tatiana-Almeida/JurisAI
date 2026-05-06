@@ -8,6 +8,7 @@ type OrganizationState = {
   activeOrganizationId: string | null;
   availableOrganizations: Organization[];
   setAvailableOrganizations: (organizations: Organization[]) => void;
+  bootstrapOrganizations: (organizations: Organization[]) => void;
   setActiveOrganization: (organizationId: string | null) => void;
   reset: () => void;
 };
@@ -25,6 +26,21 @@ export const useOrganizationStore = create<OrganizationState>()(
               ? state.activeOrganizationId
               : organizations[0]?.id ?? null,
         })),
+      bootstrapOrganizations: (organizations) =>
+        set((state) => {
+          const persistedExists =
+            state.activeOrganizationId &&
+            organizations.some((item) => item.id === state.activeOrganizationId);
+
+          return {
+            availableOrganizations: organizations,
+            activeOrganizationId: persistedExists
+              ? state.activeOrganizationId
+              : organizations.length === 1
+                ? organizations[0]?.id ?? null
+                : null,
+          };
+        }),
       setActiveOrganization: (organizationId) =>
         set({
           activeOrganizationId: organizationId,

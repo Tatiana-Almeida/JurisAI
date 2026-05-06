@@ -5,9 +5,11 @@ export function BillingStatusCard() {
     <ModuleStateCard
       title="Billing integration pending"
       status="pending"
-      description="O backend atual tem pagamentos, subscriptions, invoices e webhook, mas ainda não expõe checkout nem cancelamento comercial."
+      description="Billing ainda está em preparação para cobrança real. O backend atual tem pagamentos, subscriptions, invoices e webhook, mas não expõe checkout nem cancelamento comercial."
       bullets={[
-        "Não fingir cobrança pronta nesta fase.",
+        "Checkout pending.",
+        "Webhook pending para enforcement comercial completo.",
+        "Subscription enforcement pending.",
         "UI deve permanecer honesta enquanto checkout não existir.",
       ]}
     />

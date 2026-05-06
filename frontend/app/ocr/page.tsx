@@ -7,8 +7,8 @@ import { OCRJobTable } from "@/components/ocr/ocr-job-table";
 import { OCRResultCard } from "@/components/ocr/ocr-result-card";
 import { OCRSettingsPanel } from "@/components/ocr/ocr-settings-panel";
 import { PageResultsTable } from "@/components/ocr/page-results-table";
-import { ErrorState } from "@/components/shared/error-state";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
+import { ModuleErrorState } from "@/components/shared/module-error-state";
 import {
   useApplyOCRResult,
   useOCRAuditLogs,
@@ -38,8 +38,8 @@ export default function OCRPage() {
   if (jobsQuery.isError || resultsQuery.isError || settingsQuery.isError) {
     return (
       <AppShell>
-        <ErrorState
-          title="Não foi possível carregar OCR"
+        <ModuleErrorState
+          moduleName="OCR"
           description="Verifique permissões, organização ativa e configuração do backend."
         />
       </AppShell>
@@ -64,7 +64,8 @@ export default function OCRPage() {
               onApply={() => applyResult.mutate(firstResult.id)}
             />
           ) : (
-            <ErrorState
+            <ModuleErrorState
+              moduleName="resultado OCR"
               title="Sem resultados de OCR"
               description="Execute OCR sobre um documento para ver texto extraído e aplicação ao documento."
             />

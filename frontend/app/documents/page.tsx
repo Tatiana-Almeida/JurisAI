@@ -4,6 +4,13 @@ import { useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import type { z } from "zod";
+import { AppShell } from "@/components/layout/app-shell";
+import { PageHeader } from "@/components/layout/page-header";
+import { DocumentUploadDropzone } from "@/components/documents/document-upload-dropzone";
+import { DocumentsTable } from "@/components/documents/documents-table";
+import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
+import { ModuleErrorState } from "@/components/shared/module-error-state";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,16 +22,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { AppShell } from "@/components/layout/app-shell";
-import { PageHeader } from "@/components/layout/page-header";
-import { DocumentsTable } from "@/components/documents/documents-table";
-import { DocumentUploadDropzone } from "@/components/documents/document-upload-dropzone";
-import { ErrorState } from "@/components/shared/error-state";
-import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 import { useCases, useDocuments, useUploadDocument } from "@/hooks/use-jurisai-queries";
 import { getDRFErrorMessage, mapDRFErrorsToForm } from "@/lib/errors/drf";
 import { documentSchema } from "@/lib/validation/documents";
-import type { z } from "zod";
 
 type DocumentFormValues = z.infer<typeof documentSchema>;
 
@@ -43,7 +43,10 @@ export default function DocumentsPage() {
     },
   });
 
-  const uploadProgress = useMemo(() => (uploadDocument.isPending ? 70 : selectedFiles.length ? 100 : null), [selectedFiles.length, uploadDocument.isPending]);
+  const uploadProgress = useMemo(
+    () => (uploadDocument.isPending ? 70 : selectedFiles.length ? 100 : null),
+    [selectedFiles.length, uploadDocument.isPending],
+  );
 
   return (
     <AppShell>
@@ -94,7 +97,10 @@ export default function DocumentsPage() {
             >
               <div className="space-y-2">
                 <Label>Processo</Label>
-                <Select value={form.watch("law_case_id")} onValueChange={(value) => form.setValue("law_case_id", value)}>
+                <Select
+                  value={form.watch("law_case_id")}
+                  onValueChange={(value) => form.setValue("law_case_id", value)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecionar processo" />
                   </SelectTrigger>
@@ -109,7 +115,12 @@ export default function DocumentsPage() {
               </div>
               <div className="space-y-2">
                 <Label>Tipo</Label>
-                <Select value={form.watch("type")} onValueChange={(value) => form.setValue("type", value as DocumentFormValues["type"])}>
+                <Select
+                  value={form.watch("type")}
+                  onValueChange={(value) =>
+                    form.setValue("type", value as DocumentFormValues["type"])
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -133,8 +144,8 @@ export default function DocumentsPage() {
         </Card>
         {documentsQuery.isLoading ? <LoadingSkeleton /> : null}
         {documentsQuery.isError ? (
-          <ErrorState
-            title="Não foi possível listar documentos"
+          <ModuleErrorState
+            moduleName="documentos"
             description="Confirme autenticação, organização ativa e disponibilidade do endpoint de documentos."
           />
         ) : null}
