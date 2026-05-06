@@ -598,3 +598,4 @@ Resumo:
 - Added bootstrap coverage tests and Render follow-up checkpoint documentation.
 - Prioritized `DATABASE_URL` for managed deployments such as Render.
 - Added `RUN_MIGRATIONS` startup flag for restricted hosting environments.
+- Added WhiteNoise support for Django static files on Render.

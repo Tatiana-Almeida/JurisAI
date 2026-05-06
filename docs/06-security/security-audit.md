@@ -70,3 +70,5 @@
 - [PRECISA_VALIDAR] O segredo `DJANGO_SUPERUSER_PASSWORD` nao deve permanecer no ambiente Render depois da criacao do admin e o `DATABASE_URL` exposto anteriormente precisa de rotacao manual imediata no fornecedor.
 - [CONFIRMADO_NO_CODIGO] `RUN_MIGRATIONS` agora e explicito e desativado por defeito, reduzindo risco de migracoes surpresa em ambientes nao controlados.
 - [CONFIRMADO_NO_CODIGO] `DATABASE_URL` passa a ter prioridade para plataformas geridas como Render; `POSTGRES_HOST=db` permanece apenas como fallback de Docker Compose.
+- [CONFIRMADO_NO_CODIGO] Static files em deployments geridos com `DEBUG=False` agora podem ser servidos por WhiteNoise no proprio container.
+- [PRECISA_VALIDAR] Uploads/media de utilizador nao devem ser tratados como storage de producao via WhiteNoise; esse fluxo continua a exigir armazenamento proprio quando necessario.

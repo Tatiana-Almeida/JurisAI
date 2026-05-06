@@ -432,6 +432,9 @@ Current public-layer status:
 - Render Free does not provide Shell or pre-deploy commands, so `RUN_MIGRATIONS=True` is the supported way to run `migrate --noinput` during startup
 - `DATABASE_URL` from Render Postgres has priority over `POSTGRES_HOST=db` and the other `POSTGRES_*` fallbacks
 - `bootstrap_superuser` now runs after startup migrations and before the main process command
+- Render/Gunicorn requires WhiteNoise to serve Django static files with `DEBUG=False`
+- `RUN_COLLECTSTATIC=True` must be enabled in Render/staging deployments with `DEBUG=False`
+- After deploy, `/static/admin/js/theme.js` should return JavaScript instead of `404`
 
 ## Production Readiness Notes
 
