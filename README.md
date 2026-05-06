@@ -2,7 +2,7 @@
 
 JurisAI is a multi-tenant legal SaaS backend built with Django REST Framework, designed for law firms and legal departments.
 
-It currently provides core legal operations, initial AI support, SaaS billing, auditability, and the first wave of expanded legal services, while keeping organization isolation as a central architectural rule.
+It currently provides core legal operations, initial AI support, billing foundations, auditability, and the first wave of expanded legal services, while keeping organization isolation as a central architectural rule.
 
 Current milestone: `v1.0.0-rc.5` focuses on Render Public Staging Validation, confirming a real public HTTPS deployment for the web service while keeping worker, monitoring, scheduled backups, credential rotation and custom-domain work clearly marked as pending.
 
@@ -42,6 +42,26 @@ Current milestone: `v1.0.0-rc.5` focuses on Render Public Staging Validation, co
 - BI foundation
 - Compliance foundation
 - Marketplace foundation
+
+## Commercial readiness
+
+Current status:
+
+- Backend foundation: advanced
+- Frontend: pending
+- Billing: pending
+- AI commercial workflows: partial
+- Render staging: partial
+- Ready for sale: no
+- Ready for technical beta: soon
+
+Notes:
+
+- [CONFIRMADO_NO_CODIGO] There is no end-user frontend in this repository yet.
+- [CONFIRMADO_NO_CODIGO] Billing currently covers tenant-scoped records plus Stripe-style webhook ingestion, not a complete self-serve checkout and cancellation flow.
+- [CONFIRMADO_NO_CODIGO] AI endpoints exist, but the active provider path can still fall back to mock responses when `OPENAI_API_KEY` is not configured.
+- [CONFIRMADO_NO_CODIGO] RAG uses deterministic local embeddings via `local-hash-v1`, which validate the retrieval pipeline but do not provide rich semantic legal understanding.
+- [PRECISA_VALIDAR] Render staging still depends on provider-side confirmation for WhiteNoise static delivery, admin login after credential rotation, monitoring and scheduled backups.
 
 ## Implementation Status
 
@@ -94,6 +114,7 @@ These apps are present in the codebase with initial models and safe base routes,
 - Organization-level RAG governance and opt-in controls for future external embeddings
 - Mandatory textual fallback when embeddings are not effective
 - External providers still disabled by default and not implemented in this phase
+- `local-hash-v1` is deterministic and local, but it is not a true semantic embedding model and may miss legally similar passages expressed with different vocabulary
 
 ### Initial OCR capabilities
 
@@ -435,6 +456,7 @@ Current public-layer status:
 - Render/Gunicorn requires WhiteNoise to serve Django static files with `DEBUG=False`
 - `RUN_COLLECTSTATIC=True` must be enabled in Render/staging deployments with `DEBUG=False`
 - After deploy, `/static/admin/js/theme.js` should return JavaScript instead of `404`
+- [PRECISA_VALIDAR] Public revalidation of `/static/admin/js/theme.js`, `/admin/` login POST and rotated database credentials still depends on the current Render deployment state
 
 ## Production Readiness Notes
 

@@ -599,3 +599,7 @@ Resumo:
 - Prioritized `DATABASE_URL` for managed deployments such as Render.
 - Added `RUN_MIGRATIONS` startup flag for restricted hosting environments.
 - Added WhiteNoise support for Django static files on Render.
+- Added commercial readiness gap analysis.
+- Added billing readiness audit.
+- Added AI readiness audit.
+- Added Render staging hardening notes.
