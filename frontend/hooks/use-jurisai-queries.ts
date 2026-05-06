@@ -478,6 +478,24 @@ export function useCreateCase() {
   });
 }
 
+export function useUpdateCase(caseId?: string) {
+  const queryClient = useQueryClient();
+  const { activeOrganizationId } = useTenantContext();
+  return useMutation({
+    mutationFn: async (payload: Record<string, unknown>) => {
+      const response = await apiClient.patch<LawCase>(endpoints.cases.detail(caseId!), payload);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.cases(activeOrganizationId) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.caseDetail(activeOrganizationId, caseId),
+      });
+      toast.success("Processo atualizado com sucesso.");
+    },
+  });
+}
+
 export function useCreateClient() {
   const queryClient = useQueryClient();
   const { activeOrganizationId } = useTenantContext();
@@ -497,11 +515,18 @@ export function useUploadDocument() {
   const queryClient = useQueryClient();
   const { activeOrganizationId } = useTenantContext();
   return useMutation({
-    mutationFn: async (payload: FormData) => {
-      const response = await apiClient.post<Document>(endpoints.documents.list, payload, {
+    mutationFn: async (payload: {
+      formData: FormData;
+      onUploadProgress?: (progressEvent: {
+        loaded: number;
+        total?: number;
+      }) => void;
+    }) => {
+      const response = await apiClient.post<Document>(endpoints.documents.list, payload.formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
+        onUploadProgress: payload.onUploadProgress,
       });
       return response.data;
     },
@@ -513,6 +538,8 @@ export function useUploadDocument() {
 }
 
 export function useRunOCR() {
+  const queryClient = useQueryClient();
+  const { activeOrganizationId } = useTenantContext();
   return useMutation({
     mutationFn: async (documentId: string) => {
       const response = await apiClient.post(endpoints.ocr.runDocument(documentId), {
@@ -521,18 +548,42 @@ export function useRunOCR() {
       return response.data;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.ocrJobs(activeOrganizationId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.ocrResults(activeOrganizationId) });
       toast.success("OCR iniciado.");
     },
   });
 }
 
+export function useRunAdvancedOCR() {
+  const queryClient = useQueryClient();
+  const { activeOrganizationId } = useTenantContext();
+  return useMutation({
+    mutationFn: async (documentId: string) => {
+      const response = await apiClient.post(endpoints.ocr.runAdvancedDocument(documentId), {
+        update_document_content: false,
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.ocrJobs(activeOrganizationId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.ocrResults(activeOrganizationId) });
+      toast.success("OCR avançado iniciado.");
+    },
+  });
+}
+
 export function useApplyOCRResult() {
+  const queryClient = useQueryClient();
+  const { activeOrganizationId } = useTenantContext();
   return useMutation({
     mutationFn: async (resultId: string) => {
       const response = await apiClient.post(endpoints.ocr.applyResult(resultId), {});
       return response.data;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.documents(activeOrganizationId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.ocrResults(activeOrganizationId) });
       toast.success("Resultado de OCR aplicado ao documento.");
     },
   });

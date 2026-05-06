@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import type { Document } from "@/types/documents";
-import { EmptyState } from "@/components/shared/empty-state";
 import { DocumentTypeBadge } from "@/components/documents/document-type-badge";
+import { EmptyState } from "@/components/shared/empty-state";
 import {
   Table,
   TableBody,
@@ -29,8 +29,9 @@ const columns = [
     header: "Versão",
   }),
   columnHelper.accessor("law_case_id", {
-    header: "Caso",
-    cell: ({ getValue }) => getValue()?.slice(0, 8) ?? "Sem caso",
+    header: "Processo",
+    cell: ({ getValue, row }) =>
+      getValue()?.slice(0, 8) ?? row.original.law_case?.slice(0, 8) ?? "Sem processo",
   }),
 ];
 

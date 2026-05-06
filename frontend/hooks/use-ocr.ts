@@ -6,5 +6,6 @@ export {
   useOCRPipelines,
   useOCRResults,
   useOCRSettings,
+  useRunAdvancedOCR,
   useRunOCR,
 } from "@/hooks/use-jurisai-queries";

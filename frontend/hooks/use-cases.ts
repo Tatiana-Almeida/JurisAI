@@ -1,1 +1,6 @@
-export { useCase, useCases, useCreateCase } from "@/hooks/use-jurisai-queries";
+export {
+  useCase,
+  useCases,
+  useCreateCase,
+  useUpdateCase,
+} from "@/hooks/use-jurisai-queries";

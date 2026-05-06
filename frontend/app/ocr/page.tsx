@@ -7,8 +7,10 @@ import { OCRJobTable } from "@/components/ocr/ocr-job-table";
 import { OCRResultCard } from "@/components/ocr/ocr-result-card";
 import { OCRSettingsPanel } from "@/components/ocr/ocr-settings-panel";
 import { PageResultsTable } from "@/components/ocr/page-results-table";
+import { EmptyState } from "@/components/shared/empty-state";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 import { ModuleErrorState } from "@/components/shared/module-error-state";
+import { useActiveOrganization } from "@/hooks/use-active-organization";
 import {
   useApplyOCRResult,
   useOCRAuditLogs,
@@ -16,9 +18,10 @@ import {
   useOCRPageResults,
   useOCRResults,
   useOCRSettings,
-} from "@/hooks/use-jurisai-queries";
+} from "@/hooks/use-ocr";
 
 export default function OCRPage() {
+  const { activeOrganizationId } = useActiveOrganization();
   const jobsQuery = useOCRJobs();
   const resultsQuery = useOCRResults();
   const settingsQuery = useOCRSettings();
@@ -26,6 +29,17 @@ export default function OCRPage() {
   const firstResult = resultsQuery.data?.[0];
   const pageResultsQuery = useOCRPageResults(firstResult?.id);
   const applyResult = useApplyOCRResult();
+
+  if (!activeOrganizationId) {
+    return (
+      <AppShell>
+        <EmptyState
+          title="Selecione uma organização"
+          description="Selecione uma organização para visualizar jobs e resultados de OCR."
+        />
+      </AppShell>
+    );
+  }
 
   if (jobsQuery.isLoading || resultsQuery.isLoading || settingsQuery.isLoading) {
     return (
@@ -40,7 +54,7 @@ export default function OCRPage() {
       <AppShell>
         <ModuleErrorState
           moduleName="OCR"
-          description="Verifique permissões, organização ativa e configuração do backend."
+          description="Verifique permissões, organização ativa, worker Celery e configuração do backend."
         />
       </AppShell>
     );
@@ -53,6 +67,11 @@ export default function OCRPage() {
           title="OCR"
           description="Jobs, resultados, page-level OCR, audit trail e limites por tenant com polling para execuções em curso."
         />
+        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 text-sm text-muted-foreground">
+          Em staging público no Render Free, o worker Celery pode continuar indisponível. Se os
+          jobs não avançarem de `pending` ou falharem, confirme primeiro a infraestrutura do
+          worker.
+        </div>
         <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
           <OCRJobTable jobs={jobsQuery.data ?? []} />
           <OCRSettingsPanel settings={settingsQuery.data} />

@@ -624,3 +624,10 @@ Resumo:
 - Added staging API environment documentation.
 - Improved tenant cache invalidation flow.
 - Improved dashboard staging awareness.
+
+## Frontend cases, clients and documents flows
+
+- Integrated initial clients, cases and documents frontend flows.
+- Added document upload foundation.
+- Added document-to-OCR frontend actions.
+- Improved multi-tenant states across legal data pages.

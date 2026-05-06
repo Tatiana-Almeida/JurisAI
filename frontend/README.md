@@ -164,14 +164,18 @@ npm run test:e2e
 - `GET /api/v1/users/me/`
 - `GET /api/v1/organizations/`
 - `GET/POST /api/v1/cases/`
+- `GET/PATCH /api/v1/cases/{id}/`
 - `GET /api/v1/users/` para clientes e advogados
+- `POST /api/v1/users/` para criação de clientes quando o utilizador autenticado tem permissão
 - `GET/POST /api/v1/documents/`
+- `GET /api/v1/documents/{id}/`
 - `GET /api/v1/dashboard/*`
 - `GET /api/v1/deadlines/`
 - `GET /api/v1/calendar/events/`
 - `GET /api/v1/legal-finance/*`
 - `GET /api/v1/ocr/*`
 - `POST /api/v1/ocr/documents/{document_id}/run/`
+- `POST /api/v1/ocr/documents/{document_id}/advanced-run/`
 - `POST /api/v1/ocr/results/{id}/apply-to-document/`
 - `GET /api/v1/knowledge-base/*`
 - `POST /api/v1/knowledge-base/{id}/ask/`
@@ -182,10 +186,10 @@ npm run test:e2e
 
 - Login
 - Dashboard inicial com awareness de staging
-- Processos
-- Clientes
-- Documentos com upload foundation
-- OCR com jobs, resultado, audit logs e settings
+- Processos com listagem, criação, detalhe e edição básica de metadados
+- Clientes com listagem e criação via endpoint real de utilizadores
+- Documentos com listagem, detalhe, upload multipart e ações de OCR
+- OCR com jobs, resultado, audit logs, settings e polling
 - Knowledge Base com ask e sources
 - Prazos
 - Calendário
@@ -201,12 +205,15 @@ npm run test:e2e
 - fluxos avançados de IA e geração jurídica
 - endurecimento final de autenticação com cookies `httpOnly`
 - smoke autenticado real contra staging
+- paginação navegável completa para listas longas
 
 ## Limitações conhecidas
 
 - O frontend MVP ainda não representa a experiência final de produto
 - O login usa `localStorage` porque o backend atual não opera com cookies `httpOnly`
 - O `middleware.ts` não lê `localStorage`; por isso usa apenas um cookie de sessão auxiliar para o redirecionamento inicial
+- O módulo “Clientes” usa o endpoint real `/api/v1/users/` com filtro por papel `cliente`; o backend não expõe um `/api/v1/clients/` dedicado
+- O módulo “Processos” usa o endpoint real `/api/v1/cases/`; o backend atual não expõe `/api/v1/law-cases/`
 - Billing UI permanece honesta: sem checkout ativo enquanto o backend não expuser esse fluxo real
 - A camada de IA pode continuar a depender de respostas mock no backend quando `OPENAI_API_KEY` não existir
 - `local-hash-v1` continua a ser uma fundação técnica de retrieval, não um embedding semântico jurídico completo
