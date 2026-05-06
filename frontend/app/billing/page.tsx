@@ -1,26 +1,34 @@
+"use client";
+
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { BillingStatusCard } from "@/components/billing/billing-status-card";
 import { PlanCard } from "@/components/billing/plan-card";
+import { useBillingSummary } from "@/hooks/use-jurisai-queries";
 
-const billingPlans = [
-  { id: "foundation", name: "Billing foundation", status: "pending", priceLabel: "Checkout não ativo." },
-  { id: "subscription", name: "Subscription status", status: "partial", priceLabel: "Leitura real antes de venda." },
-] as const;
+const plans = [
+  { id: "starter", name: "Starter", status: "pending" as const, priceLabel: "Checkout ainda não ativo." },
+  { id: "growth", name: "Growth", status: "pending" as const, priceLabel: "Integração comercial depende de checkout e webhooks." },
+];
 
 export default function BillingPage() {
+  const billingQuery = useBillingSummary();
+
   return (
     <AppShell>
       <div className="space-y-8">
         <PageHeader
           title="Billing"
-          description="Foundation honesta do billing: sem fingir checkout ou cobrança prontos enquanto o backend não provar esses fluxos."
+          description="UI honesta: leitura de subscriptions e invoices quando existirem, sem fingir checkout, cancelamento ou portal comercial prontos."
         />
         <BillingStatusCard />
         <div className="grid gap-4 md:grid-cols-2">
-          {billingPlans.map((plan) => (
+          {plans.map((plan) => (
             <PlanCard key={plan.id} plan={plan} />
           ))}
+        </div>
+        <div className="jurisai-panel rounded-3xl p-6 text-sm text-muted-foreground">
+          subscriptions={billingQuery.data?.subscriptions.length ?? 0} · invoices={billingQuery.data?.invoices.length ?? 0}
         </div>
       </div>
     </AppShell>

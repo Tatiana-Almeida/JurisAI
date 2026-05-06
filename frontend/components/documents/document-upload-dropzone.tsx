@@ -16,11 +16,15 @@ const acceptedMimeTypes = {
 type DocumentUploadDropzoneProps = {
   maxSizeMb?: number;
   onFilesAccepted?: (files: File[]) => void;
+  uploadProgress?: number | null;
+  helperText?: string;
 };
 
 export function DocumentUploadDropzone({
   maxSizeMb = 10,
   onFilesAccepted,
+  uploadProgress,
+  helperText,
 }: DocumentUploadDropzoneProps) {
   const maxSizeBytes = useMemo(() => maxSizeMb * 1024 * 1024, [maxSizeMb]);
 
@@ -52,8 +56,12 @@ export function DocumentUploadDropzone({
             "Não foi possível aceitar o ficheiro."}
         </div>
       ) : null}
+      {typeof uploadProgress === "number" ? (
+        <p className="mt-4 text-sm text-muted-foreground">Progresso do upload: {uploadProgress}%</p>
+      ) : null}
       <p className="mt-4 text-xs text-muted-foreground">
-        Progresso de upload e integração real com o backend serão ligados na fase de telas.
+        {helperText ??
+          "O upload já está preparado para integração real com o backend e validações do serializer de documentos."}
       </p>
     </div>
   );

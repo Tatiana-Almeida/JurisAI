@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Menu } from "lucide-react";
+import { Logo } from "@/components/layout/logo";
 import {
   Sheet,
   SheetContent,
@@ -22,7 +23,9 @@ export function MobileNav() {
       </SheetTrigger>
       <SheetContent side="left" className="w-80">
         <SheetHeader>
-          <SheetTitle>JurisAI</SheetTitle>
+          <SheetTitle className="text-left">
+            <Logo size="compact" />
+          </SheetTitle>
         </SheetHeader>
         <div className="mt-6 grid gap-2">
           {NAVIGATION_ITEMS.map(({ href, label }) => (

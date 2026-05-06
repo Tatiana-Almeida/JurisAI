@@ -4,8 +4,11 @@ export interface User {
   id?: string;
   email: string;
   name?: string;
-  role?: string;
+  role?: "admin" | "advogado" | "cliente" | string;
   organization?: Organization | null;
+  organization_id?: string;
+  created_at?: string;
+  updated_at?: string;
   memberships?: OrganizationMembership[];
 }
 

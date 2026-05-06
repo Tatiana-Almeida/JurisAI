@@ -13,3 +13,7 @@ export interface ApiError {
 }
 
 export type DRFValidationError = Record<string, string[]>;
+
+export interface HealthStatusResponse {
+  status: string;
+}

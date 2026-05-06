@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { Logo } from "@/components/layout/logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -67,13 +67,7 @@ export function LoginForm() {
   return (
     <Card className="jurisai-panel w-full max-w-lg rounded-[2rem]">
       <CardHeader className="space-y-4">
-        <Image
-          src="/brand/jurisai-logo.png"
-          alt="JurisAI"
-          width={160}
-          height={48}
-          className="h-12 w-auto"
-        />
+        <Logo size="auth" />
         <div className="space-y-1">
           <CardTitle className="text-2xl">Entrar no JurisAI</CardTitle>
           <p className="text-sm leading-6 text-muted-foreground">

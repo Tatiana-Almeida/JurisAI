@@ -1,19 +1,19 @@
-import { SourcesList } from "@/components/knowledge-base/sources-list";
-import { ModuleStateCard } from "@/components/shared/module-state-card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export function KBSearch() {
+type KBSearchProps = {
+  retrievalMethod?: string;
+  sourcesCount?: number;
+};
+
+export function KBSearch({ retrievalMethod, sourcesCount }: KBSearchProps) {
   return (
-    <div className="space-y-4">
-      <ModuleStateCard
-        title="KB search"
-        status="active"
-        description="Pesquisa com fontes e scores já prevista para a camada real."
-        bullets={[
-          "Search e ask partilham contratos de retrieval.",
-          "A UI mostrará fontes e confiança sem inventar respostas.",
-        ]}
-      />
-      <SourcesList retrievalMethod="textual_fallback" confidence="low" fallbackUsed fallbackReason="embeddings_not_prepared" />
-    </div>
+    <Card className="jurisai-panel rounded-3xl">
+      <CardHeader>
+        <CardTitle>Search foundation</CardTitle>
+      </CardHeader>
+      <CardContent className="text-sm text-muted-foreground">
+        retrieval_method={retrievalMethod ?? "pending"} · sources_count={sourcesCount ?? 0}
+      </CardContent>
+    </Card>
   );
 }

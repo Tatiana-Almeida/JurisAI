@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Logo } from "@/components/layout/logo";
 import { NAVIGATION_ITEMS } from "@/lib/constants/navigation";
 import { cn } from "@/lib/utils";
 
@@ -12,13 +12,7 @@ export function Sidebar() {
   return (
     <aside className="hidden w-72 flex-col border-r border-sidebar-border bg-sidebar px-5 py-6 text-sidebar-foreground lg:flex">
       <div className="mb-8 flex items-center gap-3 px-2">
-        <Image
-          src="/brand/jurisai-logo-light.png"
-          alt="JurisAI"
-          width={140}
-          height={48}
-          className="h-10 w-auto"
-        />
+        <Logo size="sidebar" />
       </div>
 
       <nav className="flex-1 space-y-1">

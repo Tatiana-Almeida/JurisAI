@@ -1,24 +1,32 @@
+"use client";
+
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
-import { ModuleStateCard } from "@/components/shared/module-state-card";
+import { ClientForm } from "@/components/clients/client-form";
+import { ClientsTable } from "@/components/clients/clients-table";
+import { ErrorState } from "@/components/shared/error-state";
+import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
+import { useClients } from "@/hooks/use-jurisai-queries";
 
 export default function ClientsPage() {
+  const clientsQuery = useClients();
+
   return (
     <AppShell>
       <div className="space-y-8">
         <PageHeader
           title="Clientes"
-          description="Foundation da área de clientes sem inventar endpoints dedicados que o backend ainda não prova."
+          description="A UI usa o backend real de utilizadores por organização e filtra clientes por papel, sem inventar um endpoint próprio."
         />
-        <ModuleStateCard
-          title="Clientes / utilizadores"
-          status="partial"
-          description="A camada comercial de clientes precisa de definição mais fina; a base atual parte do módulo de utilizadores."
-          bullets={[
-            "Sem endpoint dedicado de clients confirmado nesta fase.",
-            "A UI final deverá alinhar com os contratos reais do backend.",
-          ]}
-        />
+        <ClientForm />
+        {clientsQuery.isLoading ? <LoadingSkeleton /> : null}
+        {clientsQuery.isError ? (
+          <ErrorState
+            title="Não foi possível listar clientes"
+            description="Confirme autenticação e disponibilidade de `/api/v1/users/`."
+          />
+        ) : null}
+        {clientsQuery.data ? <ClientsTable clients={clientsQuery.data} /> : null}
       </div>
     </AppShell>
   );

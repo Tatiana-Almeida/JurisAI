@@ -9,8 +9,11 @@ type AuthState = {
   status: AuthStatus;
   user: User | null;
   tokens: AuthTokens | null;
+  isBootstrapped: boolean;
   setAuthenticated: (payload: { user: User | null; tokens: AuthTokens }) => void;
+  setUser: (user: User | null) => void;
   setLoading: () => void;
+  markBootstrapped: () => void;
   logout: () => void;
 };
 
@@ -20,21 +23,31 @@ export const useAuthStore = create<AuthState>()(
       status: "unauthenticated",
       user: null,
       tokens: null,
+      isBootstrapped: false,
       setAuthenticated: ({ user, tokens }) => {
         setTokens(tokens);
         set({
           status: "authenticated",
           user,
           tokens,
+          isBootstrapped: true,
         });
       },
+      setUser: (user) =>
+        set((state) => ({
+          user,
+          status: state.tokens?.access ? "authenticated" : "unauthenticated",
+          isBootstrapped: true,
+        })),
       setLoading: () => set({ status: "loading" }),
+      markBootstrapped: () => set({ isBootstrapped: true }),
       logout: () => {
         clearTokens();
         set({
           status: "unauthenticated",
           user: null,
           tokens: null,
+          isBootstrapped: true,
         });
       },
     }),
@@ -45,6 +58,11 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         tokens: state.tokens,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.isBootstrapped = false;
+        }
+      },
     },
   ),
 );

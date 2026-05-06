@@ -3,6 +3,7 @@
 import { Bell, Search, UserCircle2 } from "lucide-react";
 import { OrganizationSwitcher } from "@/components/organization/organization-switcher";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Input } from "@/components/ui/input";
 
 export function Topbar() {
@@ -21,6 +22,7 @@ export function Topbar() {
         </div>
         <OrganizationSwitcher />
         <div className="ml-auto flex items-center gap-2">
+          <ThemeToggle />
           <div className="rounded-full border border-border/70 bg-background/80 p-2 text-muted-foreground">
             <Bell className="size-4" />
           </div>

@@ -1,9 +1,12 @@
 export interface Document {
   id: string;
-  title?: string;
-  type?: string;
-  file?: string;
+  law_case?: string | null;
+  law_case_id?: string;
+  type?: "petition" | "contract" | "evidence" | "internal" | string;
+  file?: string | null;
   content?: string;
-  organizationId?: string;
-  createdAt?: string;
+  version?: number;
+  organization_id?: string;
+  created_at?: string;
+  updated_at?: string;
 }

@@ -1,47 +1,37 @@
 import type { RetrievalSource } from "@/types/knowledge-base";
+import { EmptyState } from "@/components/shared/empty-state";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type SourcesListProps = {
-  sources?: RetrievalSource[];
-  retrievalMethod?: string;
-  confidence?: string | null;
-  fallbackUsed?: boolean;
-  fallbackReason?: string | null;
+  sources: RetrievalSource[];
 };
 
-export function SourcesList({
-  sources = [],
-  retrievalMethod,
-  confidence,
-  fallbackUsed,
-  fallbackReason,
-}: SourcesListProps) {
+export function SourcesList({ sources }: SourcesListProps) {
+  if (sources.length === 0) {
+    return (
+      <EmptyState
+        title="Sem fontes ainda"
+        description="As fontes RAG aparecem aqui quando houver uma pergunta respondida pela Knowledge Base."
+      />
+    );
+  }
+
   return (
-    <div className="space-y-4 rounded-[1.75rem] border border-border/60 bg-background/75 p-5">
-      <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-        <span>retrieval_method: {retrievalMethod ?? "n/a"}</span>
-        <span>confidence: {confidence ?? "n/a"}</span>
-        <span>fallback_used: {String(Boolean(fallbackUsed))}</span>
-        <span>fallback_reason: {fallbackReason ?? "n/a"}</span>
-      </div>
-      <div className="space-y-3">
-        {sources.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Sources list preparada. Os resultados reais entram na próxima fase.
-          </p>
-        ) : (
-          sources.map((source, index) => (
-            <div key={`${source.title}-${index}`} className="rounded-2xl border border-border/60 p-4">
-              <h4 className="font-medium">{source.title}</h4>
-              <p className="mt-2 text-sm text-muted-foreground">{source.excerpt}</p>
-              <div className="mt-3 flex flex-wrap gap-3 text-xs text-muted-foreground">
-                <span>final_score: {source.final_score ?? "n/a"}</span>
-                <span>text_score: {source.text_score ?? "n/a"}</span>
-                <span>embedding_score: {source.embedding_score ?? "n/a"}</span>
-              </div>
+    <Card className="jurisai-panel rounded-3xl">
+      <CardHeader>
+        <CardTitle>Fontes e confiança</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {sources.map((source, index) => (
+          <div key={`${source.title}-${index}`} className="rounded-2xl border border-border/60 p-4 text-sm">
+            <div className="font-medium">{source.title ?? `Fonte ${index + 1}`}</div>
+            <div className="mt-1 text-muted-foreground">{source.excerpt ?? "Sem excerto."}</div>
+            <div className="mt-2 text-xs text-muted-foreground">
+              final_score={source.final_score ?? "n/a"} · text_score={source.text_score ?? "n/a"} · embedding_score={source.embedding_score ?? "n/a"} · retrieval_method={source.retrieval_method ?? "n/a"} · confidence={source.confidence ?? "n/a"} · fallback_used={String(source.fallback_used ?? false)}
             </div>
-          ))
-        )}
-      </div>
-    </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
   );
 }

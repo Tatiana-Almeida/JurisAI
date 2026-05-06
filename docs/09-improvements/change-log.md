@@ -607,3 +607,12 @@ Resumo:
 - Added Next.js frontend scaffold.
 - Installed frontend skills stack.
 - Added JurisAI frontend architecture foundation.
+
+## Frontend MVP initial build
+
+- Added initial JurisAI SaaS layout with sidebar, topbar, theming and brand logo.
+- Added JWT auth bootstrap, organization switching and tenant cache isolation.
+- Added Axios API client integration with refresh-token foundation.
+- Added dashboard, cases, clients, documents, OCR, Knowledge Base, deadlines, calendar, finance, billing, settings and client portal pages.
+- Added DRF form error mapping across login, client and case flows.
+- Added honest billing UI without pretending checkout is already active.
