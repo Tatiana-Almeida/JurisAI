@@ -603,3 +603,7 @@ Resumo:
 - Added billing readiness audit.
 - Added AI readiness audit.
 - Added Render staging hardening notes.
+- Started frontend MVP environment setup on separate branch.
+- Added Next.js frontend scaffold.
+- Installed frontend skills stack.
+- Added JurisAI frontend architecture foundation.

@@ -6,6 +6,14 @@ It currently provides core legal operations, initial AI support, billing foundat
 
 Current milestone: `v1.0.0-rc.5` focuses on Render Public Staging Validation, confirming a real public HTTPS deployment for the web service while keeping worker, monitoring, scheduled backups, credential rotation and custom-domain work clearly marked as pending.
 
+## Frontend MVP
+
+- Branch: `feature/frontend-mvp`
+- Path: `frontend/`
+- Stack: Next.js, TypeScript, Tailwind, shadcn/ui, TanStack Query
+- Status: environment setup
+- Backend remains isolated on `main`
+
 ## Features
 
 ### Core legal management
