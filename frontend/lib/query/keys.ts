@@ -22,12 +22,18 @@ export const queryKeys = {
     ["ocrSettings", organizationId ?? "none"] as const,
   ocrAuditLogs: (organizationId?: string | null, filters?: ScopedFilters) =>
     ["ocrAuditLogs", organizationId ?? "none", filters ?? {}] as const,
-  pageResults: (organizationId?: string | null, resultId?: string | null) =>
-    ["pageResults", organizationId ?? "none", resultId ?? "none"] as const,
+  pageResults: (organizationId?: string | null, filters?: ScopedFilters) =>
+    ["pageResults", organizationId ?? "none", filters ?? {}] as const,
+  ocrResultPages: (organizationId?: string | null, resultId?: string | null) =>
+    ["ocrResultPages", organizationId ?? "none", resultId ?? "none"] as const,
+  ocrPipelines: (organizationId?: string | null, filters?: ScopedFilters) =>
+    ["ocrPipelines", organizationId ?? "none", filters ?? {}] as const,
   knowledgeBases: (organizationId?: string | null) =>
     ["knowledgeBases", organizationId ?? "none"] as const,
   knowledgeBaseDetail: (organizationId?: string | null, id?: string | null) =>
     ["knowledgeBaseDetail", organizationId ?? "none", id ?? "none"] as const,
+  knowledgeBaseStats: (organizationId?: string | null, id?: string | null) =>
+    ["knowledgeBaseStats", organizationId ?? "none", id ?? "none"] as const,
   knowledgeDocuments: (organizationId?: string | null, filters?: ScopedFilters) =>
     ["knowledgeDocuments", organizationId ?? "none", filters ?? {}] as const,
   indexingJobs: (organizationId?: string | null, filters?: ScopedFilters) =>
@@ -36,6 +42,8 @@ export const queryKeys = {
     ["retrievalQueries", organizationId ?? "none", filters ?? {}] as const,
   ragSettings: (organizationId?: string | null) =>
     ["ragSettings", organizationId ?? "none"] as const,
+  embeddingAuditLogs: (organizationId?: string | null, filters?: ScopedFilters) =>
+    ["embeddingAuditLogs", organizationId ?? "none", filters ?? {}] as const,
   deadlines: (organizationId?: string | null, filters?: ScopedFilters) =>
     ["deadlines", organizationId ?? "none", filters ?? {}] as const,
   calendarEvents: (organizationId?: string | null, filters?: ScopedFilters) =>
@@ -73,12 +81,16 @@ export const organizationScopedPrefixes = [
   "ocrSettings",
   "ocrAuditLogs",
   "pageResults",
+  "ocrResultPages",
+  "ocrPipelines",
   "knowledgeBases",
   "knowledgeBaseDetail",
+  "knowledgeBaseStats",
   "knowledgeDocuments",
   "indexingJobs",
   "retrievalQueries",
   "ragSettings",
+  "embeddingAuditLogs",
   "deadlines",
   "calendarEvents",
   "finance",

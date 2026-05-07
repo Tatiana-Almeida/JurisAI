@@ -66,6 +66,7 @@ export const endpoints = {
     settings: "/api/v1/knowledge-base/settings/",
     documents: "/api/v1/knowledge-base/documents/",
     queries: "/api/v1/knowledge-base/queries/",
+    chunks: "/api/v1/knowledge-base/chunks/",
     indexingJobs: "/api/v1/knowledge-base/indexing-jobs/",
     embeddingAuditLogs: "/api/v1/knowledge-base/embedding-audit-logs/",
     stats: (id: string) => `/api/v1/knowledge-base/${id}/stats/`,
@@ -86,7 +87,7 @@ export const endpoints = {
       `/api/v1/ocr/documents/${documentId}/advanced-run/`,
     resultPages: (id: string) => `/api/v1/ocr/results/${id}/pages/`,
     applyResult: (id: string) => `/api/v1/ocr/results/${id}/apply-to-document/`,
-    runKnowledgeBasePipeline: "/api/v1/ocr/pipelines/run-knowledge-base-pipeline/",
+    runKnowledgeBasePipeline: "/api/v1/ocr/pipelines/knowledge-base/",
   },
   ai: {
     generatePetition: "/api/v1/ai/generate-petition/",

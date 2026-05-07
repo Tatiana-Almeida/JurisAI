@@ -631,3 +631,12 @@ Resumo:
 - Added document upload foundation.
 - Added document-to-OCR frontend actions.
 - Improved multi-tenant states across legal data pages.
+
+## Frontend OCR and Knowledge Base flows
+
+- Integrated OCR frontend flows.
+- Added OCR settings and audit UI.
+- Added OCR page results UI.
+- Integrated Knowledge Base search and ask UI.
+- Added RAG sources display with confidence and scores.
+- Added OCR to Knowledge Base pipeline foundation.

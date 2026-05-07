@@ -13,35 +13,18 @@
 - Vitest
 - Playwright
 
-## Skills usadas
-
-- Next.js App Router para roteamento e composição do shell SaaS
-- TanStack Query para cache, invalidação por tenant e polling de módulos jurídicos
-- Zustand para auth, bootstrap da sessão e organização ativa
-- React Hook Form + Zod para formulários e validação local
-- shadcn/ui + Tailwind para a base visual JurisAI
-- TanStack Table para listas operacionais
-- FullCalendar para a fundação do calendário
-- Sonner para feedback de ações assíncronas
-
 ## Requisitos
 
 - Node.js 20 LTS ou superior
 - npm 10 ou superior
 
-## Instalação
+## Instalacao
 
 ```bash
 npm install
 ```
 
-## Variáveis de ambiente
-
-Copiar um dos exemplos:
-
-```bash
-copy .env.local.example .env.local
-```
+## Variaveis de ambiente
 
 Arquivos de exemplo:
 
@@ -49,7 +32,14 @@ Arquivos de exemplo:
 - `.env.local.example`
 - `.env.staging.example`
 
-Variáveis públicas preparadas:
+Regras operacionais:
+
+- local usa `http://localhost:8000`
+- staging usa `https://jurisai-web-wh9d.onrender.com`
+- nao commitar `.env.local`
+- nao commitar tokens
+
+Variaveis publicas principais:
 
 - `NEXT_PUBLIC_API_URL`
 - `NEXT_PUBLIC_APP_NAME`
@@ -59,46 +49,29 @@ Variáveis públicas preparadas:
 - `NEXT_PUBLIC_ENABLE_BILLING_UI`
 - `NEXT_PUBLIC_ENABLE_AI_UI`
 
-Regras operacionais:
-
-- local usa `http://localhost:8000`
-- staging usa `https://jurisai-web-wh9d.onrender.com`
-- não commitar `.env.local`
-- não commitar tokens
-
 ## Rodar localmente
 
 ```bash
 npm run dev
 ```
 
-## Build
+## Build e testes
 
 ```bash
-npm run build
-```
-
-## Testes
-
-```bash
+npm run typecheck
+npm run lint
 npm run test
+npm run build
 npm run test:e2e
 ```
 
-## Integração com backend
-
-- O frontend consome o backend JurisAI via `NEXT_PUBLIC_API_URL`.
-- O client HTTP foi preparado para DRF, JWT e paginação `count/next/previous/results`.
-- Não foram inventados endpoints inexistentes do backend.
-- O endpoint público de health em staging continua em `GET /health/`.
-- A UI de billing permanece desativada para cobrança real enquanto checkout e webhooks comerciais não estiverem concluídos no backend.
-
 ## Arquitetura
 
-- `app/`: páginas App Router
-- `components/`: layout, auth, módulos e shared UI
-- `lib/`: API client, query keys, validação, errors e utils
-- `stores/`: auth e organização ativa
+- `app/`: paginas App Router
+- `components/`: layout, auth, modulos e shared UI
+- `hooks/`: hooks de dados e integracao com React Query
+- `lib/`: API client, query keys, validacao, errors e utils
+- `stores/`: auth e organizacao ativa
 - `types/`: contratos TypeScript baseados na API atual
 - `tests/`: Vitest unit/integration
 - `playwright/`: smoke e2e
@@ -108,8 +81,8 @@ npm run test:e2e
 - Login via `POST /api/v1/auth/token/`
 - Refresh foundation via `POST /api/v1/auth/token/refresh/`
 - Bootstrap do utilizador via `GET /api/v1/users/me/`
-- Interceptor Axios tenta refresh uma vez antes de encerrar a sessão
-- Rotas públicas:
+- Interceptor Axios tenta refresh uma vez antes de encerrar a sessao
+- Rotas publicas:
   - `/`
   - `/login`
 - Rotas privadas:
@@ -126,35 +99,21 @@ npm run test:e2e
   - `/settings`
 - O portal `/client-portal` usa guard dedicado com `portalOnly`
 - O `middleware.ts` usa apenas um session hint cookie para redirecionamento inicial
-- O `ProtectedRoute` faz a proteção real no cliente enquanto os tokens ainda ficam fora de cookies `httpOnly`
-
-## Staging API
-
-- Base URL de staging: `https://jurisai-web-wh9d.onrender.com`
-- Validação pública confirmada nesta fase:
-  - `GET /health/` responde `200 OK`
-  - `POST /api/v1/auth/token/` responde `400` com erros DRF quando enviado payload vazio
-- O smoke autenticado com credenciais reais continua dependente de credenciais de staging fora do repositório
+- O `ProtectedRoute` faz a protecao real no cliente enquanto os tokens ainda ficam fora de cookies `httpOnly`
 
 ## Multi-tenancy
 
-- Toda a fundação foi preparada para `organizationId`
-- Query keys organizacionais carregam o identificador ativo
-- Ao trocar organização, o frontend limpa o cache do TanStack Query e redireciona para `/dashboard`
-- O frontend não deve manter dados do tenant anterior visíveis após a troca
-
-## Cache invalidation
-
-- O provider de organização limpa cache ao trocar tenant
-- Queries do tenant novo são invalidadas após a troca
-- Jobs de OCR e indexação usam polling apenas quando ainda existem itens `pending` ou `running`
+- Todas as query keys juridicas carregam `organizationId`
+- Hooks dependentes de tenant usam `enabled: Boolean(organizationId)`
+- Ao trocar organizacao, o frontend limpa o cache do TanStack Query e redireciona para `/dashboard`
+- O frontend nao deve manter dados do tenant anterior visiveis apos a troca
 
 ## DRF errors
 
 - `lib/errors/drf.ts` normaliza:
-  - erros de validação por campo
+  - erros de validacao por campo
   - `non_field_errors`
-  - mensagens amigáveis para React Hook Form
+  - mensagens amigaveis para React Hook Form
 
 ## Endpoints consumidos
 
@@ -166,62 +125,94 @@ npm run test:e2e
 - `GET/POST /api/v1/cases/`
 - `GET/PATCH /api/v1/cases/{id}/`
 - `GET /api/v1/users/` para clientes e advogados
-- `POST /api/v1/users/` para criação de clientes quando o utilizador autenticado tem permissão
+- `POST /api/v1/users/` para criacao de clientes quando o utilizador autenticado tem permissao
 - `GET/POST /api/v1/documents/`
 - `GET /api/v1/documents/{id}/`
 - `GET /api/v1/dashboard/*`
 - `GET /api/v1/deadlines/`
 - `GET /api/v1/calendar/events/`
 - `GET /api/v1/legal-finance/*`
-- `GET /api/v1/ocr/*`
+- `GET /api/v1/ocr/jobs/`
+- `GET /api/v1/ocr/results/`
+- `GET /api/v1/ocr/page-results/`
+- `GET /api/v1/ocr/results/{id}/pages/`
+- `GET /api/v1/ocr/audit-logs/`
+- `GET/PATCH /api/v1/ocr/settings/`
+- `GET /api/v1/ocr/pipelines/`
 - `POST /api/v1/ocr/documents/{document_id}/run/`
 - `POST /api/v1/ocr/documents/{document_id}/advanced-run/`
 - `POST /api/v1/ocr/results/{id}/apply-to-document/`
-- `GET /api/v1/knowledge-base/*`
+- `POST /api/v1/ocr/pipelines/knowledge-base/`
+- `GET /api/v1/knowledge-base/`
+- `GET /api/v1/knowledge-base/{id}/stats/`
+- `GET /api/v1/knowledge-base/documents/`
+- `GET /api/v1/knowledge-base/queries/`
+- `GET /api/v1/knowledge-base/indexing-jobs/`
+- `GET /api/v1/knowledge-base/embedding-audit-logs/`
+- `GET/PATCH /api/v1/knowledge-base/settings/`
+- `POST /api/v1/knowledge-base/{id}/search/`
 - `POST /api/v1/knowledge-base/{id}/ask/`
+- `POST /api/v1/knowledge-base/{id}/prepare-embeddings/`
 - `GET /api/v1/client-portal/*`
 - `GET /api/v1/subscriptions/` e `GET /api/v1/invoices/`
 
-## Módulos implementados nesta fase
+## Modulos implementados nesta fase
 
 - Login
 - Dashboard inicial com awareness de staging
-- Processos com listagem, criação, detalhe e edição básica de metadados
-- Clientes com listagem e criação via endpoint real de utilizadores
-- Documentos com listagem, detalhe, upload multipart e ações de OCR
-- OCR com jobs, resultado, audit logs, settings e polling
-- Knowledge Base com ask e sources
+- Processos com listagem, criacao, detalhe e edicao basica de metadados
+- Clientes com listagem e criacao via endpoint real de utilizadores
+- Documentos com listagem, detalhe, upload multipart e acoes de OCR
+- OCR com jobs, resultado, page results, audit logs, settings, pipeline e polling
+- Knowledge Base com list/detail, search, ask, stats, settings, audit logs e sources
 - Prazos
-- Calendário
+- Calendario
 - Financeiro
 - Billing honesto
 - Settings
 - Portal do Cliente
 
-## Módulos pendentes ou parciais
+## OCR flows
+
+- A tela `/ocr` cobre jobs, results, page results, audit logs, settings e pipelines.
+- O detalhe do documento liga o fluxo real `documento -> OCR -> resultado -> Document.content -> Knowledge Base`.
+- Polling fica ativo apenas enquanto existirem jobs `pending` ou `running`.
+- `PATCH /api/v1/ocr/settings/` respeita os campos reais do backend e continua a mapear erros DRF para o formulario.
+- O pipeline OCR -> Knowledge Base exige confirmacao explicita para atualizar `Document.content`.
+
+## Knowledge Base flows
+
+- A lista de bases mostra estado geral, stats resumidos e indexing jobs.
+- O detalhe de base suporta tabs para overview, search, ask, documents, indexing jobs, settings e audit logs.
+- `search` e `ask` mostram `sources`, `confidence`, `retrieval_method`, `fallback_used` e `fallback_reason` quando o backend devolve esses campos.
+- `PATCH /api/v1/knowledge-base/settings/` continua alinhado ao contrato real de `RAGSettings`.
+- `POST /api/v1/knowledge-base/{id}/prepare-embeddings/` permanece documentado como foundation tecnica, nao como IA semantica comercial pronta.
+
+## Modulos pendentes ou parciais
 
 - billing comercial completo
 - UX final do client portal
-- fluxos avançados de IA e geração jurídica
-- endurecimento final de autenticação com cookies `httpOnly`
+- fluxos avancados de IA e geracao juridica
+- endurecimento final de autenticacao com cookies `httpOnly`
 - smoke autenticado real contra staging
-- paginação navegável completa para listas longas
+- paginacao navegavel completa para listas longas
 
-## Limitações conhecidas
+## Limitacoes conhecidas
 
-- O frontend MVP ainda não representa a experiência final de produto
-- O login usa `localStorage` porque o backend atual não opera com cookies `httpOnly`
-- O `middleware.ts` não lê `localStorage`; por isso usa apenas um cookie de sessão auxiliar para o redirecionamento inicial
-- O módulo “Clientes” usa o endpoint real `/api/v1/users/` com filtro por papel `cliente`; o backend não expõe um `/api/v1/clients/` dedicado
-- O módulo “Processos” usa o endpoint real `/api/v1/cases/`; o backend atual não expõe `/api/v1/law-cases/`
-- Billing UI permanece honesta: sem checkout ativo enquanto o backend não expuser esse fluxo real
-- A camada de IA pode continuar a depender de respostas mock no backend quando `OPENAI_API_KEY` não existir
-- `local-hash-v1` continua a ser uma fundação técnica de retrieval, não um embedding semântico jurídico completo
+- O frontend MVP ainda nao representa a experiencia final de produto
+- O login usa `localStorage` porque o backend atual nao opera com cookies `httpOnly`
+- O `middleware.ts` nao le `localStorage`; por isso usa apenas um cookie de sessao auxiliar para o redirecionamento inicial
+- O modulo "Clientes" usa o endpoint real `/api/v1/users/` com filtro por papel `cliente`; o backend nao expoe um `/api/v1/clients/` dedicado
+- O modulo "Processos" usa o endpoint real `/api/v1/cases/`; o backend atual nao expoe `/api/v1/law-cases/`
+- Billing UI permanece honesta: sem checkout ativo enquanto o backend nao expuser esse fluxo real
+- A camada de IA pode continuar a depender de respostas mock no backend quando `OPENAI_API_KEY` nao existir
+- `local-hash-v1` continua a ser uma fundacao tecnica de retrieval, nao um embedding semantico juridico completo
+- No Render Free, OCR e indexing podem continuar limitados se o worker Celery nao estiver ativo
 - O logo foi integrado a partir do asset fornecido localmente ao workspace
 
-## Próximos passos
+## Proximos passos
 
-1. Refinar UX, guardas de rota e detalhes de navegação
-2. Fechar fluxos completos de detalhes, edição e ações críticas por módulo
+1. Refinar UX, guardas de rota e detalhes de navegacao
+2. Refinar OCR e Knowledge Base com dados autenticados de staging
 3. Validar o frontend com credenciais reais em staging autenticado
-4. Priorizar billing mínimo e workflows de IA comercialmente úteis
+4. Priorizar billing minimo e workflows de IA comercialmente uteis

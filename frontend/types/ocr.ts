@@ -1,10 +1,28 @@
+export type OCRStatus = "pending" | "running" | "completed" | "failed" | "skipped";
+
+export type OCRExtractionMethod = "text" | "ocr" | "advanced_ocr" | string;
+
+export type OCRProvider = "local" | "tesseract" | "openai" | "azure" | string;
+
+export interface OCRResultMetadata {
+  pages_processed?: number;
+  pages_failed?: number;
+  total_pages_detected?: number;
+  pages_limit_applied?: boolean;
+  output_truncated?: boolean;
+  content_updated?: boolean;
+  confidence?: number | string | null;
+  provider?: OCRProvider;
+  [key: string]: unknown;
+}
+
 export interface OCRJob {
   id: string;
-  status: "pending" | "running" | "completed" | "failed" | "skipped";
   organization?: string;
   document?: string;
   requested_by?: string;
-  extraction_method?: string;
+  status: OCRStatus;
+  extraction_method?: OCRExtractionMethod;
   started_at?: string | null;
   finished_at?: string | null;
   error_message?: string;
@@ -21,7 +39,7 @@ export interface OCRResult {
   document_id?: string;
   extracted_text?: string;
   char_count?: number;
-  metadata?: Record<string, unknown>;
+  metadata?: OCRResultMetadata;
   created_at?: string;
 }
 
@@ -34,7 +52,7 @@ export interface OCRPageResult {
   page_number: number;
   extracted_text?: string;
   char_count?: number;
-  status?: string;
+  status?: OCRStatus | string;
   error_message?: string;
   metadata?: Record<string, unknown>;
   created_at?: string;
@@ -45,7 +63,7 @@ export interface OCRSettings {
   advanced_ocr_enabled?: boolean;
   external_ocr_enabled?: boolean;
   allow_document_content_to_external_ocr_provider?: boolean;
-  preferred_ocr_provider?: string;
+  preferred_ocr_provider?: OCRProvider;
   preferred_ocr_model?: string;
   image_ocr_mode?: string;
   scanned_pdf_ocr_mode?: string;
@@ -65,10 +83,10 @@ export interface OCRAuditLog {
   document?: string;
   ocr_job?: string;
   action?: string;
-  provider?: string;
+  provider?: OCRProvider;
   mode?: string;
   reason?: string;
-  status?: string;
+  status?: OCRStatus | string;
   metadata?: Record<string, unknown>;
   created_by?: string;
   created_at?: string;
@@ -76,7 +94,7 @@ export interface OCRAuditLog {
 
 export interface OCRKnowledgeBasePipelineRun {
   id: string;
-  status: string;
+  status: OCRStatus | string;
   step?: string;
   document?: string;
   knowledge_base?: string;
@@ -95,4 +113,10 @@ export interface OCRKnowledgeBasePipelineRun {
   finished_at?: string | null;
   created_at?: string;
   updated_at?: string;
+}
+
+export interface OCRPipelinePayload {
+  document_id: string;
+  knowledge_base_id: string;
+  update_document_content: boolean;
 }

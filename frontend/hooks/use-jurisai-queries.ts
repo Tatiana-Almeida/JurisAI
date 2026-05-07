@@ -9,30 +9,35 @@ import { buildPaginatedParams, extractResults, type PaginatedPayload } from "@/l
 import { queryKeys } from "@/lib/query/keys";
 import { useActiveOrganization } from "@/hooks/use-active-organization";
 import type { HealthStatusResponse, PaginatedResponse } from "@/types/api";
+import type { User } from "@/types/auth";
+import type { BillingInvoice, BillingSubscription } from "@/types/billing";
+import type { CalendarEvent } from "@/types/calendar";
 import type { LawCase } from "@/types/cases";
 import type { Client } from "@/types/clients";
-import type { CalendarEvent } from "@/types/calendar";
 import type { Deadline } from "@/types/deadlines";
 import type { Document } from "@/types/documents";
-import type { FinanceSummary, Invoice, Expense } from "@/types/finance";
+import type { FinanceSummary, Expense, Invoice } from "@/types/finance";
 import type {
+  AskResponse,
   EmbeddingAuditLog,
   IndexingJob,
   KnowledgeBase,
+  KnowledgeBaseStats,
   KnowledgeDocument,
+  PrepareEmbeddingsResponse,
   RAGSettings,
   RetrievalQuery,
+  SearchResponse,
 } from "@/types/knowledge-base";
 import type {
   OCRAuditLog,
   OCRJob,
   OCRKnowledgeBasePipelineRun,
   OCRPageResult,
+  OCRPipelinePayload,
   OCRResult,
   OCRSettings,
 } from "@/types/ocr";
-import type { BillingInvoice, BillingSubscription } from "@/types/billing";
-import type { User } from "@/types/auth";
 
 type ListParams = Record<string, string | number | boolean | undefined | null>;
 
@@ -132,7 +137,8 @@ export function useCases(filters?: ListParams) {
   const { activeOrganizationId } = useTenantContext();
   return useQuery({
     queryKey: queryKeys.cases(activeOrganizationId, filters),
-    queryFn: async () => extractResults<LawCase>(await getList<LawCase>(endpoints.cases.list, filters)),
+    queryFn: async () =>
+      extractResults<LawCase>(await getList<LawCase>(endpoints.cases.list, filters)),
     enabled: Boolean(activeOrganizationId),
   });
 }
@@ -154,7 +160,8 @@ export function useClients(filters?: ListParams) {
   const mergedFilters = useMemo(() => ({ role: "cliente", ...(filters ?? {}) }), [filters]);
   return useQuery({
     queryKey: queryKeys.clients(activeOrganizationId, mergedFilters),
-    queryFn: async () => extractResults<Client>(await getList<Client>(endpoints.clients.list, mergedFilters)),
+    queryFn: async () =>
+      extractResults<Client>(await getList<Client>(endpoints.clients.list, mergedFilters)),
     enabled: Boolean(activeOrganizationId),
   });
 }
@@ -220,6 +227,34 @@ export function useOCRResults(filters?: ListParams) {
   });
 }
 
+export function useOCRPageResults(filters?: ListParams) {
+  const { activeOrganizationId } = useTenantContext();
+  return useQuery({
+    queryKey: queryKeys.pageResults(activeOrganizationId, filters),
+    queryFn: async () =>
+      extractResults<OCRPageResult>(await getList<OCRPageResult>(endpoints.ocr.pageResults, filters)),
+    enabled: Boolean(activeOrganizationId),
+  });
+}
+
+export function useOCRResultPages(resultId?: string) {
+  const { activeOrganizationId } = useTenantContext();
+  return useQuery({
+    queryKey: queryKeys.ocrResultPages(activeOrganizationId, resultId),
+    queryFn: async () => {
+      if (!resultId) {
+        return [] as OCRPageResult[];
+      }
+
+      const response = await apiClient.get<PaginatedResponse<OCRPageResult> | OCRPageResult[]>(
+        endpoints.ocr.resultPages(resultId),
+      );
+      return extractResults(response.data);
+    },
+    enabled: Boolean(activeOrganizationId && resultId),
+  });
+}
+
 export function useOCRSettings() {
   const { activeOrganizationId } = useTenantContext();
   return useQuery({
@@ -237,34 +272,15 @@ export function useOCRAuditLogs(filters?: ListParams) {
   return useQuery({
     queryKey: queryKeys.ocrAuditLogs(activeOrganizationId, filters),
     queryFn: async () =>
-      extractResults<OCRAuditLog>(
-        await getList<OCRAuditLog>(endpoints.ocr.auditLogs, filters),
-      ),
+      extractResults<OCRAuditLog>(await getList<OCRAuditLog>(endpoints.ocr.auditLogs, filters)),
     enabled: Boolean(activeOrganizationId),
-  });
-}
-
-export function useOCRPageResults(resultId?: string) {
-  const { activeOrganizationId } = useTenantContext();
-  return useQuery({
-    queryKey: queryKeys.pageResults(activeOrganizationId, resultId),
-    queryFn: async () => {
-      if (!resultId) {
-        return [] as OCRPageResult[];
-      }
-      const response = await apiClient.get<PaginatedResponse<OCRPageResult> | OCRPageResult[]>(
-        endpoints.ocr.resultPages(resultId),
-      );
-      return extractResults(response.data);
-    },
-    enabled: Boolean(activeOrganizationId && resultId),
   });
 }
 
 export function useOCRPipelines(filters?: ListParams) {
   const { activeOrganizationId } = useTenantContext();
   return useQuery({
-    queryKey: ["ocrPipelines", activeOrganizationId ?? "none", filters ?? {}],
+    queryKey: queryKeys.ocrPipelines(activeOrganizationId, filters),
     queryFn: async () =>
       extractResults<OCRKnowledgeBasePipelineRun>(
         await getList<OCRKnowledgeBasePipelineRun>(endpoints.ocr.pipelines, filters),
@@ -283,7 +299,8 @@ export function useKnowledgeBases() {
   const { activeOrganizationId } = useTenantContext();
   return useQuery({
     queryKey: queryKeys.knowledgeBases(activeOrganizationId),
-    queryFn: async () => extractResults<KnowledgeBase>(await getList<KnowledgeBase>(endpoints.knowledgeBase.list)),
+    queryFn: async () =>
+      extractResults<KnowledgeBase>(await getList<KnowledgeBase>(endpoints.knowledgeBase.list)),
     enabled: Boolean(activeOrganizationId),
   });
 }
@@ -294,6 +311,18 @@ export function useKnowledgeBase(id?: string) {
     queryKey: queryKeys.knowledgeBaseDetail(activeOrganizationId, id),
     queryFn: async () => {
       const response = await apiClient.get<KnowledgeBase>(endpoints.knowledgeBase.detail(id!));
+      return response.data;
+    },
+    enabled: Boolean(activeOrganizationId && id),
+  });
+}
+
+export function useKnowledgeBaseStats(id?: string) {
+  const { activeOrganizationId } = useTenantContext();
+  return useQuery({
+    queryKey: queryKeys.knowledgeBaseStats(activeOrganizationId, id),
+    queryFn: async () => {
+      const response = await apiClient.get<KnowledgeBaseStats>(endpoints.knowledgeBase.stats(id!));
       return response.data;
     },
     enabled: Boolean(activeOrganizationId && id),
@@ -357,13 +386,10 @@ export function useRAGSettings() {
 export function useEmbeddingAuditLogs(filters?: ListParams) {
   const { activeOrganizationId } = useTenantContext();
   return useQuery({
-    queryKey: ["embeddingAuditLogs", activeOrganizationId ?? "none", filters ?? {}],
+    queryKey: queryKeys.embeddingAuditLogs(activeOrganizationId, filters),
     queryFn: async () =>
       extractResults<EmbeddingAuditLog>(
-        await getList<EmbeddingAuditLog>(
-          endpoints.knowledgeBase.embeddingAuditLogs,
-          filters,
-        ),
+        await getList<EmbeddingAuditLog>(endpoints.knowledgeBase.embeddingAuditLogs, filters),
       ),
     enabled: Boolean(activeOrganizationId),
   });
@@ -384,9 +410,7 @@ export function useCalendarEvents(filters?: ListParams) {
   return useQuery({
     queryKey: queryKeys.calendarEvents(activeOrganizationId, filters),
     queryFn: async () =>
-      extractResults<CalendarEvent>(
-        await getList<CalendarEvent>(endpoints.calendar.events, filters),
-      ),
+      extractResults<CalendarEvent>(await getList<CalendarEvent>(endpoints.calendar.events, filters)),
     enabled: Boolean(activeOrganizationId),
   });
 }
@@ -550,6 +574,7 @@ export function useRunOCR() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.ocrJobs(activeOrganizationId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.ocrResults(activeOrganizationId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.documents(activeOrganizationId) });
       toast.success("OCR iniciado.");
     },
   });
@@ -568,7 +593,8 @@ export function useRunAdvancedOCR() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.ocrJobs(activeOrganizationId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.ocrResults(activeOrganizationId) });
-      toast.success("OCR avançado iniciado.");
+      queryClient.invalidateQueries({ queryKey: queryKeys.documents(activeOrganizationId) });
+      toast.success("OCR avancado iniciado.");
     },
   });
 }
@@ -584,7 +610,48 @@ export function useApplyOCRResult() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.documents(activeOrganizationId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.ocrResults(activeOrganizationId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.ocrResultPages(activeOrganizationId) });
       toast.success("Resultado de OCR aplicado ao documento.");
+    },
+  });
+}
+
+export function useUpdateOCRSettings() {
+  const queryClient = useQueryClient();
+  const { activeOrganizationId } = useTenantContext();
+  return useMutation({
+    mutationFn: async (payload: Partial<OCRSettings>) => {
+      const response = await apiClient.patch<OCRSettings>(endpoints.ocr.settings, payload);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.ocrSettings(activeOrganizationId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.ocrAuditLogs(activeOrganizationId) });
+      toast.success("Configuracoes de OCR atualizadas.");
+    },
+  });
+}
+
+export function useRunOCRToKnowledgeBasePipeline() {
+  const queryClient = useQueryClient();
+  const { activeOrganizationId } = useTenantContext();
+  return useMutation({
+    mutationFn: async (payload: OCRPipelinePayload) => {
+      const response = await apiClient.post<OCRKnowledgeBasePipelineRun>(
+        endpoints.ocr.runKnowledgeBasePipeline,
+        payload,
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.ocrPipelines(activeOrganizationId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.ocrJobs(activeOrganizationId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.ocrResults(activeOrganizationId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.documents(activeOrganizationId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.knowledgeDocuments(activeOrganizationId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.indexingJobs(activeOrganizationId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.knowledgeBases(activeOrganizationId) });
+      toast.success("Pipeline OCR para Knowledge Base iniciado.");
     },
   });
 }
@@ -606,19 +673,64 @@ export function useCreateKnowledgeBase() {
   });
 }
 
+export function useKnowledgeBaseSearch(knowledgeBaseId?: string) {
+  return useMutation({
+    mutationFn: async (payload: { query: string; limit?: number }) => {
+      const response = await apiClient.post<SearchResponse>(
+        endpoints.knowledgeBase.search(knowledgeBaseId!),
+        payload,
+      );
+      return response.data;
+    },
+  });
+}
+
 export function useAskKnowledgeBase(knowledgeBaseId?: string) {
   return useMutation({
     mutationFn: async (payload: { query: string; limit?: number }) => {
-      const response = await apiClient.post(endpoints.knowledgeBase.ask(knowledgeBaseId!), payload);
-      return response.data as {
-        answer?: string;
-        confidence?: string;
-        sources_count?: number;
-        retrieval_method?: string;
-        sources?: Array<Record<string, unknown>>;
-        fallback_used?: boolean;
-        fallback_reason?: string;
-      };
+      const response = await apiClient.post<AskResponse>(
+        endpoints.knowledgeBase.ask(knowledgeBaseId!),
+        payload,
+      );
+      return response.data;
+    },
+  });
+}
+
+export function useUpdateRAGSettings() {
+  const queryClient = useQueryClient();
+  const { activeOrganizationId } = useTenantContext();
+  return useMutation({
+    mutationFn: async (payload: Partial<RAGSettings>) => {
+      const response = await apiClient.patch<RAGSettings>(endpoints.knowledgeBase.settings, payload);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.ragSettings(activeOrganizationId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.embeddingAuditLogs(activeOrganizationId) });
+      toast.success("Configuracoes de RAG atualizadas.");
+    },
+  });
+}
+
+export function usePrepareEmbeddings(knowledgeBaseId?: string) {
+  const queryClient = useQueryClient();
+  const { activeOrganizationId } = useTenantContext();
+  return useMutation({
+    mutationFn: async (payload?: { knowledge_document_id?: string }) => {
+      const response = await apiClient.post<PrepareEmbeddingsResponse>(
+        endpoints.knowledgeBase.prepareEmbeddings(knowledgeBaseId!),
+        payload ?? {},
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.indexingJobs(activeOrganizationId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.embeddingAuditLogs(activeOrganizationId) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.knowledgeBaseStats(activeOrganizationId, knowledgeBaseId),
+      });
+      toast.success("Preparacao de embeddings iniciada.");
     },
   });
 }
