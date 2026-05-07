@@ -1,16 +1,26 @@
 import { ModuleStateCard } from "@/components/shared/module-state-card";
+import type { BillingInvoice, BillingSubscription } from "@/types/billing";
 
-export function BillingStatusCard() {
+type BillingStatusCardProps = {
+  subscriptions?: BillingSubscription[];
+  invoices?: BillingInvoice[];
+};
+
+export function BillingStatusCard({
+  subscriptions = [],
+  invoices = [],
+}: BillingStatusCardProps) {
   return (
     <ModuleStateCard
       title="Billing integration pending"
       status="pending"
-      description="Billing ainda está em preparação para cobrança real. O backend atual tem pagamentos, subscriptions, invoices e webhook, mas não expõe checkout nem cancelamento comercial."
+      description="Billing ainda esta em preparacao para cobranca real. O backend atual tem pagamentos, subscriptions, invoices e webhook, mas nao expoe checkout, cancelamento nem portal comercial de faturacao."
       bullets={[
+        `Subscriptions reais visiveis: ${subscriptions.length}.`,
+        `Invoices reais visiveis: ${invoices.length}.`,
         "Checkout pending.",
-        "Webhook pending para enforcement comercial completo.",
+        "Webhook existe, mas o enforcement comercial completo continua pendente.",
         "Subscription enforcement pending.",
-        "UI deve permanecer honesta enquanto checkout não existir.",
       ]}
     />
   );

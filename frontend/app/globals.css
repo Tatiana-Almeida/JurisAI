@@ -49,6 +49,10 @@
 }
 
 :root {
+  --font-sans:
+    "Manrope", "Aptos", "Segoe UI", "Helvetica Neue", "Arial Nova", Arial, sans-serif;
+  --font-geist-mono:
+    "IBM Plex Mono", "Cascadia Code", "Fira Code", "Consolas", "Courier New", monospace;
   --background: oklch(0.992 0.004 247.86);
   --foreground: oklch(0.208 0.014 248.06);
   --card: oklch(1 0 0);

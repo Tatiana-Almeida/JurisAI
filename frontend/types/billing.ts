@@ -10,6 +10,7 @@ export interface BillingPlan {
   name: string;
   status?: "implemented" | "partial" | "pending" | "missing" | "roadmap";
   priceLabel?: string;
+  description?: string;
 }
 
 export interface BillingSubscription {

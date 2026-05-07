@@ -4,12 +4,13 @@ export function SecuritySettings() {
   return (
     <Card className="jurisai-panel rounded-3xl">
       <CardHeader>
-        <CardTitle>Segurança</CardTitle>
+        <CardTitle>Seguranca</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2 text-sm text-muted-foreground">
         <div>JWT via Authorization Bearer.</div>
-        <div>LocalStorage é temporário até hardening com cookies httpOnly.</div>
-        <div>Cache multi-tenant é limpo ao trocar organização.</div>
+        <div>LocalStorage continua temporario ate hardening com cookies httpOnly.</div>
+        <div>Cache multi-tenant e limpo ao trocar organizacao.</div>
+        <div>Sem segredos persistidos no repositório frontend.</div>
       </CardContent>
     </Card>
   );

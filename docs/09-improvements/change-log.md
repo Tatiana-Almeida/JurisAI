@@ -640,3 +640,12 @@ Resumo:
 - Integrated Knowledge Base search and ask UI.
 - Added RAG sources display with confidence and scores.
 - Added OCR to Knowledge Base pipeline foundation.
+
+## Frontend operational modules flows
+
+- Integrated frontend deadlines flow with critical and overdue highlighting.
+- Integrated calendar events using the real backend contract.
+- Integrated finance summary, invoices and expenses with honest partial states.
+- Refined billing readiness UI without pretending checkout is active.
+- Refined settings and client portal foundation using real backend endpoints.
+- Removed build dependence on remote Google Fonts for more reliable frontend builds.

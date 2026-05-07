@@ -15,6 +15,7 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
         <div>Nome: {user?.name ?? "N/D"}</div>
         <div>Email: {user?.email ?? "N/D"}</div>
         <div>Role: {user?.role ?? "N/D"}</div>
+        <div>Organizacao atual: {user?.organization?.name ?? "Gerida pelo switcher do frontend"}</div>
       </CardContent>
     </Card>
   );

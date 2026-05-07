@@ -172,6 +172,15 @@ npm run test:e2e
 - Settings
 - Portal do Cliente
 
+## Fluxos operacionais integrados
+
+- `Prazos`: consome `GET /api/v1/deadlines/` com filtros por estado, `upcoming_days`, destaque visual para itens criticos e bloqueio quando nao existe organizacao ativa.
+- `Calendario`: consome `GET /api/v1/calendar/events/` e apresenta eventos juridicos por tipo e estado, com fallback visual elegante quando nao ha eventos.
+- `Financeiro`: consome `GET /api/v1/legal-finance/summary/`, `GET /api/v1/legal-finance/invoices/` e `GET /api/v1/legal-finance/expenses/`, com resumo honesto e graficos apenas quando ha dados reais.
+- `Billing`: permanece em modo readiness, lendo `subscriptions` e `invoices` reais sem expor checkout, portal self-serve ou cancelamento inexistentes.
+- `Settings`: consolida perfil, organizacao ativa, OCR settings, RAG settings, seguranca e estado do ambiente, sem fingir configuracoes ainda nao expostas pelo backend.
+- `Portal do Cliente`: usa os endpoints reais `/api/v1/client-portal/cases/`, `/api/v1/client-portal/documents/` e `/api/v1/client-portal/messages/`, mas continua marcado como foundation.
+
 ## OCR flows
 
 - A tela `/ocr` cobre jobs, results, page results, audit logs, settings e pipelines.
@@ -208,6 +217,7 @@ npm run test:e2e
 - A camada de IA pode continuar a depender de respostas mock no backend quando `OPENAI_API_KEY` nao existir
 - `local-hash-v1` continua a ser uma fundacao tecnica de retrieval, nao um embedding semantico juridico completo
 - No Render Free, OCR e indexing podem continuar limitados se o worker Celery nao estiver ativo
+- O build de producao foi ajustado para usar fontes locais/system-safe em vez de depender de `next/font/google`, evitando falhas de rede em CI e ambientes restritos
 - O logo foi integrado a partir do asset fornecido localmente ao workspace
 
 ## Proximos passos

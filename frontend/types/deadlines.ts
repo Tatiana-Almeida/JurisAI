@@ -10,3 +10,5 @@ export interface Deadline {
   days_remaining?: number;
   is_overdue?: boolean;
 }
+
+export type DeadlineFilterStatus = "all" | "pending" | "completed" | "overdue" | "critical";

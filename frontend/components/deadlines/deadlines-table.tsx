@@ -16,18 +16,25 @@ import {
 
 const columnHelper = createColumnHelper<Deadline>();
 
+type DeadlinesTableProps = {
+  deadlines: Deadline[];
+};
+
 const columns = [
   columnHelper.accessor("law_case_id", {
-    header: "Caso",
-    cell: ({ getValue }) => getValue()?.slice(0, 8) ?? "Sem caso",
+    header: "Processo",
+    cell: ({ getValue }) => getValue()?.slice(0, 8) ?? "Sem processo",
   }),
   columnHelper.accessor("due_date", {
     header: "Vencimento",
-    cell: ({ getValue }) =>
-      getValue() ? format(new Date(getValue()!), "dd/MM/yyyy HH:mm") : "Sem data",
+    cell: ({ getValue }) => {
+      const value = getValue();
+      return value ? format(new Date(value), "dd/MM/yyyy HH:mm") : "Sem data";
+    },
   }),
   columnHelper.accessor("days_remaining", {
     header: "Dias",
+    cell: ({ getValue }) => getValue() ?? "n/d",
   }),
   columnHelper.display({
     id: "status",
@@ -36,14 +43,11 @@ const columns = [
       <DeadlineStatusBadge
         completed={row.original.completed}
         isOverdue={row.original.is_overdue}
+        daysRemaining={row.original.days_remaining}
       />
     ),
   }),
 ];
-
-type DeadlinesTableProps = {
-  deadlines: Deadline[];
-};
 
 export function DeadlinesTable({ deadlines }: DeadlinesTableProps) {
   const table = useReactTable({
@@ -56,7 +60,7 @@ export function DeadlinesTable({ deadlines }: DeadlinesTableProps) {
     return (
       <EmptyState
         title="Sem prazos"
-        description="Os prazos desta organização vão aparecer aqui com destaque visual para risco e atraso."
+        description="Os prazos desta organizacao aparecem aqui com destaque visual para risco e atraso."
       />
     );
   }
@@ -79,7 +83,18 @@ export function DeadlinesTable({ deadlines }: DeadlinesTableProps) {
         </TableHeader>
         <TableBody>
           {table.getRowModel().rows.map((row) => (
-            <TableRow key={row.id}>
+            <TableRow
+              key={row.id}
+              className={
+                row.original.is_overdue
+                  ? "bg-rose-500/5"
+                  : typeof row.original.days_remaining === "number" &&
+                      row.original.days_remaining <= 3 &&
+                      !row.original.completed
+                    ? "bg-amber-500/5"
+                    : undefined
+              }
+            >
               {row.getVisibleCells().map((cell) => (
                 <TableCell key={cell.id}>
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
