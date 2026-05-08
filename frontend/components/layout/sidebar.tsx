@@ -10,28 +10,29 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden w-72 flex-col border-r border-sidebar-border bg-sidebar px-5 py-6 text-sidebar-foreground lg:flex">
+    <aside className="sticky top-0 hidden h-screen w-72 overflow-y-auto border-r border-sidebar-border bg-sidebar px-5 py-6 text-sidebar-foreground lg:flex lg:flex-col">
       <div className="mb-8 flex items-center gap-3 px-2">
         <Logo size="sidebar" />
       </div>
 
-      <nav className="flex-1 space-y-1">
+      <nav className="flex-1 space-y-1" aria-label="Navegacao principal">
         {NAVIGATION_ITEMS.map(({ href, icon: Icon, label }) => {
-          const active = pathname === href;
+          const active = pathname === href || pathname.startsWith(`${href}/`);
 
           return (
             <Link
               key={href}
               href={href}
+              aria-current={active ? "page" : undefined}
               className={cn(
-                "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm transition-colors",
+                "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring",
                 active
                   ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-panel"
                   : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
               )}
             >
-              <Icon className="size-4" />
-              <span>{label}</span>
+              <Icon className="size-4 shrink-0" />
+              <span className="truncate">{label}</span>
             </Link>
           );
         })}

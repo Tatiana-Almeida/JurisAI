@@ -14,7 +14,10 @@ vi.mock("@/hooks/use-active-organization", () => ({
 }));
 
 vi.mock("@/stores/auth-store", () => ({
-  useAuthStore: () => ({ email: "advogado@example.com", role: "advogado" }),
+  useAuthStore: (selector: (state: { user: { email: string; role: string } }) => unknown) =>
+    selector({
+      user: { email: "advogado@example.com", role: "advogado" },
+    }),
 }));
 
 vi.mock("@/hooks/use-jurisai-queries", () => ({

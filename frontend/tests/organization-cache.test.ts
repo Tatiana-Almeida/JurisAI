@@ -9,6 +9,8 @@ describe("organization cache isolation", () => {
     useOrganizationStore.setState({
       activeOrganizationId: null,
       availableOrganizations: [],
+      loadStatus: "idle",
+      loadError: null,
     });
   });
 
@@ -29,8 +31,17 @@ describe("organization cache isolation", () => {
     ]);
 
     expect(useOrganizationStore.getState().activeOrganizationId).toBe("org-1");
+    expect(useOrganizationStore.getState().loadStatus).toBe("ready");
     expect(queryKeys.cases("org-1")[1]).toBe("org-1");
     expect(queryKeys.documents("org-1")[1]).toBe("org-1");
     expect(queryKeys.billing("org-1")[1]).toBe("org-1");
+  });
+
+  it("stores a friendly load error when organizations fail to load", () => {
+    useOrganizationStore.getState().setLoadError("Falha de staging.");
+
+    expect(useOrganizationStore.getState().loadStatus).toBe("error");
+    expect(useOrganizationStore.getState().loadError).toBe("Falha de staging.");
+    expect(useOrganizationStore.getState().activeOrganizationId).toBeNull();
   });
 });

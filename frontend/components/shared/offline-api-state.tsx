@@ -7,8 +7,8 @@ type OfflineApiStateProps = {
 export function OfflineApiState({ apiUrl }: OfflineApiStateProps) {
   return (
     <ErrorState
-      title="API indisponível"
-      description={`Não foi possível contactar a API configurada em ${apiUrl}. Verifique staging, CORS, rede ou autenticação.`}
+      title="API indisponivel"
+      description={`Nao foi possivel contactar a API configurada em ${apiUrl}. Verifique staging, CORS, rede ou autenticacao.`}
     />
   );
 }

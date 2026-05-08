@@ -30,6 +30,7 @@ export function KBAsk({ knowledgeBaseId }: KBAskProps) {
     !askMutation.data?.retrieval_method ||
     askMutation.data.retrieval_method.includes("local") ||
     askMutation.data.effective_retrieval_mode?.includes("local");
+  const confidence = Number(askMutation.data?.confidence ?? 0);
 
   return (
     <Card className="jurisai-panel rounded-3xl">
@@ -74,13 +75,26 @@ export function KBAsk({ knowledgeBaseId }: KBAskProps) {
               <div className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
                 retrieval_method={askMutation.data.retrieval_method ?? "n/d"}
               </div>
+              <div className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
+                sources_count={String(askMutation.data.sources_count ?? askMutation.data.sources?.length ?? 0)}
+              </div>
             </div>
             <div className="whitespace-pre-wrap text-muted-foreground">
               {askMutation.data.answer ?? "Sem resposta."}
             </div>
-            {Number(askMutation.data.confidence ?? 0) < 0.4 ? (
+            {confidence < 0.4 ? (
               <div className="rounded-2xl border border-amber-300/40 bg-amber-500/10 p-3 text-amber-900 dark:text-amber-200">
                 Confianca baixa. Recomenda-se validacao humana antes de reutilizar a resposta.
+              </div>
+            ) : null}
+            {(askMutation.data.sources_count ?? askMutation.data.sources?.length ?? 0) === 0 ? (
+              <div className="rounded-2xl border border-amber-300/40 bg-amber-500/10 p-3 text-amber-900 dark:text-amber-200">
+                O backend nao encontrou fontes suficientes para sustentar a resposta.
+              </div>
+            ) : null}
+            {askMutation.data.fallback_used ? (
+              <div className="rounded-2xl border border-amber-300/40 bg-amber-500/10 p-3 text-amber-900 dark:text-amber-200">
+                Fallback textual utilizado: {askMutation.data.fallback_reason ?? "sem motivo detalhado."}
               </div>
             ) : null}
             {usesLocalHash ? (

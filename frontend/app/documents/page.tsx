@@ -60,12 +60,12 @@ export default function DocumentsPage() {
       <div className="space-y-8">
         <PageHeader
           title="Documentos"
-          description="Upload jurídico com validação alinhada ao serializer real de documentos e gatilhos reais para OCR."
+          description="Upload juridico com validacao alinhada ao serializer real de documentos e gatilhos reais para OCR."
         />
         {!activeOrganizationId ? (
           <EmptyState
-            title="Selecione uma organização"
-            description="Selecione uma organização para listar e enviar documentos deste tenant."
+            title="Selecione uma organizacao"
+            description="Selecione uma organizacao para listar e enviar documentos deste tenant."
           />
         ) : (
           <>
@@ -77,7 +77,7 @@ export default function DocumentsPage() {
                 <DocumentUploadDropzone
                   onFilesAccepted={(files) => setSelectedFiles(files)}
                   uploadProgress={effectiveProgress}
-                  helperText="O serializer aceita PDF, DOCX, TXT, PNG, JPG e JPEG, com validação binária e limite de 10 MB."
+                  helperText="O serializer aceita PDF, DOCX, TXT, PNG, JPG e JPEG, com validacao binaria e limite de 10 MB."
                 />
                 <form
                   className="space-y-4"
@@ -171,7 +171,7 @@ export default function DocumentsPage() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="document-content">Conteúdo inicial</Label>
+                    <Label htmlFor="document-content">Conteudo inicial</Label>
                     <Input id="document-content" {...form.register("content")} />
                   </div>
                   {form.formState.errors.root?.message ? (
@@ -192,7 +192,7 @@ export default function DocumentsPage() {
             {documentsQuery.isError ? (
               <ModuleErrorState
                 moduleName="documentos"
-                description="Confirme autenticação, organização ativa e disponibilidade do endpoint de documentos."
+                description="Confirme autenticacao, organizacao ativa e disponibilidade do endpoint de documentos."
               />
             ) : null}
             {documentsQuery.data ? <DocumentsTable documents={documentsQuery.data} /> : null}

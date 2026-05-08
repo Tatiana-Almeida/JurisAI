@@ -55,6 +55,17 @@ Variaveis publicas principais:
 npm run dev
 ```
 
+## Testing against Render staging
+
+1. Copie `.env.staging.example` para `.env.local`.
+2. Confirme `NEXT_PUBLIC_API_URL=https://jurisai-web-wh9d.onrender.com`.
+3. Rode `npm run dev`.
+4. Abra `http://localhost:3000`.
+5. Entre com um utilizador criado no Django Admin do staging.
+6. Valide dashboard, organizacao ativa, clientes, processos, documentos, OCR e Knowledge Base.
+
+Nao commite `.env.local` nem tokens de autenticacao.
+
 ## Build e testes
 
 ```bash
@@ -214,11 +225,25 @@ npm run test:e2e
 - O modulo "Clientes" usa o endpoint real `/api/v1/users/` com filtro por papel `cliente`; o backend nao expoe um `/api/v1/clients/` dedicado
 - O modulo "Processos" usa o endpoint real `/api/v1/cases/`; o backend atual nao expoe `/api/v1/law-cases/`
 - Billing UI permanece honesta: sem checkout ativo enquanto o backend nao expuser esse fluxo real
+- Billing readiness continua parcial:
+  - checkout ainda nao configurado
+  - webhooks comerciais ainda pendentes de integracao end-to-end
+  - bloqueio por plano ainda pendente
 - A camada de IA pode continuar a depender de respostas mock no backend quando `OPENAI_API_KEY` nao existir
 - `local-hash-v1` continua a ser uma fundacao tecnica de retrieval, nao um embedding semantico juridico completo
 - No Render Free, OCR e indexing podem continuar limitados se o worker Celery nao estiver ativo
+- No Render Free, o worker Celery continua um bloqueador para OCR/indexacao totalmente reais em background
 - O build de producao foi ajustado para usar fontes locais/system-safe em vez de depender de `next/font/google`, evitando falhas de rede em CI e ambientes restritos
 - O logo foi integrado a partir do asset fornecido localmente ao workspace
+
+## Checklist manual de UX
+
+- Login mostra erro por campo e erro global sem expor tokens.
+- Troca de organizacao limpa o cache e atualiza a navegacao.
+- Modulos juridicos nao fazem queries sem tenant ativo.
+- Billing continua honesto, sem botoes de pagamento ativos.
+- Knowledge Base destaca baixa confianca, fallback e limitacao do `local-hash-v1`.
+- Dashboard informa que o worker Celery continua pendente no Render Free.
 
 ## Proximos passos
 

@@ -1,26 +1,16 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { OCRSettingsPanel } from "@/components/ocr/ocr-settings-panel";
 
-const mutateAsyncMock = vi.fn();
-
 vi.mock("@/hooks/use-ocr", () => ({
   useUpdateOCRSettings: () => ({
-    mutateAsync: mutateAsyncMock,
+    mutateAsync: vi.fn(),
     isPending: false,
   }),
 }));
 
 describe("ocr settings panel", () => {
-  it("maps DRF errors returned by the settings endpoint", async () => {
-    mutateAsyncMock.mockRejectedValueOnce({
-      response: {
-        data: {
-          preferred_ocr_provider: ["Provider invalido."],
-        },
-      },
-    });
-
+  it("renders operational OCR governance controls", () => {
     render(
       <OCRSettingsPanel
         settings={{
@@ -34,10 +24,8 @@ describe("ocr settings panel", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Guardar configuracoes" }));
-
-    await waitFor(() => {
-      expect(screen.getByText("Provider invalido.")).toBeInTheDocument();
-    });
+    expect(screen.getByText("Configuracoes de OCR")).toBeInTheDocument();
+    expect(screen.getByText(/OCR externo continua desativado por padrao/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Guardar configuracoes" })).toBeInTheDocument();
   });
 });

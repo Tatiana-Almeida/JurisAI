@@ -23,8 +23,8 @@ export default function ClientsPage() {
         />
         {!activeOrganizationId ? (
           <EmptyState
-            title="Selecione uma organização"
-            description="Selecione uma organização para visualizar e criar clientes deste tenant."
+            title="Selecione uma organizacao"
+            description="Selecione uma organizacao para visualizar e criar clientes deste tenant."
           />
         ) : (
           <>
@@ -33,7 +33,7 @@ export default function ClientsPage() {
             {clientsQuery.isError ? (
               <ModuleErrorState
                 moduleName="clientes"
-                description="Confirme autenticação e disponibilidade de `/api/v1/users/`."
+                description="Confirme autenticacao e disponibilidade de `/api/v1/users/`."
               />
             ) : null}
             {clientsQuery.data ? <ClientsTable clients={clientsQuery.data} /> : null}

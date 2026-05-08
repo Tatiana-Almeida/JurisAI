@@ -4,8 +4,8 @@ type LoadingScreenProps = {
 };
 
 export function LoadingScreen({
-  title = "A preparar sessão",
-  description = "A autenticação e o contexto da organização estão a ser inicializados.",
+  title = "A preparar sessao",
+  description = "A autenticacao e o contexto da organizacao estao a ser inicializados.",
 }: LoadingScreenProps) {
   return (
     <div className="flex min-h-[50vh] items-center justify-center">

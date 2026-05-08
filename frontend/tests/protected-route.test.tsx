@@ -26,11 +26,11 @@ describe("protected route", () => {
   it("shows a loading screen while auth is bootstrapping", () => {
     render(
       <ProtectedRoute>
-        <div>Área privada</div>
+        <div>Area privada</div>
       </ProtectedRoute>,
     );
 
-    expect(screen.getByText("A preparar sessão")).toBeInTheDocument();
+    expect(screen.getByText("A preparar sessao")).toBeInTheDocument();
   });
 
   it("redirects unauthenticated users to login", async () => {
@@ -43,7 +43,7 @@ describe("protected route", () => {
 
     render(
       <ProtectedRoute>
-        <div>Área privada</div>
+        <div>Area privada</div>
       </ProtectedRoute>,
     );
 
@@ -62,10 +62,10 @@ describe("protected route", () => {
 
     render(
       <ProtectedRoute>
-        <div>Área privada</div>
+        <div>Area privada</div>
       </ProtectedRoute>,
     );
 
-    expect(screen.getByText("Área privada")).toBeInTheDocument();
+    expect(screen.getByText("Area privada")).toBeInTheDocument();
   });
 });

@@ -53,7 +53,7 @@ export default function DashboardPage() {
         ) : (
           <ModuleErrorState
             moduleName="dashboard"
-            description="Verifique autenticação, organização ativa e disponibilidade dos endpoints de dashboard."
+            description="Verifique autenticacao, organizacao ativa e disponibilidade dos endpoints de dashboard."
           />
         )}
       </AppShell>
@@ -67,7 +67,7 @@ export default function DashboardPage() {
       <div className="space-y-8">
         <PageHeader
           title="Dashboard"
-          description="Visão operacional inicial do JurisAI com healthcheck, multi-tenancy e módulos jurídicos ligados aos endpoints reais do backend."
+          description="Visao operacional inicial do JurisAI com healthcheck, contexto multi-tenant e modulos juridicos ligados aos endpoints reais do backend."
         />
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <MetricCard
@@ -78,10 +78,10 @@ export default function DashboardPage() {
           <MetricCard
             title="Documentos"
             value={summary?.total_documents ?? 0}
-            hint="Documentos da organização ativa"
+            hint="Documentos da organizacao ativa"
           />
           <MetricCard
-            title="Prazos próximos"
+            title="Prazos proximos"
             value={summary?.upcoming_deadlines ?? 0}
             hint={`${summary?.overdue_deadlines ?? 0} em atraso`}
           />

@@ -21,15 +21,15 @@ export function SystemStatusCard({
     <ModuleStateCard
       title="Estado do sistema"
       status={reachable && health?.status === "ok" ? "active" : "partial"}
-      description="O frontend consome healthcheck real, contexto multi-tenant e módulos jurídicos confirmados no backend."
+      description="O frontend consome healthcheck real, contexto multi-tenant e modulos juridicos confirmados no backend."
       bullets={[
         `Environment: ${environment}`,
         `API URL: ${apiUrl}`,
-        `Healthcheck backend: ${health?.status ?? "indisponível"}`,
-        `Backend reachable: ${reachable ? "sim" : "não"}`,
-        `Organização ativa: ${organization?.name ?? "não selecionada"}`,
-        "Worker Celery no staging público continua pendente no plano atual.",
-        "Checkout, webhook comercial e subscription enforcement continuam pendentes.",
+        `Healthcheck backend: ${health?.status ?? "indisponivel"}`,
+        `Backend reachable: ${reachable ? "sim" : "nao"}`,
+        `Organizacao ativa: ${organization?.name ?? "nao selecionada"}`,
+        "Worker Celery pendente no Render Free para jobs assincronos reais.",
+        "Checkout, webhooks comerciais e bloqueio por plano continuam pendentes.",
       ]}
     />
   );

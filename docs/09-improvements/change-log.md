@@ -649,3 +649,10 @@ Resumo:
 - Refined billing readiness UI without pretending checkout is active.
 - Refined settings and client portal foundation using real backend endpoints.
 - Removed build dependence on remote Google Fonts for more reliable frontend builds.
+
+## Frontend MVP polish and staging validation
+
+- Polished frontend MVP workflows for staging validation.
+- Improved login and organization UX.
+- Improved module empty and error states.
+- Improved billing and AI limitation messaging.

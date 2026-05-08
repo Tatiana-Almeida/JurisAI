@@ -23,14 +23,30 @@ export function getApiBaseUrl() {
 }
 
 function toApiError(error: AxiosError<{ detail?: string }>): ApiError {
+  const status = error.response?.status ?? 0;
+  const hasResponse = Boolean(error.response);
+  const message =
+    error.response?.data?.detail ||
+    (status === 401
+      ? "Sessao expirada ou credenciais invalidas."
+      : status === 402
+        ? "A conta atual precisa de um plano elegivel para esta operacao."
+        : status === 403
+          ? "Voce nao tem permissao para aceder a este recurso."
+          : status === 429
+            ? "Muitas tentativas em pouco tempo. Tente novamente dentro de instantes."
+            : status >= 500
+              ? "O backend encontrou um erro interno. Tente novamente em instantes."
+              : !hasResponse
+                ? "Nao foi possivel contactar a API configurada."
+                : error.message || "Ocorreu um erro inesperado.");
+
   return {
-    status: error.response?.status ?? 500,
-    message:
-      error.response?.data?.detail ||
-      error.message ||
-      "Ocorreu um erro inesperado.",
+    status,
+    message,
     detail: error.response?.data?.detail,
     data: error.response?.data,
+    code: error.code,
   };
 }
 
@@ -99,7 +115,7 @@ apiClient.interceptors.response.use(
       return Promise.reject(toApiError(error));
     }
 
-    return Promise.reject(error);
+    return Promise.reject(toApiError(error));
   },
 );
 

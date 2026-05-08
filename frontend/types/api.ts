@@ -10,6 +10,7 @@ export interface ApiError {
   message: string;
   detail?: string;
   data?: unknown;
+  code?: string;
 }
 
 export type DRFValidationError = Record<string, string[]>;

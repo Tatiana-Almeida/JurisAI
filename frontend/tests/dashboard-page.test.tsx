@@ -65,6 +65,7 @@ describe("dashboard page", () => {
     expect(screen.getAllByText("Processos").length).toBeGreaterThan(0);
     expect(screen.getByText("Estado do sistema")).toBeInTheDocument();
     expect(screen.getByText(/API URL:/)).toBeInTheDocument();
-    expect(screen.getByText(/Organização ativa: JurisAI Demo/)).toBeInTheDocument();
+    expect(screen.getByText(/Organizacao ativa: JurisAI Demo/)).toBeInTheDocument();
+    expect(screen.getByText(/Worker Celery pendente no Render Free/)).toBeInTheDocument();
   });
 });

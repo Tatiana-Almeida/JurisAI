@@ -37,7 +37,7 @@ export function getDRFErrorMessage(error: unknown) {
   }
 
   const axiosError = error as AxiosError<{ detail?: string }> | undefined;
-  return axiosError?.response?.data?.detail || "Não foi possível concluir a ação.";
+  return axiosError?.response?.data?.detail || "Nao foi possivel concluir a acao.";
 }
 
 export function mapDRFErrorsToForm<TFieldValues extends FieldValues>(

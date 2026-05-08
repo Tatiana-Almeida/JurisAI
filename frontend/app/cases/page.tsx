@@ -34,7 +34,7 @@ export default function CasesPage() {
       <div className="space-y-8">
         <PageHeader
           title="Processos"
-          description="Gestão multi-tenant de processos jurídicos ligada ao endpoint real `/api/v1/cases/` com filtros simples de busca e estado."
+          description="Gestao multi-tenant de processos juridicos ligada ao endpoint real `/api/v1/cases/` com filtros simples de busca e estado."
           actions={
             <Button asChild>
               <Link href="/cases/new">Novo processo</Link>
@@ -43,8 +43,8 @@ export default function CasesPage() {
         />
         {!activeOrganizationId ? (
           <EmptyState
-            title="Selecione uma organização"
-            description="Selecione uma organização para visualizar os processos deste tenant."
+            title="Selecione uma organizacao"
+            description="Selecione uma organizacao para visualizar os processos deste tenant."
           />
         ) : (
           <>
@@ -52,7 +52,7 @@ export default function CasesPage() {
               <Input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Buscar por título ou descrição"
+                placeholder="Buscar por titulo ou descricao"
               />
               <Select value={status} onValueChange={setStatus}>
                 <SelectTrigger>
@@ -71,7 +71,7 @@ export default function CasesPage() {
             {casesQuery.isError ? (
               <ModuleErrorState
                 moduleName="processos"
-                description="Confirme autenticação, organização ativa e disponibilidade do backend."
+                description="Confirme autenticacao, organizacao ativa e disponibilidade do backend."
               />
             ) : null}
             {casesQuery.data ? <CasesTable cases={casesQuery.data} /> : null}

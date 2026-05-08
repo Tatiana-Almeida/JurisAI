@@ -36,7 +36,7 @@ describe("login form", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Entrar" }));
 
-    expect(await screen.findByText("Introduza um email válido.")).toBeInTheDocument();
+    expect(await screen.findByText("Introduza um email valido.")).toBeInTheDocument();
     expect(
       await screen.findByText("A password deve ter pelo menos 8 caracteres."),
     ).toBeInTheDocument();

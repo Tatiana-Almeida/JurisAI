@@ -11,7 +11,7 @@ type AppShellProps = {
 export function AppShell({ children, allowedRoles, portalOnly }: AppShellProps) {
   return (
     <ProtectedRoute allowedRoles={allowedRoles} portalOnly={portalOnly}>
-      <div className="min-h-screen bg-transparent lg:grid lg:grid-cols-[18rem_1fr]">
+      <div className="min-h-screen overflow-x-hidden bg-transparent lg:grid lg:grid-cols-[18rem_1fr]">
         <Sidebar />
         <div className="min-h-screen">
           <Topbar />

@@ -7,6 +7,7 @@ import { apiClient } from "@/lib/api/client";
 import { queryKeys } from "@/lib/query/keys";
 import { useAuthStore } from "@/stores/auth-store";
 import { useOrganizationStore } from "@/stores/organization-store";
+import type { ApiError } from "@/types/api";
 import type { User } from "@/types/auth";
 import type { Organization } from "@/types/organization";
 
@@ -18,6 +19,9 @@ export function useAuthBootstrap() {
   const logout = useAuthStore((state) => state.logout);
   const markBootstrapped = useAuthStore((state) => state.markBootstrapped);
   const bootstrapOrganizations = useOrganizationStore((state) => state.bootstrapOrganizations);
+  const setOrganizationsLoading = useOrganizationStore((state) => state.setLoading);
+  const setOrganizationsLoadError = useOrganizationStore((state) => state.setLoadError);
+  const clearOrganizationsLoadError = useOrganizationStore((state) => state.clearLoadError);
   const resetOrganizations = useOrganizationStore((state) => state.reset);
 
   const enabled = Boolean(tokens?.access);
@@ -25,6 +29,12 @@ export function useAuthBootstrap() {
   useEffect(() => {
     bootstrapAuth();
   }, [bootstrapAuth]);
+
+  useEffect(() => {
+    if (enabled) {
+      setOrganizationsLoading();
+    }
+  }, [enabled, setOrganizationsLoading]);
 
   const meQuery = useQuery({
     queryKey: queryKeys.me(),
@@ -47,6 +57,10 @@ export function useAuthBootstrap() {
   });
 
   useEffect(() => {
+    const meSettled = meQuery.status === "success" || meQuery.status === "error";
+    const organizationsSettled =
+      organizationsQuery.status === "success" || organizationsQuery.status === "error";
+
     if (!enabled) {
       setTokens(null);
       resetOrganizations();
@@ -59,20 +73,31 @@ export function useAuthBootstrap() {
     }
 
     if (organizationsQuery.isSuccess) {
+      clearOrganizationsLoadError();
       bootstrapOrganizations(organizationsQuery.data);
     }
 
-    if (meQuery.isError || organizationsQuery.isError) {
+    if (meQuery.isError) {
       resetOrganizations();
       logout();
+      return;
     }
 
-    if (
-      meQuery.status !== "pending" &&
-      organizationsQuery.status !== "pending" &&
-      (meQuery.isSuccess || meQuery.isError) &&
-      (organizationsQuery.isSuccess || organizationsQuery.isError)
-    ) {
+    if (organizationsQuery.isError) {
+      const status = (organizationsQuery.error as unknown as ApiError | undefined)?.status;
+
+      if (status === 401 || status === 403) {
+        resetOrganizations();
+        logout();
+        return;
+      }
+
+      setOrganizationsLoadError(
+        "Nao foi possivel carregar as organizacoes deste utilizador. Verifique staging, rede ou permissoes.",
+      );
+    }
+
+    if (meSettled && organizationsSettled) {
       markBootstrapped();
     }
   }, [
@@ -84,12 +109,14 @@ export function useAuthBootstrap() {
     meQuery.isSuccess,
     meQuery.status,
     organizationsQuery.data,
+    organizationsQuery.error,
     organizationsQuery.isError,
     organizationsQuery.isSuccess,
     organizationsQuery.status,
     bootstrapOrganizations,
-    bootstrapAuth,
+    clearOrganizationsLoadError,
     resetOrganizations,
+    setOrganizationsLoadError,
     setTokens,
     setUser,
   ]);

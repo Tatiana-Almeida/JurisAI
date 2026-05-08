@@ -9,12 +9,7 @@ type ModuleErrorStateProps = {
 export function ModuleErrorState({
   moduleName,
   title,
-  description = "O módulo não pôde ser carregado com os dados atuais do backend.",
+  description = "O modulo nao pode ser carregado com os dados atuais do backend.",
 }: ModuleErrorStateProps) {
-  return (
-    <ErrorState
-      title={title ?? `Falha no módulo ${moduleName}`}
-      description={description}
-    />
-  );
+  return <ErrorState title={title ?? `Falha no modulo ${moduleName}`} description={description} />;
 }

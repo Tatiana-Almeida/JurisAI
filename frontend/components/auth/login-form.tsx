@@ -12,9 +12,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { apiClient } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
-import { getDRFErrorMessage, mapDRFErrorsToForm } from "@/lib/errors/drf";
+import {
+  getDRFErrorMessage,
+  isDRFValidationError,
+  mapDRFErrorsToForm,
+} from "@/lib/errors/drf";
 import { loginSchema, type LoginInput } from "@/lib/validation/auth";
 import { useAuthStore } from "@/stores/auth-store";
+import type { ApiError } from "@/types/api";
 import type { User } from "@/types/auth";
 
 type LoginFormProps = {
@@ -35,6 +40,10 @@ export function LoginForm({ nextPath }: LoginFormProps) {
   });
 
   async function onSubmit(values: LoginInput) {
+    if (isSubmitting) {
+      return;
+    }
+
     setIsSubmitting(true);
     form.clearErrors();
 
@@ -60,16 +69,42 @@ export function LoginForm({ nextPath }: LoginFormProps) {
         tokens,
       });
 
-      toast.success("Sessão iniciada.", {
+      toast.success("Sessao iniciada.", {
         description:
-          "A autenticação usa localStorage nesta fase. Migrar para cookies httpOnly fica como hardening futuro.",
+          "Nesta fase, a autenticacao ainda usa localStorage. O hardening futuro deve migrar para cookies httpOnly.",
       });
 
       router.push(nextPath || "/dashboard");
     } catch (error) {
-      mapDRFErrorsToForm(error, form.setError);
-      toast.error("Não foi possível entrar.", {
-        description: getDRFErrorMessage(error),
+      const apiError = error as ApiError | undefined;
+
+      if (isDRFValidationError(error)) {
+        mapDRFErrorsToForm(error, form.setError);
+      }
+
+      if (!isDRFValidationError(error)) {
+        const message =
+          apiError?.status === 401
+            ? "Credenciais invalidas. Confirme email e password."
+            : apiError?.status === 403
+              ? "O utilizador autenticado nao tem permissao para entrar neste ambiente."
+              : apiError?.status === 500
+                ? "O backend respondeu com erro interno. Tente novamente em instantes."
+                : apiError?.status === 0
+                  ? "Nao foi possivel contactar a API configurada. Confirme staging, rede e CORS."
+                  : getDRFErrorMessage(error);
+
+        form.setError("root", {
+          type: "server",
+          message,
+        });
+      }
+
+      toast.error("Nao foi possivel entrar.", {
+        description:
+          form.getValues("email").trim().length === 0 && form.getValues("password").length === 0
+            ? "Preencha email e password antes de submeter."
+            : getDRFErrorMessage(error),
       });
     } finally {
       setIsSubmitting(false);
@@ -83,7 +118,8 @@ export function LoginForm({ nextPath }: LoginFormProps) {
         <div className="space-y-1">
           <CardTitle className="text-2xl">Entrar no JurisAI</CardTitle>
           <p className="text-sm leading-6 text-muted-foreground">
-            Foundation de autenticação com JWT, React Hook Form e mapeamento de erros DRF.
+            Autenticacao JWT com validacao local, mapeamento de erros DRF e protecao de
+            tenant no frontend.
           </p>
         </div>
       </CardHeader>
@@ -91,7 +127,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" {...form.register("email")} />
+            <Input id="email" type="email" autoComplete="email" {...form.register("email")} />
             {form.formState.errors.email ? (
               <p className="text-sm text-destructive">{form.formState.errors.email.message}</p>
             ) : null}
@@ -99,7 +135,12 @@ export function LoginForm({ nextPath }: LoginFormProps) {
 
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" {...form.register("password")} />
+            <Input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              {...form.register("password")}
+            />
             {form.formState.errors.password ? (
               <p className="text-sm text-destructive">
                 {form.formState.errors.password.message}
