@@ -688,3 +688,4 @@ Resumo:
 - Confirmed public frontend pages and protected-route smoke against the staging URL.
 - Recorded that authenticated browser validation remains blocked until Render CORS and CSRF are updated for the frontend origin.
 - Confirmed no backend code change is required for comma-separated CORS and CSRF origins; the remaining blocker is Render environment configuration.
+- Revalidated runtime CORS and confirmed the browser fetch still fails until the Render backend returns `Access-Control-Allow-Origin` for the Vercel frontend origin.

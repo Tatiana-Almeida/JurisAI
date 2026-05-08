@@ -91,6 +91,7 @@ Notas operacionais:
 - Depois de existir uma URL publica do frontend, o backend de staging deve incluir essa origem em `CORS_ALLOWED_ORIGINS` e `CSRF_TRUSTED_ORIGINS`.
 - Nesta sessao, o frontend publico foi publicado com sucesso no Vercel, mas o backend Render ainda nao aceitava a origem `https://frontend-phi-five-90.vercel.app` para o fluxo de login em browser.
 - O backend ja suporta multiplas origens por CSV nas env vars; o bloqueio restante e atualizar o ambiente do Render e forcar redeploy.
+- A revalidacao mais recente ainda nao encontrou `Access-Control-Allow-Origin` no preflight de `/api/v1/auth/token/`, portanto o login real em browser continua bloqueado.
 - Esta fase continua a ser validacao tecnica de staging, nao uma release de producao.
 
 ## Build e testes

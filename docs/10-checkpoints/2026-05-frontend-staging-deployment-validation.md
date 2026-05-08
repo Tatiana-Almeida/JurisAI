@@ -19,7 +19,7 @@ Validar a preparacao do deploy publico do Frontend MVP em staging e a comunicaca
 - [CONFIRMADO_NO_CODIGO] O backend aceita `CORS_ALLOWED_ORIGINS` e `CSRF_TRUSTED_ORIGINS` por env vars
 - [CONFIRMADO_NO_CODIGO] `jurisai/settings.py` ja faz parsing de multiplas origens por virgula e remove espacos laterais
 - [CONFIRMADO_NO_CODIGO] O frontend foi publicado em Vercel com build bem-sucedido a partir de `frontend/`
-- [PRECISA_VALIDAR] A URL `https://frontend-phi-five-90.vercel.app` ainda precisa ser inserida em `CORS_ALLOWED_ORIGINS` e `CSRF_TRUSTED_ORIGINS` no Render
+- [PRECISA_VALIDAR] Em runtime, o backend Render ainda nao devolve os headers CORS esperados para `https://frontend-phi-five-90.vercel.app`, entao a configuracao operacional ainda nao esta efetivamente validada
 
 ## Validacoes
 
@@ -34,7 +34,11 @@ Validar a preparacao do deploy publico do Frontend MVP em staging e a comunicaca
 - [CONFIRMADO_NO_CODIGO] Login page publica do frontend: passed
 - [CONFIRMADO_NO_CODIGO] Dashboard protected publico: passed para redirecionamento ao login sem sessao
 - [CONFIRMADO_NO_CODIGO] E2E staging sem credenciais: passed contra `https://frontend-phi-five-90.vercel.app`
-- [PRECISA_VALIDAR] API communication browser -> backend: failed nesta sessao por CORS ainda nao ajustado no backend Render
+- [PRECISA_VALIDAR] API communication browser -> backend: failed nesta sessao; o browser continua a receber `TypeError: Failed to fetch`
+- [PRECISA_VALIDAR] Preflight `OPTIONS /api/v1/auth/token/`: failed; sem `Access-Control-Allow-Origin`
+- [PRECISA_VALIDAR] `POST /api/v1/auth/token/` com `Origin`: failed no criterio CORS; respondeu `400` DRF, mas sem `Access-Control-Allow-Origin`
+- [PRECISA_VALIDAR] Login invalido no browser: failed por bloqueio de rede/CORS antes da resposta DRF chegar ao frontend
+- [PRECISA_VALIDAR] Login valido: pending credentials
 - [PRECISA_VALIDAR] Clients flow: depende de deploy publico + credenciais de staging
 - [PRECISA_VALIDAR] Cases flow: depende de deploy publico + credenciais de staging
 - [PRECISA_VALIDAR] Documents flow: depende de deploy publico + credenciais de staging
@@ -50,6 +54,7 @@ Validar a preparacao do deploy publico do Frontend MVP em staging e a comunicaca
 - [CONFIRMADO_NO_CODIGO] Um `fetch` real em browser a partir do frontend publico para `POST /api/v1/auth/token/` falhou com `TypeError: Failed to fetch`, consistente com bloqueio de CORS
 - [CONFIRMADO_NO_CODIGO] O preflight `OPTIONS` para `POST /api/v1/auth/token/` respondeu sem `Access-Control-Allow-Origin`, reforcando que o backend ainda nao aceita a origem do frontend publicado
 - [PRECISA_VALIDAR] A atualizacao de `CORS_ALLOWED_ORIGINS` e `CSRF_TRUSTED_ORIGINS` no painel do Render nao foi executada nesta sessao porque nao ha acesso operacional ao ambiente Render a partir deste terminal
+- [PRECISA_VALIDAR] Mesmo apos o utilizador indicar que houve ajuste no painel Render, a revalidacao em runtime continua sem `Access-Control-Allow-Origin`, portanto o backend ainda nao esta efetivamente a aceitar a origem publica do frontend
 
 ## Limitacoes
 
@@ -65,5 +70,5 @@ Validar a preparacao do deploy publico do Frontend MVP em staging e a comunicaca
 
 - [CONFIRMADO_NO_CODIGO] O frontend esta tecnicamente preparado para staging e continua verde localmente em `main`
 - [CONFIRMADO_NO_CODIGO] O frontend staging publico foi publicado com sucesso em `https://frontend-phi-five-90.vercel.app`
-- [PRECISA_VALIDAR] A validacao ponta a ponta browser -> frontend -> backend continua bloqueada ate atualizar `CORS_ALLOWED_ORIGINS` e `CSRF_TRUSTED_ORIGINS` no Render com a origem `https://frontend-phi-five-90.vercel.app`
+- [PRECISA_VALIDAR] A validacao ponta a ponta browser -> frontend -> backend continua bloqueada ate o backend Render devolver `Access-Control-Allow-Origin: https://frontend-phi-five-90.vercel.app` em runtime
 - [PRECISA_VALIDAR] Esta fase nao deve ser marcada como release comercial nem como producao pronta
