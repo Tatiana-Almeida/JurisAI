@@ -664,3 +664,10 @@ Resumo:
 - Added PR description draft.
 - Documented residual risks before merge and before beta.
 - Confirmed backend and frontend validation status.
+
+## Frontend MVP PR final review
+
+- Completed final pre-PR review for `feature/frontend-mvp`.
+- Confirmed backend and frontend validation.
+- Documented residual risks before merge, beta and production.
+- Confirmed frontend remains a technical MVP and not a production-ready commercial release.
