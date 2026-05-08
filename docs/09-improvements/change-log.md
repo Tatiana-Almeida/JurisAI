@@ -603,3 +603,71 @@ Resumo:
 - Added billing readiness audit.
 - Added AI readiness audit.
 - Added Render staging hardening notes.
+- Started frontend MVP environment setup on separate branch.
+- Added Next.js frontend scaffold.
+- Installed frontend skills stack.
+- Added JurisAI frontend architecture foundation.
+
+## Frontend MVP initial build
+
+- Added initial JurisAI SaaS layout with sidebar, topbar, theming and brand logo.
+- Added JWT auth bootstrap, organization switching and tenant cache isolation.
+- Added Axios API client integration with refresh-token foundation.
+- Added dashboard, cases, clients, documents, OCR, Knowledge Base, deadlines, calendar, finance, billing, settings and client portal pages.
+- Added DRF form error mapping across login, client and case flows.
+- Added honest billing UI without pretending checkout is already active.
+
+## Frontend auth routing and staging integration hardening
+
+- Hardened frontend auth routing.
+- Added protected route foundation.
+- Added staging API environment documentation.
+- Improved tenant cache invalidation flow.
+- Improved dashboard staging awareness.
+
+## Frontend cases, clients and documents flows
+
+- Integrated initial clients, cases and documents frontend flows.
+- Added document upload foundation.
+- Added document-to-OCR frontend actions.
+- Improved multi-tenant states across legal data pages.
+
+## Frontend OCR and Knowledge Base flows
+
+- Integrated OCR frontend flows.
+- Added OCR settings and audit UI.
+- Added OCR page results UI.
+- Integrated Knowledge Base search and ask UI.
+- Added RAG sources display with confidence and scores.
+- Added OCR to Knowledge Base pipeline foundation.
+
+## Frontend operational modules flows
+
+- Integrated frontend deadlines flow with critical and overdue highlighting.
+- Integrated calendar events using the real backend contract.
+- Integrated finance summary, invoices and expenses with honest partial states.
+- Refined billing readiness UI without pretending checkout is active.
+- Refined settings and client portal foundation using real backend endpoints.
+- Removed build dependence on remote Google Fonts for more reliable frontend builds.
+
+## Frontend MVP polish and staging validation
+
+- Polished frontend MVP workflows for staging validation.
+- Improved login and organization UX.
+- Improved module empty and error states.
+- Improved billing and AI limitation messaging.
+
+## Frontend MVP PR readiness
+
+- Prepared Frontend MVP branch for Pull Request review.
+- Added PR readiness checkpoint.
+- Added PR description draft.
+- Documented residual risks before merge and before beta.
+- Confirmed backend and frontend validation status.
+
+## Frontend MVP PR final review
+
+- Completed final pre-PR review for `feature/frontend-mvp`.
+- Confirmed backend and frontend validation.
+- Documented residual risks before merge, beta and production.
+- Confirmed frontend remains a technical MVP and not a production-ready commercial release.

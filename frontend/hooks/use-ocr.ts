@@ -1,0 +1,15 @@
+export {
+  useApplyOCRResult as useApplyOCRResultToDocument,
+  useApplyOCRResult,
+  useOCRAuditLogs,
+  useOCRJobs,
+  useOCRPageResults,
+  useOCRPipelines,
+  useOCRResultPages,
+  useOCRResults,
+  useOCRSettings,
+  useRunAdvancedOCR,
+  useRunOCR,
+  useRunOCRToKnowledgeBasePipeline,
+  useUpdateOCRSettings,
+} from "@/hooks/use-jurisai-queries";

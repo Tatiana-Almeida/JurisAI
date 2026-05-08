@@ -6,6 +6,14 @@ It currently provides core legal operations, initial AI support, billing foundat
 
 Current milestone: `v1.0.0-rc.5` focuses on Render Public Staging Validation, confirming a real public HTTPS deployment for the web service while keeping worker, monitoring, scheduled backups, credential rotation and custom-domain work clearly marked as pending.
 
+## Frontend MVP
+
+- Branch: `feature/frontend-mvp`
+- Path: `frontend/`
+- Stack: Next.js, TypeScript, Tailwind, shadcn/ui, TanStack Query
+- Status: auth routing and staging integration hardening
+- Backend remains isolated on `main`
+
 ## Features
 
 ### Core legal management
@@ -57,11 +65,20 @@ Current status:
 
 Notes:
 
-- [CONFIRMADO_NO_CODIGO] There is no end-user frontend in this repository yet.
+- [CONFIRMADO_NO_CODIGO] The first functional frontend foundation now exists under `frontend/` on `feature/frontend-mvp`.
 - [CONFIRMADO_NO_CODIGO] Billing currently covers tenant-scoped records plus Stripe-style webhook ingestion, not a complete self-serve checkout and cancellation flow.
 - [CONFIRMADO_NO_CODIGO] AI endpoints exist, but the active provider path can still fall back to mock responses when `OPENAI_API_KEY` is not configured.
 - [CONFIRMADO_NO_CODIGO] RAG uses deterministic local embeddings via `local-hash-v1`, which validate the retrieval pipeline but do not provide rich semantic legal understanding.
 - [PRECISA_VALIDAR] Render staging still depends on provider-side confirmation for WhiteNoise static delivery, admin login after credential rotation, monitoring and scheduled backups.
+
+Frontend MVP status:
+
+- [CONFIRMADO_NO_CODIGO] Login, dashboard, cases, clients, documents, OCR, Knowledge Base, deadlines, calendar, finance, billing, settings and client portal now have initial React pages and shared layout.
+- [CONFIRMADO_NO_CODIGO] The frontend respects organization-scoped query keys and clears tenant cache when the active organization changes.
+- [CONFIRMADO_NO_CODIGO] Protected routes, auth bootstrap and organization bootstrap now exist in the frontend MVP foundation.
+- [CONFIRMADO_NO_CODIGO] Billing UI remains intentionally honest and does not expose a fake checkout flow.
+- [CONFIRMADO_NO_CODIGO] A staging environment example now targets `https://jurisai-web-wh9d.onrender.com` for frontend integration.
+- [PRECISA_VALIDAR] A production-grade browser flow still depends on authenticated staging data and final UX refinement.
 
 ## Implementation Status
 
