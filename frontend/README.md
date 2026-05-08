@@ -72,6 +72,10 @@ Opcao recomendada para esta fase:
 
 - Vercel com `Root Directory=frontend/` e framework `Next.js`
 
+URL publica atual de staging:
+
+- `https://frontend-phi-five-90.vercel.app`
+
 Variaveis publicas esperadas no deploy:
 
 - `NEXT_PUBLIC_API_URL=https://jurisai-web-wh9d.onrender.com`
@@ -85,6 +89,7 @@ Notas operacionais:
 
 - `NEXT_PUBLIC_*` em Next.js influencia o build e deve estar presente no ambiente de build do provider.
 - Depois de existir uma URL publica do frontend, o backend de staging deve incluir essa origem em `CORS_ALLOWED_ORIGINS` e `CSRF_TRUSTED_ORIGINS`.
+- Nesta sessao, o frontend publico foi publicado com sucesso no Vercel, mas o backend Render ainda nao aceitava a origem `https://frontend-phi-five-90.vercel.app` para o fluxo de login em browser.
 - Esta fase continua a ser validacao tecnica de staging, nao uma release de producao.
 
 ## Build e testes
@@ -100,7 +105,7 @@ npm run test:e2e
 Smoke opcional contra staging publicado:
 
 ```bash
-E2E_STAGING_BASE_URL=https://frontend-staging.example.com npm run test:e2e
+E2E_STAGING_BASE_URL=https://frontend-phi-five-90.vercel.app npm run test:e2e
 ```
 
 ## Arquitetura
@@ -250,6 +255,8 @@ E2E_STAGING_BASE_URL=https://frontend-staging.example.com npm run test:e2e
 - O login usa `localStorage` porque o backend atual nao opera com cookies `httpOnly`
 - O `middleware.ts` nao le `localStorage`; por isso usa apenas um cookie de sessao auxiliar para o redirecionamento inicial
 - O deploy publico do frontend depende de acesso ao provider escolhido e de variaveis `NEXT_PUBLIC_*` configuradas no momento do build
+- O frontend staging publico atual esta em `https://frontend-phi-five-90.vercel.app`
+- O login em browser continua dependente de atualizar `CORS_ALLOWED_ORIGINS` e `CSRF_TRUSTED_ORIGINS` no backend Render para essa origem
 - O modulo "Clientes" usa o endpoint real `/api/v1/users/` com filtro por papel `cliente`; o backend nao expoe um `/api/v1/clients/` dedicado
 - O modulo "Processos" usa o endpoint real `/api/v1/cases/`; o backend atual nao expoe `/api/v1/law-cases/`
 - Billing UI permanece honesta: sem checkout ativo enquanto o backend nao expuser esse fluxo real

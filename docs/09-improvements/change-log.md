@@ -684,4 +684,6 @@ Resumo:
 - Confirmed local backend and frontend validation remain green on `main`.
 - Added frontend staging smoke coverage driven by non-committed environment variables.
 - Documented frontend/backend staging integration requirements for `NEXT_PUBLIC_API_URL`, CORS and CSRF.
-- Recorded that public frontend publication and authenticated browser validation remain pending provider access and stable backend staging auth.
+- Published the frontend staging build on Vercel at `https://frontend-phi-five-90.vercel.app`.
+- Confirmed public frontend pages and protected-route smoke against the staging URL.
+- Recorded that authenticated browser validation remains blocked until Render CORS and CSRF are updated for the frontend origin.
