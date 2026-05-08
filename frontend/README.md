@@ -66,6 +66,27 @@ npm run dev
 
 Nao commite `.env.local` nem tokens de autenticacao.
 
+## Frontend staging deployment
+
+Opcao recomendada para esta fase:
+
+- Vercel com `Root Directory=frontend/` e framework `Next.js`
+
+Variaveis publicas esperadas no deploy:
+
+- `NEXT_PUBLIC_API_URL=https://jurisai-web-wh9d.onrender.com`
+- `NEXT_PUBLIC_APP_NAME=JurisAI`
+- `NEXT_PUBLIC_ENVIRONMENT=staging`
+- `NEXT_PUBLIC_ENABLE_MOCKS=false`
+- `NEXT_PUBLIC_ENABLE_BILLING_UI=false`
+- `NEXT_PUBLIC_ENABLE_AI_UI=true`
+
+Notas operacionais:
+
+- `NEXT_PUBLIC_*` em Next.js influencia o build e deve estar presente no ambiente de build do provider.
+- Depois de existir uma URL publica do frontend, o backend de staging deve incluir essa origem em `CORS_ALLOWED_ORIGINS` e `CSRF_TRUSTED_ORIGINS`.
+- Esta fase continua a ser validacao tecnica de staging, nao uma release de producao.
+
 ## Build e testes
 
 ```bash
@@ -74,6 +95,12 @@ npm run lint
 npm run test
 npm run build
 npm run test:e2e
+```
+
+Smoke opcional contra staging publicado:
+
+```bash
+E2E_STAGING_BASE_URL=https://frontend-staging.example.com npm run test:e2e
 ```
 
 ## Arquitetura
@@ -222,6 +249,7 @@ npm run test:e2e
 - O frontend MVP ainda nao representa a experiencia final de produto
 - O login usa `localStorage` porque o backend atual nao opera com cookies `httpOnly`
 - O `middleware.ts` nao le `localStorage`; por isso usa apenas um cookie de sessao auxiliar para o redirecionamento inicial
+- O deploy publico do frontend depende de acesso ao provider escolhido e de variaveis `NEXT_PUBLIC_*` configuradas no momento do build
 - O modulo "Clientes" usa o endpoint real `/api/v1/users/` com filtro por papel `cliente`; o backend nao expoe um `/api/v1/clients/` dedicado
 - O modulo "Processos" usa o endpoint real `/api/v1/cases/`; o backend atual nao expoe `/api/v1/law-cases/`
 - Billing UI permanece honesta: sem checkout ativo enquanto o backend nao expuser esse fluxo real
@@ -233,6 +261,7 @@ npm run test:e2e
 - `local-hash-v1` continua a ser uma fundacao tecnica de retrieval, nao um embedding semantico juridico completo
 - No Render Free, OCR e indexing podem continuar limitados se o worker Celery nao estiver ativo
 - No Render Free, o worker Celery continua um bloqueador para OCR/indexacao totalmente reais em background
+- O backend publico de staging ainda precisa manter `/admin/` e os fluxos autenticados saudaveis para validacao ponta a ponta do frontend
 - O build de producao foi ajustado para usar fontes locais/system-safe em vez de depender de `next/font/google`, evitando falhas de rede em CI e ambientes restritos
 - O logo foi integrado a partir do asset fornecido localmente ao workspace
 

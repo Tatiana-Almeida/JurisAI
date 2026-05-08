@@ -677,3 +677,11 @@ Resumo:
 - Merged Pull Request `#1` from `feature/frontend-mvp` into `main`.
 - Confirmed post-merge backend and frontend validation on `main`.
 - Recorded residual risks for auth hardening, worker/runtime dependencies and commercial readiness.
+
+## Frontend staging deployment validation
+
+- Prepared frontend staging deployment validation for the merged Frontend MVP.
+- Confirmed local backend and frontend validation remain green on `main`.
+- Added frontend staging smoke coverage driven by non-committed environment variables.
+- Documented frontend/backend staging integration requirements for `NEXT_PUBLIC_API_URL`, CORS and CSRF.
+- Recorded that public frontend publication and authenticated browser validation remain pending provider access and stable backend staging auth.

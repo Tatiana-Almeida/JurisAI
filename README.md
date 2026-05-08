@@ -79,6 +79,7 @@ Frontend MVP status:
 - [CONFIRMADO_NO_CODIGO] Billing UI remains intentionally honest and does not expose a fake checkout flow.
 - [CONFIRMADO_NO_CODIGO] A staging environment example now targets `https://jurisai-web-wh9d.onrender.com` for frontend integration.
 - [PRECISA_VALIDAR] A production-grade browser flow still depends on authenticated staging data and final UX refinement.
+- [PRECISA_VALIDAR] O frontend staging publicado ainda depende de acesso ao provider de deploy, URL publica dedicada e ajuste final de `CORS_ALLOWED_ORIGINS` / `CSRF_TRUSTED_ORIGINS` no backend.
 
 ## Implementation Status
 
