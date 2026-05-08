@@ -671,3 +671,9 @@ Resumo:
 - Confirmed backend and frontend validation.
 - Documented residual risks before merge, beta and production.
 - Confirmed frontend remains a technical MVP and not a production-ready commercial release.
+
+## Frontend MVP merged
+
+- Merged Pull Request `#1` from `feature/frontend-mvp` into `main`.
+- Confirmed post-merge backend and frontend validation on `main`.
+- Recorded residual risks for auth hardening, worker/runtime dependencies and commercial readiness.
