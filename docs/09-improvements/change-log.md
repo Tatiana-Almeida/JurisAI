@@ -656,3 +656,11 @@ Resumo:
 - Improved login and organization UX.
 - Improved module empty and error states.
 - Improved billing and AI limitation messaging.
+
+## Frontend MVP PR readiness
+
+- Prepared Frontend MVP branch for Pull Request review.
+- Added PR readiness checkpoint.
+- Added PR description draft.
+- Documented residual risks before merge and before beta.
+- Confirmed backend and frontend validation status.
