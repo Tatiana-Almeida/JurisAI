@@ -81,6 +81,7 @@ Frontend MVP status:
 - [PRECISA_VALIDAR] A production-grade browser flow still depends on authenticated staging data and final UX refinement.
 - [CONFIRMADO_NO_CODIGO] O frontend staging publico foi publicado em `https://frontend-phi-five-90.vercel.app`.
 - [PRECISA_VALIDAR] O login real em browser ainda depende de ajustar `CORS_ALLOWED_ORIGINS` / `CSRF_TRUSTED_ORIGINS` no backend Render para a origem do frontend publicado.
+- [CONFIRMADO_NO_CODIGO] O parser de `CORS_ALLOWED_ORIGINS` / `CSRF_TRUSTED_ORIGINS` no backend ja suporta multiplas origens separadas por virgula.
 
 ## Implementation Status
 

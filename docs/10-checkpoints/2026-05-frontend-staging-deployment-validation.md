@@ -17,6 +17,7 @@ Validar a preparacao do deploy publico do Frontend MVP em staging e a comunicaca
 - [CONFIRMADO_NO_CODIGO] `frontend/.env.staging.example` aponta para `https://jurisai-web-wh9d.onrender.com`
 - [CONFIRMADO_NO_CODIGO] `frontend/README.md` agora documenta deploy de staging, `NEXT_PUBLIC_API_URL` e a dependencia de env vars no build
 - [CONFIRMADO_NO_CODIGO] O backend aceita `CORS_ALLOWED_ORIGINS` e `CSRF_TRUSTED_ORIGINS` por env vars
+- [CONFIRMADO_NO_CODIGO] `jurisai/settings.py` ja faz parsing de multiplas origens por virgula e remove espacos laterais
 - [CONFIRMADO_NO_CODIGO] O frontend foi publicado em Vercel com build bem-sucedido a partir de `frontend/`
 - [PRECISA_VALIDAR] A URL `https://frontend-phi-five-90.vercel.app` ainda precisa ser inserida em `CORS_ALLOWED_ORIGINS` e `CSRF_TRUSTED_ORIGINS` no Render
 
@@ -48,6 +49,7 @@ Validar a preparacao do deploy publico do Frontend MVP em staging e a comunicaca
 - [CONFIRMADO_NO_CODIGO] `GET /admin/` no backend staging voltou a responder `302` para `/admin/login/?next=/admin/`, em vez de `500`, nesta sessao
 - [CONFIRMADO_NO_CODIGO] Um `fetch` real em browser a partir do frontend publico para `POST /api/v1/auth/token/` falhou com `TypeError: Failed to fetch`, consistente com bloqueio de CORS
 - [CONFIRMADO_NO_CODIGO] O preflight `OPTIONS` para `POST /api/v1/auth/token/` respondeu sem `Access-Control-Allow-Origin`, reforcando que o backend ainda nao aceita a origem do frontend publicado
+- [PRECISA_VALIDAR] A atualizacao de `CORS_ALLOWED_ORIGINS` e `CSRF_TRUSTED_ORIGINS` no painel do Render nao foi executada nesta sessao porque nao ha acesso operacional ao ambiente Render a partir deste terminal
 
 ## Limitacoes
 

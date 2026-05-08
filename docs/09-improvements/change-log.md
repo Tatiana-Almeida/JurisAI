@@ -687,3 +687,4 @@ Resumo:
 - Published the frontend staging build on Vercel at `https://frontend-phi-five-90.vercel.app`.
 - Confirmed public frontend pages and protected-route smoke against the staging URL.
 - Recorded that authenticated browser validation remains blocked until Render CORS and CSRF are updated for the frontend origin.
+- Confirmed no backend code change is required for comma-separated CORS and CSRF origins; the remaining blocker is Render environment configuration.
